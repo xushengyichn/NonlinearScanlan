@@ -1,24 +1,22 @@
 % This is a function 
-function out=test_f(Fre, Mass, Zeta0, rho, D, U, Y1k, epsilonk, Y2k, Clk, t, P, u0, udot0)
+function out=NonlinearScanlan(Fre, Mass, Zeta0, rho, D, U, Y1k, epsilonk, Y2k, ClK, t, P, u0, udot0)
 
 
 % Nonlinear Newmark's Direct Integration Method with Nonlinear Scanlan
-% empirial noninear model
-%--------------------------------------------------------------------------
-% OUTPUT
-% u =       Displacemente Response   [n,1]
+% empirial noninear
+% model++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 % (n = number of time steps)
 % (ndof = number degrees of freedom)
 
 % INPUT
 % Fre      = Frequency of the system         =>[1]
 % Mass     = Mass of the system              =>[1]
-% Zeta0    = damping ratio of the system     =>[1]
-% rho      = damping ratio of the system     =>[1]
-% D        = reference length                =>[1]
-% U      = Wind speed at a certain reduced frequency       =>[1]
+% Zeta0    = Damping ratio of the system     =>[1]
+% rho      = Air density                     =>[1]
+% D        = Reference length                =>[1]
+% U        = Wind speed at a certain reduced frequency       =>[1]
 % Y1k      = Y1 at a certain reduced frequency       =>[1]
-% epsilonk = epsilon at a certain reduced frequency       =>[1]
+% epsilonk = Epsilon at a certain reduced frequency       =>[1]
 % Y2k      = Y2 at a certain reduced frequency       =>[1]
 % Clk      = Cl at a certain reduced frequency       =>[1]
 % t        = Time vector         =>[1,n]
@@ -46,8 +44,7 @@ rho_reference = [1.19;1.19;1.22;1.22;1.22;1.22;1.21;1.22;1.22];
 Sc_reference = [1.9;3.3;6.0;8.7;13.0;21.7;38.7;54.4;78.1];
 DynamicParameters = table(Fre_reference,Mass_reference,Zeta0_reference,rho_reference,Sc_reference);
 
-% reference length
-D = 75/1000; 
+
 
 % aerodynamic parameters
 Y1k_reference=[4.4557;5.0669;7.5116;8.2756;11.2552;17.5198;29.3616;41.0787;56.5112]/63.2728*60;
@@ -67,104 +64,112 @@ PlotParameters = table(Sc_plot,Amplitude_plot);
 gamma = 1/2; % Factor in the Newmark algorithm 
 beta = 1/4; % Factor in the Newmark algorithm
 
-datanum=1;
+casenum=1;
+%% Scanlan nonlinear model parameters
 if ~exist('Fre', 'var')
-    Fre = DynamicParameters.Fre_reference(datanum);
-    disp("Frequency of the system is using the default parameter: "+num2str(DynamicParameters.Fre_reference(datanum)))
+    Fre = DynamicParameters.Fre_reference(casenum);
+    disp("Frequency of the system is using the default parameter: "+num2str(Fre))
 end
 if ~exist('Mass', 'var')
-    Fre = DynamicParameters.Mass_reference(datanum);
-    disp("Mass of the system is using the default parameter: "+num2str(DynamicParameters.Mass`_reference(datanum)))
+    Mass = DynamicParameters.Mass_reference(casenum);
+    disp("Mass of the system is using the default parameter: "+num2str(Mass))
 end
-if ~exist('Fre', 'var')
-    Fre = DynamicParameters.Fre_reference(datanum);
-    disp("Frequency of the system is using the default parameter: "+num2str(DynamicParameters.Fre_reference(datanum)))
+if ~exist('Zeta0', 'var')
+    Zeta0 = DynamicParameters.Zeta0_reference(casenum);
+    disp("Damping ratio of the system is using the default parameter: "+num2str(Zeta0))
 end
-if ~exist('Fre', 'var')
-    Fre = DynamicParameters.Fre_reference(datanum);
-    disp("Frequency of the system is using the default parameter: "+num2str(DynamicParameters.Fre_reference(datanum)))
+if ~exist('rho', 'var')
+    rho = DynamicParameters.rho_reference(casenum);
+    disp("Air density is using the default parameter: "+num2str(rho))
 end
-if ~exist('Fre', 'var')
-    Fre = DynamicParameters.Fre_reference(datanum);
-    disp("Frequency of the system is using the default parameter: "+num2str(DynamicParameters.Fre_reference(datanum)))
+if ~exist('D', 'var')
+    % reference length
+    D = 75/1000; 
+    disp("Reference length is using the default parameter: "+num2str(D))
 end
-if ~exist('Fre', 'var')
-    Fre = DynamicParameters.Fre_reference(datanum);
-    disp("Frequency of the system is using the default parameter: "+num2str(DynamicParameters.Fre_reference(datanum)))
-end
-if ~exist('Fre', 'var')
-    Fre = DynamicParameters.Fre_reference(datanum);
-    disp("Frequency of the system is using the default parameter: "+num2str(DynamicParameters.Fre_reference(datanum)))
-end
-if ~exist('Fre', 'var')
-    Fre = DynamicParameters.Fre_reference(datanum);
-    disp("Frequency of the system is using the default parameter: "+num2str(DynamicParameters.Fre_reference(datanum)))
-end
-if ~exist('Fre', 'var')
-    Fre = DynamicParameters.Fre_reference(datanum);
-    disp("Frequency of the system is using the default parameter: "+num2str(DynamicParameters.Fre_reference(datanum)))
-end
-if ~exist('Fre', 'var')
-    Fre = DynamicParameters.Fre_reference(datanum);
-    disp("Frequency of the system is using the default parameter: "+num2str(DynamicParameters.Fre_reference(datanum)))
-end
-if ~exist('Fre', 'var')
-    Fre = DynamicParameters.Fre_reference(datanum);
-    disp("Frequency of the system is using the default parameter: "+num2str(DynamicParameters.Fre_reference(datanum)))
-end
-if ~exist('Fre', 'var')
-    Fre = DynamicParameters.Fre_reference(datanum);
-    disp("Frequency of the system is using the default parameter: "+num2str(DynamicParameters.Fre_reference(datanum)))
-end
-if ~exist('Fre', 'var')
-    Fre = DynamicParameters.Fre_reference(datanum);
-    disp("Frequency of the system is using the default parameter: "+num2str(DynamicParameters.Fre_reference(datanum)))
-end
-if ~exist('Fre', 'var')
-    Fre = DynamicParameters.Fre_reference(datanum);
-    disp("Frequency of the system is using the default parameter: "+num2str(DynamicParameters.Fre_reference(datanum)))
-end
-
-
-    U_n0D=9.5;
-    U=DynamicParameters.Fre(datanum)*D*U_n0D;
-    %% Scanlan nonlinear model parameters
-    rho=DynamicParameters.rho(datanum);
+if ~exist('U', 'var')
+%     U_n0D=9.5;
+    % U=DynamicParameters.Fre(casenum)*D*U_n0D;
     U=20.92*4.185*55/1000;
-    D=D;
-    Y1=AerodynamicParameters.Y1k(datanum);
-    epsilon=AerodynamicParameters.epsilonk(datanum);
-    Y2=AerodynamicParameters.Y2k(datanum);
+    disp("Wind speed at a certain reduced frequency is using the default parameter: "+num2str(U))
+end
+if ~exist('Y1k', 'var')
+    Y1k = AerodynamicParameters.Y1k_reference(casenum);
+    disp("Y1 at a certain reduced frequency is using the default parameter: "+num2str(Y1k))
+end
+if ~exist('epsilonk', 'var')
+    epsilonk = AerodynamicParameters.epsilonk_reference(casenum);
+    disp("Epsilon at a certain reduced frequency is using the default parameter: "+num2str(epsilonk))
+end
+if ~exist('Y2k', 'var')
+    Y2k = AerodynamicParameters.Y2k_reference(casenum);
+    disp("Y2 at a certain reduced frequency is using the default parameter: "+num2str(Y2k))
+end
+if ~exist('Clk', 'var')
+    ClK = AerodynamicParameters.ClK_reference(casenum);
+    disp("Cl at a certain reduced frequency is using the default parameter: "+num2str(ClK))
+end
+if ~exist('t', 'var')
+    h=0.001;
+    T=10;
+    t=0:h:T;
+    disp("Calcute length of time is : "+num2str(T)+" seconds by default value. dt is"+num2str(h))
+else
+    h=t(2)-t(1);
+    T=t(end);
+    disp("Calcute length of time is : "+num2str(T)+" seconds. dt is "+num2str(h))
+end
+if ~exist('P', 'var')
+    P = zeros(1,length(t));
+    pp= P;
+    disp("Ignore the P by default.")
+else
+    pp = P;
+end
+matrixsize=1; %calculate one degree of freedom 
+if ~exist('u0', 'var')
+    u0=zeros(matrixsize,1);
+    u0(1)=0.05;
+    disp("u0 is set to "+num2str(u0)+" by default")
+end
+if ~exist('udot0', 'var')
+    udot0 = zeros(matrixsize,1);
+    udot0(1)=0;
+    disp("udot0 is set to "+num2str(udot0)+" by default")
+end
 
-    MM=DynamicParameters.Mass(datanum);
-    CC=DynamicParameters.Zeta0(datanum)*4*pi*MM*DynamicParameters.Fre(datanum);
-    KK=4*pi^2*MM*DynamicParameters.Fre(datanum)^2;
+
+
+
+    
+    Y1=Y1k;
+    epsilon=epsilonk;
+    Y2=Y2k;
+
+    MM=Mass;
+    CC=Zeta0*4*pi*MM*Fre;
+    KK=4*pi^2*MM*Fre^2;
     
     
     
     
     %% Calculate the response
-    h=0.001;
-    T=10;
-    t=0:h:T;
-    P0=0;
 
-    matrixsize=1;
+
+
     nModes=1;
-    nbeta=0.25;
-    ngam=0.5;
-    u0=zeros(matrixsize,1);
-    u0(1)=0.05;
-    udot0=zeros(matrixsize,1);
-    udot0(1)=0;
-    pp=zeros(1,length(t));
+
+
+
+
     gfun = @(u,udot) Scanlan_nonlinear(u,udot,MM,CC,KK,gamma,beta,h,rho,U,D,Y1,epsilon,Y2,matrixsize,nModes);
     u = nonlinear_newmark_krenk(gfun,MM,pp,u0,udot0,gamma,beta,h);
     
     u_nounit=u/D;
     s=t*U/D;
-    figure
-    plot(s,u_nounit)
+    out = [s;u_nounit];
+%     figure
+%     plot(s,u_nounit)
 
 %     figure
 %     [psd_avg, f, psd_plot] = fft_transfer(1/h,u_nounit');
@@ -225,4 +230,4 @@ end
         kspring= KK+2.*rho.*U.*D.*Y1.*epsilon./D^2*u_udot;
         ks = kspring + gamma.*h./(beta.*h.^2).*kc + 1./(beta.*h.^2).*MM; % Linearization
     end
-% end
+end
