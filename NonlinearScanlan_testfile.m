@@ -29,7 +29,7 @@ Y1k_reference=[4.4557;5.0669;7.5116;8.2756;11.2552;17.5198;29.3616;41.0787;56.51
 epsilonk_reference=[3.9198;4.0841;5.0597;4.8468;6.3544;9.5138;18.4515;35.5879;56.5112]/63.1228*12000;
 Y2k_reference=[0;0;0;0;0;0;0;0;0];
 ClK_reference=[0;0;0;0;0;0;0;0;0];
-U_n0D_reference=[8.14314388632340;8.33081646873124;8.51366475455395;8.53309627387713;8.90889190943955;9.23010378861333;9.21413703087144;9.60967476438109;9.59501147074820];
+U_n0D_reference=[9.59501147074820;9.60967476438109;9.21413703087144;9.23010378861333;8.90889190943955;8.53309627387713;8.51366475455395;8.33081646873124;8.14314388632340];
 AerodynamicParameters = table(Y1k_reference,epsilonk_reference,Y2k_reference,ClK_reference,U_n0D_reference);
 
 collectdata=[];
@@ -41,7 +41,7 @@ Zeta0=DynamicParameters.Zeta0_reference(casenum);
 rho=DynamicParameters.rho_reference(casenum);
 D=75/1000;
 U_n0D=AerodynamicParameters.U_n0D_reference(casenum);
-U_n0D=mean(U_n0D_reference);
+% U_n0D=mean(U_n0D_reference);
 U=Fre*D*U_n0D;
 % U=20.92*4.185*55/1000;
 Y1k=AerodynamicParameters.Y1k_reference(casenum);
@@ -71,9 +71,11 @@ betacollectdata(k1)=sqrt(4/epsilonk*(1-Sc*2*pi*Fre*D/U*B/2/pi/Y1k/D));
 end
 figure
 scatter(PlotParameters.Sc_plot,PlotParameters.Amplitude_plot,'blue','LineWidth',2)
-xlim([0 120])
-ylim([0 0.08])
+xlim([0 80])
+ylim([0 0.07])
 hold on
 scatter(collectdata(:,1),collectdata(:,2),'red','LineWidth',2)
 scatter(collectdata(:,1),betacollectdata,'green','LineWidth',2)
-legend('experiment', 'Newmark beta method', 'theory method');
+legend('Experiment', 'Newmark beta method', 'Theory method');
+xlabel("$Sc$",'interpreter','latex')
+ylabel("$\sqrt(2)*y'/D$",'interpreter','latex')
