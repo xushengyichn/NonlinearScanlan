@@ -48,7 +48,7 @@ Freq = omeg/(2*pi);
 % save mode_vec.mat mode_vec
 
 %% Calculate the damping matrix of the beam
-xi=0.003;
+% xi=0.003;
 % If set alpha=0
 alpha=0;
 % beta=2*xi./omeg;
@@ -59,8 +59,8 @@ alpha=0;
 % end
 
 % beta=2*xi./omeg(1);
-beta=0.013699749746335;
-
+% beta=0.013699749746335;
+beta=0;
 C=zeros(calmodes,size(M,1),size(M,2));
 for t1=1:calmodes
     C(t1,:,:)=alpha.*M+beta.*K;
@@ -186,7 +186,7 @@ calmodes=20;
 [nfdof,nfdof]=size(eig_vec);
 for j=1:nfdof
     mnorm=sqrt(eig_vec(:,j)'*MM*eig_vec(:,j));
-    disp(mnorm)
+%     disp(mnorm)
     eig_vec(:,j)=eig_vec(:,j)/mnorm;%振型质量归一化
 end
 [omeg,w_order] =sort(sqrt(diag(eig_val)));
@@ -280,8 +280,8 @@ points=101;
 % P_eachpoint=P_eachpoint1+P_eachpoint2;
 fangdaxishu=10;
 fangdaxishu2=10;
-zhenxing1=0.99950656036565;
-zhenxing2=0.92977648588731;
+zhenxing1=0.99950656036586;
+zhenxing2=-0.92977648588903;
 PI=3.14159265359;
 FRE=0.069704171453635;	
 FRE2=0.278900577315756;
@@ -291,9 +291,9 @@ dt=0.01;
 % !计算时间（秒）
 T=300;
 NNT=T/dt;
-t=1:dt:T;
+t=0:dt:T;
 P1=fangdaxishu*zhenxing1*sin(THETA*t);
-P2=fangdaxishu2*zhenxing2*sin(THETA2*t)*10;
+P2=fangdaxishu2*zhenxing2*sin(THETA2*t)*0;
 P_eachpoint=zeros(points,length(t));
 P_eachpoint(50,:)=P1;
 P_eachpoint(20,:)=P2;
@@ -324,20 +324,23 @@ udot0=zeros(matrixsize,1);
 % plot(t,u(end-1,:),'b')
 % xlabel('Time [s]'); ylabel('displacement of TMD'); 
 
-close all
+% close all
 pointnumber=50;%查看某个点的振动时程
 phiResult=phiY(pointnumber,KMmapping,mode_vec3,nModes);
 Dis=zeros(1,length(t));
 for t1=1:nModes
     Dis=Dis+phiResult(t1).*u(t1,:);
 end
-figure()
+% figure()
 plot(t,Dis,'b')
 xlabel('Time [s]'); ylabel("displacement of point:"+num2str(pointnumber)); 
 title("comparison of the displacement of midpoint calculated by matlab and ANSYS")
 hold on
+dataANSYS=readmatrix("T_DIS50.txt");
+dataANSYS=dataANSYS(2:end,:);
+plot(dataANSYS(:,1),dataANSYS(:,2),'r')
 
-% close all
+close all
 pointnumber=20;%查看某个点的振动时程
 phiResult=phiY(pointnumber,KMmapping,mode_vec3,nModes);
 Dis=zeros(1,length(t));
@@ -349,7 +352,11 @@ plot(t,Dis,'b')
 xlabel('Time [s]'); ylabel("displacement of point:"+num2str(pointnumber)); 
 title("comparison of the displacement of midpoint calculated by matlab and ANSYS")
 hold on
+dataANSYS=readmatrix("T_DIS20.txt");
+dataANSYS=dataANSYS(2:end,:);
+plot(dataANSYS(:,1),dataANSYS(:,2),'r')
 
+close all
 
 pointnumber=10001;%查看某个点的振动时程
 
@@ -358,7 +365,10 @@ plot(t,u(end-1,:),'b')
 xlabel('Time [s]'); ylabel("displacement of point:"+num2str(pointnumber)); 
 title("comparison of the displacement of TMD1")
 hold on
-
+dataANSYS=readmatrix("TMD1_DIS.txt");
+dataANSYS=dataANSYS(2:end,:);
+plot(dataANSYS(:,1),dataANSYS(:,2),'r')
+close all
 
 pointnumber=10002;%查看某个点的振动时程
 figure()
@@ -366,50 +376,16 @@ plot(t,u(end,:),'b')
 xlabel('Time [s]'); ylabel("displacement of point:"+num2str(pointnumber)); 
 title("comparison of the displacement of TMD2")
 hold on
+dataANSYS=readmatrix("TMD2_DIS.txt");
+dataANSYS=dataANSYS(2:end,:);
+plot(dataANSYS(:,1),dataANSYS(:,2),'r')
 
-[psd_avg, f, psd_plot] = fft_transfer(1/dt,u(end,:)');
-figure
-plot(f,psd_plot)
-% % xlim([0 500])
-% dataANSYS_TMD=readmatrix("T_DIS_2modes_nodamping.txt");
-% % dataANSYS_TMD=readmatrix("T_DIS.txt");
-% dataANSYS_TMD=dataANSYS_TMD(2:end,:);
-% plot(dataANSYS_TMD(:,1),dataANSYS_TMD(:,2),'r')
-% legend("matlab","ANSYS")
-
-% figure()
-% plot(t,u(end-1,:),'b')
-% xlabel('Time [s]'); ylabel('displacement of TMD'); 
-% title("comparison of the displacement of TMD calculated by matlab and ANSYS")
-% hold on
-% 
-% dataANSYS_TMD1=readmatrix("TMD_DIS_NODamping.txt");
-% dataANSYS_TMD1=dataANSYS_TMD1(2:end,:);
-% plot(dataANSYS_TMD1(:,1),dataANSYS_TMD1(:,2),'r')
-% legend("matlab","ANSYS")
-
-%% Compare with ANSYS
-% dataANSYS=readmatrix("T_DIS.txt");
-% dataANSYS=dataANSYS(2:end,:);
-% plot(dataANSYS(:,1),dataANSYS(:,2),'r')
+close all
 
 
 
-%% mass ratio
-% 
-% phiTMD2=phiTMD.^2;
-% massratio=mTMD'.*phiTMD2;
-% disp(massratio*100)
-% 
-% seq=u(1,:)';
-% [psd_avg, f, psd_plot] = fft_transfer(1/dt,seq);
-% 
-% 
-% %Plot the spectra
-% figure(); hold on; grid on;
-% plot(f,psd_plot,'b');
-% xlabel('Frequency [Hz]'); ylabel('Spectral density [m^2/Hz]'); legend({'S'}); 
-% xlim([0.06 0.1])
+
+
 
 
 
@@ -431,16 +407,16 @@ function result=phiY(node,Mmapping,mode_vec,nModes)
     result=mode_vec(position_index,1:nModes);
 end
 
-function result=P_mode_eachpoint(Pmode,Mmapping,P0,points,omeg,t,mode_vec)
-    for t1=1:points
-        if sum(and(Mmapping.Node==t1,Mmapping.DOF=='UY'))==0
-            result(t1,:)=0*P0*sin(omeg(Pmode)*t);
-        else
-            position_index=Mmapping.MatrixEqn(find(and(Mmapping.Node==t1,Mmapping.DOF=='UY')));
-            result(t1,:)=mode_vec(position_index,Pmode)*P0*sin(omeg(Pmode)*t);
-        end
-    end
-end
+% function result=P_mode_eachpoint(Pmode,Mmapping,P0,points,omeg,t,mode_vec)
+%     for t1=1:points
+%         if sum(and(Mmapping.Node==t1,Mmapping.DOF=='UY'))==0
+%             result(t1,:)=0*P0*sin(omeg(Pmode)*t);
+%         else
+%             position_index=Mmapping.MatrixEqn(find(and(Mmapping.Node==t1,Mmapping.DOF=='UY')));
+%             result(t1,:)=mode_vec(position_index,Pmode)*P0*sin(omeg(Pmode)*t);
+%         end
+%     end
+% end
 
 function result=Peq(Pmode,mode_vec,Mmapping,P_eachpoint,points,t)
     result=zeros(1,size(t,2));
@@ -453,68 +429,3 @@ function result=Peq(Pmode,mode_vec,Mmapping,P_eachpoint,points,t)
         end
     end
 end
-
-% %% 每一阶单个TMD的最佳安装位置，及质量比计算
-% clc
-% clear
-% load mode_vec
-% load Stiffmatrix
-% KMmapping = importmappingmatrix('KMatrix.mapping');
-% % 感兴趣的模态（前9阶竖弯模态）
-% modes=[2 3 6 9 15 21 23 29 33];
-% % 导入桥面节点
-% nodeondeck=importdata("NODEONDECK.txt");
-% % 从前50阶提取感兴趣模态的向量
-% mode_sel=mode_vec(:,modes);
-% flag_sel=ones(size(mode_sel,1),size(mode_sel,2));
-% deckdata_x=[];
-% 
-% % 提取桥面振型
-% for k2=1:length(modes)
-%     disp(strcat("正在提取第",num2str(k2),"桥面竖弯振型"))
-%     for k1=1:length(nodeondeck)   
-%         deckdata_x(k1,1)=nodeondeck(k1);
-%         if sum(KMmapping((KMmapping.DOF=='UY'),:).Node==nodeondeck(k1)==1)==0
-%             disp(strcat(num2str(nodeondeck(k1)),"节点无竖向自由度"))
-%             deckdata_x(k1,k2+1)=0;
-%         else
-%             ydof_temp=KMmapping((KMmapping.DOF=='UY'),:);
-%             ydof_position_temp=find(KMmapping((KMmapping.DOF=='UY'),:).Node==nodeondeck(k1)==1);
-%             position_temp=ydof_temp(ydof_position_temp,1).MatrixEqn;
-%             vec_temp=mode_sel(position_temp,k2);
-%             flag_sel(position_temp,k2)=0;%0表示为桥面竖弯振型向量
-%             deckdata_x(k1,k2+1)=vec_temp;
-%         end
-%     end
-% end
-% 
-% % 创建标记
-% for k3=1:size(flag_sel,1)
-%     for k4=1:size(flag_sel,2)
-%         if flag_sel(k3,k4)==0
-%             mode_y_sel(k3,k4)=mode_sel(k3,k4);
-%         else
-%             mode_y_sel(k3,k4)=0;
-%         end
-%     end
-% end
-% 
-% for k5=1:length(modes)
-%     mode_m_deck(k5)=mode_y_sel(:,k5)'*M*mode_y_sel(:,k5);
-%     disp(strcat("第",num2str(k5),"阶桥面竖弯模态质量为",num2str(mode_m_deck(k5))))
-% end
-% 
-% for k6=1:length(modes)
-%     [zhenxing_max_value(k6),zhenxing_max_position(k6)]=max(abs(mode_y_sel(:,k6)));
-% end
-% 
-% m_tmd=147800;
-% for k7=1:length(modes)
-%     mode_m_tmd(k7)=m_tmd*zhenxing_max_value(k7)^2;
-%     massratio(k7)=mode_m_tmd(k7)/mode_m_deck(k7);
-%     disp(strcat("第",num2str(k7),"阶模态TMD的质量比为：",num2str(massratio(k7)*100),"%"))
-% end
-
-
-
-
