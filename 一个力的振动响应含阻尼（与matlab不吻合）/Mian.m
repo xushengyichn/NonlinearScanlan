@@ -203,8 +203,8 @@ clear t1
 
 
 %% 特征值分析
-clearvars -except KK MM CC 
-calmodes=202;%考虑模态
+clearvars -except KK MM CC matrixsize nModes nTMD
+calmodes=matrixsize;%考虑模态
 [eig_vec,eig_val]=eigs(KK,MM,calmodes,'SM');
 [nfdof,nfdof]=size(eig_vec);
 for k1=1:nfdof
@@ -261,7 +261,7 @@ C =diag(diag(Cmatrix_DP)/2)+Cmatrix_DP-diag(diag(Cmatrix_DP));
 C = C+C'+0.01*K2;
 
 % 特征值分析，即计算频率Freq和振型Phi，50代表求50阶，SM表示从较小的特征值开始求解
-calmodes=202;%考虑模态
+calmodes=matrixsize;%考虑模态
 [eig_vec,eig_val]=eigs(K,M,calmodes,'SM');
 [nfdof,nfdof]=size(eig_vec);
 for j=1:nfdof
@@ -272,16 +272,16 @@ end
 mode_vec3=eig_vec(:,w_order);
 Freq3 = omeg/(2*pi);
 
-nModes=200;%考虑模态
-nTMD=2;
+
+
 matrixsize=nTMD+nModes;
 KMmapping = importmappingmatrix('KMatrixTMD.mapping');
-phiTMD3=zeros(nTMD,nModes);
+phiTMD3=zeros(nTMD,matrixsize);
 nodeTMD3=[10001 10002];
 % phiTMD row:TMD for each loaction column:the mode shape at the each
 % location of tmd
 for t1=1:nTMD
-    for t2=1:nModes
+    for t2=1:matrixsize
         position_index=KMmapping.MatrixEqn(find(and(KMmapping.Node==nodeTMD3(t1),KMmapping.DOF=='UY')));
         phiTMD3(t1,t2)=mode_vec3(position_index,t2);
     end
@@ -291,8 +291,8 @@ clear t1 t2
 %调整ANSYS振型使之与matlab对应
 decidevalue2=zeros(size(phiTMD3,2),1);
 for t1=1:size(phiTMD3,2)
-    decidevalue=phiTMD3(1,t1)/mode_vec2(21,t1);
-    temp=abs(mode_vec2(201,t1))-abs(phiTMD3(1,t1));
+    decidevalue=phiTMD3(1,t1)/mode_vec2(end-1,t1);
+    temp=abs(mode_vec2(end-1,t1))-abs(phiTMD3(1,t1));
     if temp>10e-8
         disp("模态"+num2str(t1)+"的完全矩阵和缩减矩阵tmd振型差异过大"+num2str(temp))
     end
@@ -322,8 +322,8 @@ dt=0.01;
 T=100;
 NNT=T/dt;
 t=0:dt:T;
-P1=fangdaxishu*zhenxing1*sin(THETA*t)*0;
-P2=fangdaxishu2*zhenxing2*sin(THETA2*t)*0;
+P1=fangdaxishu*zhenxing1*sin(THETA*t);
+P2=fangdaxishu2*zhenxing2*sin(THETA2*t);
 P_eachpoint=zeros(points,length(t));
 P_eachpoint(50,:)=P1;
 P_eachpoint(20,:)=P2;
@@ -375,9 +375,11 @@ close all
 P_eachpoint=zeros(points,length(t));
 
 PP=zeros(matrixsize,length(t));
-PP(201,:)=P1+P2;
-u0(201)=0.1;
+PP(end-1,:)=P1+P2;
+u0(end-1)=0.1;
+tic
 [u1 udot u2dot] = NewmarkInt(t,MM,CC,KK,PP,ngam,nbeta,u0,udot0);
+toc
 u1(decidevalue2==1,:)=u1(decidevalue2==1,:)*-1;%使位移与振型相对应
 
 
@@ -385,10 +387,11 @@ u0=zeros(202,1);
 u0(101)=0.1;
 udot0=zeros(202,1);
 P = zeros(202,length(t));
-P(202,:) = P1+P2;
+P(101,:) = P1+P2;
+tic
 [u udot u2dot] = NewmarkInt(t,M,C,K,P,ngam,nbeta,u0,udot0);
-
-plot(t,u1(201,:),'r')
+toc
+plot(t,u1(end-1,:),'r')
 hold on
 plot(t(1:end*0.9),u(101,1:end*0.9),'b')
 
