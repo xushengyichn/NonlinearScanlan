@@ -30,10 +30,10 @@ K =diag(diag(Kmatrix)/2)+Kmatrix-diag(diag(Kmatrix));
 K = K+K';
 M =diag(diag(Mmatrix)/2)+Mmatrix-diag(diag(Mmatrix));
 M = M+M';
-C_exp =diag(diag(Cmatrix_DP)/2)+Cmatrix_DP-diag(diag(Cmatrix_DP));
-C_exp = C_exp+C_exp';
+C =diag(diag(Cmatrix_DP)/2)+Cmatrix_DP-diag(diag(Cmatrix_DP));
+C = C+C';
 % 特征值分析，即计算频率Freq和振型Phi，50代表求50阶，SM表示从较小的特征值开始求解
-calmodes=200;%考虑模态
+calmodes=20;
 [eig_vec,eig_val]=eigs(K,M,calmodes,'SM');
 [nfdof,nfdof]=size(eig_vec);
 for j=1:nfdof
@@ -61,11 +61,9 @@ alpha=0;
 % beta=2*xi./omeg(1);
 % beta=0.013699749746335;
 beta=0;
-% beta=10;
 C=zeros(calmodes,size(M,1),size(M,2));
 for t1=1:calmodes
-    % C(t1,:,:)=alpha.*M+beta.*K;
-    C(t1,:,:)=C_exp;
+    C(t1,:,:)=alpha.*M+beta.*K;
 end
 
 
@@ -81,7 +79,7 @@ nodeTMD=[50 20];   %Node number(location of the TMD)
 
 
 %% Number of modes considered
-nModes=200;%考虑模态
+nModes=20;
 matrixsize=nTMD+nModes;
 KMmapping = importmappingmatrix('KMatrix.mapping');
 
@@ -185,7 +183,7 @@ clear t1
 
 %% 特征值分析
 clearvars -except KK MM CC 
-calmodes=202;%考虑模态
+calmodes=20;
 [eig_vec,eig_val]=eigs(KK,MM,calmodes,'SM');
 [nfdof,nfdof]=size(eig_vec);
 for k1=1:nfdof
@@ -232,7 +230,7 @@ M = M+M';
 C =diag(diag(Cmatrix_DP)/2)+Cmatrix_DP-diag(diag(Cmatrix_DP));
 C = C+C';
 % 特征值分析，即计算频率Freq和振型Phi，50代表求50阶，SM表示从较小的特征值开始求解
-calmodes=202;%考虑模态
+calmodes=20;
 [eig_vec,eig_val]=eigs(K,M,calmodes,'SM');
 [nfdof,nfdof]=size(eig_vec);
 for j=1:nfdof
@@ -243,7 +241,7 @@ end
 mode_vec3=eig_vec(:,w_order);
 Freq3 = omeg/(2*pi);
 
-nModes=200;%考虑模态
+nModes=20;
 nTMD=2;
 matrixsize=nTMD+nModes;
 KMmapping = importmappingmatrix('KMatrixTMD.mapping');
@@ -263,9 +261,8 @@ clear t1 t2
 decidevalue2=zeros(size(phiTMD3,2),1);
 for t1=1:size(phiTMD3,2)
     decidevalue=phiTMD3(1,t1)/mode_vec2(21,t1);
-    temp=abs(mode_vec2(201,t1))-abs(phiTMD3(1,t1));
-    if temp>10e-8
-        disp("模态"+num2str(t1)+"的完全矩阵和缩减矩阵tmd振型差异过大"+num2str(temp))
+    if abs(mode_vec2(21,t1))-abs(phiTMD3(1,t1))>10e-5
+        disp("模态"+num2str(t1)+"的完全矩阵和缩减矩阵tmd振型差异过大")
     end
     if decidevalue<0
         % phiTMD3(:,t1)=phiTMD3(:,t1)*-1;
@@ -280,7 +277,7 @@ end
 %% Calculate the response
 points=101;
 fangdaxishu=10;
-fangdaxishu2=100;
+fangdaxishu2=10;
 zhenxing1=0.99950656036586;
 zhenxing2=-0.92977648588903;
 PI=3.14159265359;
@@ -290,11 +287,11 @@ THETA=2*PI*FRE;
 THETA2=2*PI*FRE2;
 dt=0.01;		
 % !计算时间（秒）
-T=100;
+T=300;
 NNT=T/dt;
 t=0:dt:T;
 P1=fangdaxishu*zhenxing1*sin(THETA*t);
-P2=fangdaxishu2*zhenxing2*sin(THETA2*t);
+P2=fangdaxishu2*zhenxing2*sin(THETA2*t)*0;
 P_eachpoint=zeros(points,length(t));
 P_eachpoint(50,:)=P1;
 P_eachpoint(20,:)=P2;
@@ -314,52 +311,39 @@ nbeta=0.25;
 ngam=0.5;
 u0=zeros(matrixsize,1);
 udot0=zeros(matrixsize,1);
-% [u1 udot u2dot] = NewmarkInt(t,MM,CC,KK,PP,ngam,nbeta,u0,udot0);
-% u1(decidevalue2==1,:)=u1(decidevalue2==1,:)*-1;%使位移与振型相对应
-% pointnumber=50;%查看某个点的振动时程
-% phiResult=phiY(pointnumber,KMmapping,mode_vec3,nModes);
-% Dis=zeros(1,length(t));
-% for t1=1:nModes
-%     Dis=Dis+phiResult(t1).*u1(t1,:);
-% end
-
-% u0=zeros(202,1);
-% udot0=zeros(202,1);
-% P = zeros(202,length(t));
-% P(141,:) = P2;
-% P(1,:) = P1;
-% % [u udot u2dot] = NewmarkInt(t,M,C,K,P,ngam,nbeta,u0,udot0);
-
-
-% % figure()
-% plot(t,Dis,'b')
-% xlabel('Time [s]'); ylabel("displacement of point:"+num2str(pointnumber)); 
-% title("comparison of the displacement of midpoint calculated by matlab and ANSYS")
-% hold on
-% plot(t,u(1,:),'r')
-% legend("缩减","完整")
-
-
-close all
-% 若只在tmd上作用荷载
-P_eachpoint=zeros(points,length(t));
-
-PP=zeros(matrixsize,length(t));
-PP(201,:)=P1+P2;
 [u1 udot u2dot] = NewmarkInt(t,MM,CC,KK,PP,ngam,nbeta,u0,udot0);
-u1(decidevalue2==1,:)=u1(decidevalue2==1,:)*-1;%使位移与振型相对应
+u1(decidevalue2==1,:)=u1(decidevalue2==1,:)
+for t1 = 1:length(decidevalue2)
+    if decidevalue2(t1)==1
+        u1(t1,:)=u1(t1,:)*-1;
+    end
 
+end
 
 u0=zeros(202,1);
 udot0=zeros(202,1);
 P = zeros(202,length(t));
-P(202,:) = P1+P2;
+P(141,:) = P2;
+P(1,:) = P1;
 [u udot u2dot] = NewmarkInt(t,M,C,K,P,ngam,nbeta,u0,udot0);
 
-plot(t,u1(201,:),'r')
-hold on
-plot(t(1:end/2),u(202,1:end/2),'b')
 
+
+
+pointnumber=50;%查看某个点的振动时程
+phiResult=phiY(pointnumber,KMmapping,mode_vec3,nModes);
+Dis=zeros(1,length(t));
+for t1=1:nModes
+    Dis=Dis+phiResult(t1).*u(t1,:);
+end
+% figure()
+plot(t,Dis,'b')
+xlabel('Time [s]'); ylabel("displacement of point:"+num2str(pointnumber)); 
+title("comparison of the displacement of midpoint calculated by matlab and ANSYS")
+hold on
+dataANSYS=readmatrix("T_DIS50.txt");
+dataANSYS=dataANSYS(2:end,:);
+plot(dataANSYS(:,1),dataANSYS(:,2),'r')
 
 % figure()
 % grid on;

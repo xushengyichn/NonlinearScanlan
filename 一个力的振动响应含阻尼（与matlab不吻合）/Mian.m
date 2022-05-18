@@ -32,6 +32,7 @@ M =diag(diag(Mmatrix)/2)+Mmatrix-diag(diag(Mmatrix));
 M = M+M';
 C_exp =diag(diag(Cmatrix_DP)/2)+Cmatrix_DP-diag(diag(Cmatrix_DP));
 C_exp = C_exp+C_exp';
+C_exp = 0.01*K;
 % 特征值分析，即计算频率Freq和振型Phi，50代表求50阶，SM表示从较小的特征值开始求解
 calmodes=200;%考虑模态
 [eig_vec,eig_val]=eigs(K,M,calmodes,'SM');
@@ -44,32 +45,14 @@ end
 mode_vec=eig_vec(:,w_order);
 Freq = omeg/(2*pi);
 
-% save StiffMatrix.mat K M;
-% save mode_vec.mat mode_vec
+% % save StiffMatrix.mat K M;
+% % save mode_vec.mat mode_vec
 
-%% Calculate the damping matrix of the beam
-% xi=0.003;
-% If set alpha=0
-alpha=0;
-% beta=2*xi./omeg;
-% 
-% C=zeros(calmodes,size(M,1),size(M,2));
-% for t1=1:calmodes
-%     C(t1,:,:)=alpha.*M+beta(t1).*K;
-% end
-
-% beta=2*xi./omeg(1);
-% beta=0.013699749746335;
-beta=0;
-% beta=10;
-C=zeros(calmodes,size(M,1),size(M,2));
-for t1=1:calmodes
-    % C(t1,:,:)=alpha.*M+beta.*K;
-    C(t1,:,:)=C_exp;
-end
+KMmapping = importmappingmatrix('KMatrix.mapping');
 
 
-clearvars -except M C K Freq omeg mode_vec
+
+clearvars -except M C K Freq omeg mode_vec C_exp
 
 %% TMD parameters
 nTMD=2;
@@ -112,14 +95,13 @@ clear t1
 CC=zeros(matrixsize,matrixsize);
 for t1=1:matrixsize
     if t1<=nModes
-        C_temp=Cmatrix(t1,C,M);
-        CC(t1,t1)=P_eq(t1,mode_vec,C_temp);
+        CC(t1,t1)=P_eq(t1,mode_vec,C_exp);%P=parameters
     end
     if and(t1>nModes,t1<=matrixsize)
         CC(t1,t1)=cTMD(t1-nModes);
     end
 end
-clear t1 
+clear t1
 
 
 for t1=1:nModes
@@ -143,6 +125,43 @@ for t1=1:nTMD
     end
 end
 clear t1
+
+
+% 
+% CC=zeros(matrixsize,matrixsize);
+% for t1=1:matrixsize
+%     if t1<=nModes
+%         C_temp=Cmatrix(t1,C,M);
+%         CC(t1,t1)=P_eq(t1,mode_vec,C_temp);
+%     end
+%     if and(t1>nModes,t1<=matrixsize)
+%         CC(t1,t1)=cTMD(t1-nModes);
+%     end
+% end
+% clear t1 
+% 
+% 
+% for t1=1:nModes
+%     for t2=1:nTMD
+%         for t3=1:nModes
+%             temp_data=cTMD(t2)*phiTMD(t2,t3)*phiTMD(t2,t1);
+%             CC(t1,t3)=CC(t1,t3)+temp_data;
+%             clear temp_data
+%         end
+%         indextmdt2=nModes+t2;
+%         CC(t1,indextmdt2)=CC(t1,indextmdt2)-cTMD(t2)*phiTMD(t2,t1);
+%     end
+% end
+% clear t1 t2 t3
+% 
+% for t1=1:nTMD
+%     for t2=1:nModes
+%         temp_data=-cTMD(t1)*phiTMD(t1,t2);
+%         CC(nModes+t1,t2)=CC(nModes+t1,t2)+temp_data;
+%         clear temp_data
+%     end
+% end
+% clear t1
 
 
 
@@ -201,8 +220,17 @@ Freq2 = omeg/(2*pi);
 %% 导入ansys增加TMD后的矩阵
 
 hb_to_mm ( 'KMatrixTMD.matrix', 'KTMD.txt' );
+hb_to_mm ( 'KMatrixTMDre.matrix', 'KTMD2.txt' );
 hb_to_mm ( 'MMatrixTMD.matrix', 'MTMD.txt' );
 hb_to_mm ( 'CMatrixTMD.matrix', 'CTMD.txt' );
+
+Kdata2 = importdata('KTMD2.txt').data;
+Kmatrix2 = zeros(Kdata2(1,1),Kdata2(1,2));
+for i = 2:size(Kdata2,1)
+    Kmatrix2(Kdata2(i,1),Kdata2(i,2)) = Kdata2(i,3);
+end
+K2 =diag(diag(Kmatrix2)/2)+Kmatrix2-diag(diag(Kmatrix2));
+K2 = K2+K2';
 
 %%map the node and matrix from the KMatrix.mapping and MMatrix.mapping 
 Kdata = importdata('KTMD.txt').data;
@@ -230,7 +258,8 @@ K = K+K';
 M =diag(diag(Mmatrix)/2)+Mmatrix-diag(diag(Mmatrix));
 M = M+M';
 C =diag(diag(Cmatrix_DP)/2)+Cmatrix_DP-diag(diag(Cmatrix_DP));
-C = C+C';
+C = C+C'+0.01*K2;
+
 % 特征值分析，即计算频率Freq和振型Phi，50代表求50阶，SM表示从较小的特征值开始求解
 calmodes=202;%考虑模态
 [eig_vec,eig_val]=eigs(K,M,calmodes,'SM');
@@ -293,8 +322,8 @@ dt=0.01;
 T=100;
 NNT=T/dt;
 t=0:dt:T;
-P1=fangdaxishu*zhenxing1*sin(THETA*t);
-P2=fangdaxishu2*zhenxing2*sin(THETA2*t);
+P1=fangdaxishu*zhenxing1*sin(THETA*t)*0;
+P2=fangdaxishu2*zhenxing2*sin(THETA2*t)*0;
 P_eachpoint=zeros(points,length(t));
 P_eachpoint(50,:)=P1;
 P_eachpoint(20,:)=P2;
@@ -313,6 +342,7 @@ end
 nbeta=0.25;
 ngam=0.5;
 u0=zeros(matrixsize,1);
+
 udot0=zeros(matrixsize,1);
 % [u1 udot u2dot] = NewmarkInt(t,MM,CC,KK,PP,ngam,nbeta,u0,udot0);
 % u1(decidevalue2==1,:)=u1(decidevalue2==1,:)*-1;%使位移与振型相对应
@@ -346,11 +376,13 @@ P_eachpoint=zeros(points,length(t));
 
 PP=zeros(matrixsize,length(t));
 PP(201,:)=P1+P2;
+u0(201)=0.1;
 [u1 udot u2dot] = NewmarkInt(t,MM,CC,KK,PP,ngam,nbeta,u0,udot0);
 u1(decidevalue2==1,:)=u1(decidevalue2==1,:)*-1;%使位移与振型相对应
 
 
 u0=zeros(202,1);
+u0(101)=0.1;
 udot0=zeros(202,1);
 P = zeros(202,length(t));
 P(202,:) = P1+P2;
@@ -358,7 +390,7 @@ P(202,:) = P1+P2;
 
 plot(t,u1(201,:),'r')
 hold on
-plot(t(1:end/2),u(202,1:end/2),'b')
+plot(t(1:end*0.9),u(101,1:end*0.9),'b')
 
 
 % figure()
