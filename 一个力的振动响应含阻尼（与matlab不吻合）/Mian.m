@@ -52,7 +52,7 @@ KMmapping = importmappingmatrix('KMatrix.mapping');
 
 
 
-clearvars -except M C K Freq omeg mode_vec C_exp
+clearvars -except M C K Freq omeg mode_vec C_exp KMmapping
 
 %% TMD parameters
 nTMD=2;
@@ -64,7 +64,7 @@ nodeTMD=[50 20];   %Node number(location of the TMD)
 
 
 %% Number of modes considered
-nModes=200;%考虑模态
+nModes=10;%考虑模态
 matrixsize=nTMD+nModes;
 KMmapping = importmappingmatrix('KMatrix.mapping');
 
@@ -203,7 +203,7 @@ clear t1
 
 
 %% 特征值分析
-clearvars -except KK MM CC matrixsize nModes nTMD
+clearvars -except KK MM CC matrixsize nModes nTMD mode_vec KMmapping
 calmodes=matrixsize;%考虑模态
 [eig_vec,eig_val]=eigs(KK,MM,calmodes,'SM');
 [nfdof,nfdof]=size(eig_vec);
@@ -275,30 +275,35 @@ Freq3 = omeg/(2*pi);
 
 
 matrixsize=nTMD+nModes;
-KMmapping = importmappingmatrix('KMatrixTMD.mapping');
+KMmapping3 = importmappingmatrix('KMatrixTMD.mapping');
 phiTMD3=zeros(nTMD,matrixsize);
 nodeTMD3=[10001 10002];
 % phiTMD row:TMD for each loaction column:the mode shape at the each
 % location of tmd
 for t1=1:nTMD
     for t2=1:matrixsize
-        position_index=KMmapping.MatrixEqn(find(and(KMmapping.Node==nodeTMD3(t1),KMmapping.DOF=='UY')));
+        position_index=KMmapping3.MatrixEqn(find(and(KMmapping3.Node==nodeTMD3(t1),KMmapping3.DOF=='UY')));
         phiTMD3(t1,t2)=mode_vec3(position_index,t2);
     end
 end
 clear t1 t2
+
+V1=mode_vec;
+V2=mode_vec2;
+V3=mode_vec3;
+save vectest V1 V2 V3
 
 %调整ANSYS振型使之与matlab对应
 decidevalue2=zeros(size(phiTMD3,2),1);
 for t1=1:size(phiTMD3,2)
     decidevalue=phiTMD3(1,t1)/mode_vec2(end-1,t1);
     temp=abs(mode_vec2(end-1,t1))-abs(phiTMD3(1,t1));
-    if temp>10e-8
+    if temp>10e-6
         disp("模态"+num2str(t1)+"的完全矩阵和缩减矩阵tmd振型差异过大"+num2str(temp))
     end
     if decidevalue<0
-        % phiTMD3(:,t1)=phiTMD3(:,t1)*-1;
-        % mode_vec3(:,t1)=mode_vec3(:,t1)*-1;
+%         phiTMD3(:,t1)=phiTMD3(:,t1)*-1;
+%         mode_vec3(:,t1)=mode_vec3(:,t1)*-1;
         mode_vec2(:,t1)=mode_vec2(:,t1)*-1;
         decidevalue2(t1)=1;
     end
@@ -314,52 +319,60 @@ zhenxing1=0.99950656036586;
 zhenxing2=-0.92977648588903;
 PI=3.14159265359;
 FRE=0.069704171453635;	
+% FRE=Freq2(1);	
 FRE2=0.278900577315756;
 THETA=2*PI*FRE;
 THETA2=2*PI*FRE2;
-dt=0.01;		
+dt=0.1;		
 % !计算时间（秒）
-T=100;
+T=500;
 NNT=T/dt;
 t=0:dt:T;
 P1=fangdaxishu*zhenxing1*sin(THETA*t);
-P2=fangdaxishu2*zhenxing2*sin(THETA2*t);
+
+P2=fangdaxishu2*zhenxing2*sin(THETA2*t)*10;
 P_eachpoint=zeros(points,length(t));
 P_eachpoint(50,:)=P1;
 P_eachpoint(20,:)=P2;
 PP=zeros(matrixsize,length(t));
+
 for t1=1:matrixsize
     if t1<=nModes
-        PP(t1,:)=Peq(t1,mode_vec3,KMmapping,P_eachpoint,points,t);
+        PP(t1,:)=Peq(t1,mode_vec,KMmapping,P_eachpoint,points,t);
     else
         PP(t1,:)=zeros(1,size(t,2));
     end
 end
-% rng(0)
-% clear P
-% P=randi(8,matrixsize,length(t)) ;
+
 
 nbeta=0.25;
 ngam=0.5;
 u0=zeros(matrixsize,1);
-
 udot0=zeros(matrixsize,1);
-% [u1 udot u2dot] = NewmarkInt(t,MM,CC,KK,PP,ngam,nbeta,u0,udot0);
+tic
+[u1 udot u2dot] = NewmarkInt(t,MM,CC,KK,PP,ngam,nbeta,u0,udot0);
+toc
 % u1(decidevalue2==1,:)=u1(decidevalue2==1,:)*-1;%使位移与振型相对应
 % pointnumber=50;%查看某个点的振动时程
-% phiResult=phiY(pointnumber,KMmapping,mode_vec3,nModes);
+% phiResult=phiY(pointnumber,KMmapping3,mode_vec3,nModes);
+% for k1 = 1:length(decidevalue2)
+%     if decidevalue2(k1)==1
+%         phiResult(k1)=phiResult(k1)*-1;
+%     end
+% end
 % Dis=zeros(1,length(t));
 % for t1=1:nModes
 %     Dis=Dis+phiResult(t1).*u1(t1,:);
 % end
 
-% u0=zeros(202,1);
-% udot0=zeros(202,1);
-% P = zeros(202,length(t));
-% P(141,:) = P2;
-% P(1,:) = P1;
-% % [u udot u2dot] = NewmarkInt(t,M,C,K,P,ngam,nbeta,u0,udot0);
-
+u0=zeros(202,1);
+udot0=zeros(202,1);
+P = zeros(202,length(t));
+P(38,:) = P2;
+P(99,:) = P1;
+tic
+[u udot u2dot] = NewmarkInt(t,M,C,K,P,ngam,nbeta,u0,udot0);
+toc
 
 % % figure()
 % plot(t,Dis,'b')
@@ -371,30 +384,39 @@ udot0=zeros(matrixsize,1);
 
 
 close all
-% 若只在tmd上作用荷载
-P_eachpoint=zeros(points,length(t));
-
-PP=zeros(matrixsize,length(t));
-PP(end-1,:)=P1+P2;
-u0(end-1)=0.1;
-tic
-[u1 udot u2dot] = NewmarkInt(t,MM,CC,KK,PP,ngam,nbeta,u0,udot0);
-toc
-u1(decidevalue2==1,:)=u1(decidevalue2==1,:)*-1;%使位移与振型相对应
-
-
-u0=zeros(202,1);
-u0(101)=0.1;
-udot0=zeros(202,1);
-P = zeros(202,length(t));
-P(101,:) = P1+P2;
-tic
-[u udot u2dot] = NewmarkInt(t,M,C,K,P,ngam,nbeta,u0,udot0);
-toc
+% % 若只在tmd上作用荷载
+% P_eachpoint=zeros(points,length(t));
+% 
+% PP=zeros(matrixsize,length(t));
+% PP(end-1,:)=P1+P2;
+% u0(end-1)=0.1;
+% tic
+% [u1 udot u2dot] = NewmarkInt(t,MM,CC,KK,PP,ngam,nbeta,u0,udot0);
+% toc
+% u1(decidevalue2==1,:)=u1(decidevalue2==1,:)*-1;%使位移与振型相对应
+% 
+% 
+% u0=zeros(202,1);
+% u0(101)=0.1;
+% udot0=zeros(202,1);
+% P = zeros(202,length(t));
+% P(101,:) = P1+P2;
+% tic
+% [u udot u2dot] = NewmarkInt(t,M,C,K,P,ngam,nbeta,u0,udot0);
+% toc
+figure
 plot(t,u1(end-1,:),'r')
 hold on
 plot(t(1:end*0.9),u(101,1:end*0.9),'b')
+xlabel('Time [s]'); ylabel("displacement"); 
+title("comparison of the displacement of TMD1 calculated by FUll matrix or superposition method")
 
+figure
+plot(t,u1(end,:),'r')
+hold on
+plot(t(1:end*0.9),u(40,1:end*0.9),'b')
+xlabel('Time [s]'); ylabel("displacement"); 
+title("comparison of the displacement of TMD2 calculated by FUll matrix or superposition method")
 
 % figure()
 % grid on;
@@ -425,20 +447,33 @@ plot(t(1:end*0.9),u(101,1:end*0.9),'b')
 % plot(dataANSYS(:,1),dataANSYS(:,2),'r')
 % 
 % close all
-% pointnumber=20;%查看某个点的振动时程
-% phiResult=phiY(pointnumber,KMmapping,mode_vec3,nModes);
-% Dis=zeros(1,length(t));
-% for t1=1:nModes
-%     Dis=Dis+phiResult(t1).*u(t1,:);
-% end
-% figure()
-% plot(t,Dis,'b')
-% xlabel('Time [s]'); ylabel("displacement of point:"+num2str(pointnumber)); 
-% title("comparison of the displacement of midpoint calculated by matlab and ANSYS")
-% hold on
-% dataANSYS=readmatrix("T_DIS20.txt");
-% dataANSYS=dataANSYS(2:end,:);
-% plot(dataANSYS(:,1),dataANSYS(:,2),'r')
+pointnumber=50;%查看某个点的振动时程
+phiResult=phiY(pointnumber,KMmapping,mode_vec,nModes);
+Dis=zeros(1,length(t));
+for t1=1:nModes
+    Dis=Dis+phiResult(t1).*u1(t1,:);
+end
+figure()
+plot(t,Dis,'b')
+xlabel('Time [s]'); ylabel("displacement of point:"+num2str(pointnumber)); 
+title("comparison of the displacement calculated by FUll matrix or superposition method")
+hold on
+plot(t(1:end*0.9),u(99,1:end*0.9),'r')
+
+
+pointnumber=30;%查看某个点的振动时程
+phiResult=phiY(pointnumber,KMmapping,mode_vec,nModes);
+Dis=zeros(1,length(t));
+for t1=1:nModes
+    Dis=Dis+phiResult(t1).*u1(t1,:);
+end
+figure()
+plot(t,Dis,'b')
+xlabel('Time [s]'); ylabel("displacement of point:"+num2str(pointnumber)); 
+title("comparison of the displacement calculated by FUll matrix or superposition method")
+hold on
+plot(t(1:end*0.9),u(59,1:end*0.9),'r')
+
 % 
 % close all
 % 
