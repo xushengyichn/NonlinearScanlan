@@ -1,0 +1,9 @@
+%%MatrixMarket matrix coordinate real general
+%%  Created by MSM_TO_MM_COORDINATE_REAL_GENERAL.M
+  202  202  6
+  38  38  17.523840
+  40  38  -17.523840
+  40  40  17.523840
+  99  99  4.379642
+  101  99  -4.379642
+  101  101  4.379642
