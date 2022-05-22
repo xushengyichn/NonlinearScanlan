@@ -408,14 +408,14 @@ close all
 figure
 plot(t,u1(end-1,:),'r')
 hold on
-plot(t(1:end*0.9),u(101,1:end*0.9),'b')
+plot(t(1:round(end*0.9,0)),u(101,1:round(end*0.9,0)),'b')
 xlabel('Time [s]'); ylabel("displacement"); 
 title("comparison of the displacement of TMD1 calculated by FUll matrix or superposition method")
 
 figure
 plot(t,u1(end,:),'r')
 hold on
-plot(t(1:end*0.9),u(40,1:end*0.9),'b')
+plot(t(1:round(end*0.9,0)),u(40,1:round(end*0.9,0)),'b')
 xlabel('Time [s]'); ylabel("displacement"); 
 title("comparison of the displacement of TMD2 calculated by FUll matrix or superposition method")
 
@@ -459,7 +459,7 @@ plot(t,Dis,'b')
 xlabel('Time [s]'); ylabel("displacement of point:"+num2str(pointnumber)); 
 title("comparison of the displacement calculated by FUll matrix or superposition method")
 hold on
-plot(t(1:end*0.9),u(99,1:end*0.9),'r')
+plot(t(1:round(end*0.9,0)),u(99,1:round(end*0.9,0)),'r')
 
 
 pointnumber=30;%查看某个点的振动时程
@@ -473,7 +473,7 @@ plot(t,Dis,'b')
 xlabel('Time [s]'); ylabel("displacement of point:"+num2str(pointnumber)); 
 title("comparison of the displacement calculated by FUll matrix or superposition method")
 hold on
-plot(t(1:end*0.9),u(59,1:end*0.9),'r')
+plot(t(1:round(end*0.9,0)),u(59,1:round(end*0.9,0)),'r')
 
 % 
 % close all
