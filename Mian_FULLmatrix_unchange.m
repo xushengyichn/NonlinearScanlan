@@ -1,4 +1,5 @@
-% 本代码会修改ANSYS生成的阻尼矩阵，该阻尼矩阵为瑞利阻尼，但是没有考虑阻尼器的刚度，在matlab模态叠加法中瑞利阻尼不考虑阻尼器的刚度
+% 本代码不修改ANSYS生成的阻尼矩阵，包含了阻尼器的刚度产生的阻尼，在matlab模态叠加法中瑞利阻尼考虑阻尼器的刚度
+
 %% 导入数据
 clc;clear;close all
 hb_to_mm ( 'KMatrix.matrix', 'K.txt' );
@@ -33,7 +34,7 @@ M =diag(diag(Mmatrix)/2)+Mmatrix-diag(diag(Mmatrix));
 M = M+M';
 C_exp =diag(diag(Cmatrix_DP)/2)+Cmatrix_DP-diag(diag(Cmatrix_DP));
 C_exp = C_exp+C_exp';
-C_exp = 0.01*K;
+C_exp = 0*K;
 % 特征值分析，即计算频率Freq和振型Phi，50代表求50阶，SM表示从较小的特征值开始求解
 calmodes=200;%考虑模态
 [eig_vec,eig_val]=eigs(K,M,calmodes,'SM');
@@ -91,41 +92,6 @@ for t1=1:matrixsize
 end
 clear t1 
 
-%% Create the Damping matrix
-
-CC=zeros(matrixsize,matrixsize);
-for t1=1:matrixsize
-    if t1<=nModes
-        CC(t1,t1)=P_eq(t1,mode_vec,C_exp);%P=parameters
-    end
-    if and(t1>nModes,t1<=matrixsize)
-        CC(t1,t1)=cTMD(t1-nModes);
-    end
-end
-clear t1
-
-
-for t1=1:nModes
-    for t2=1:nTMD
-        for t3=1:nModes
-            temp_data=cTMD(t2)*phiTMD(t2,t3)*phiTMD(t2,t1);
-            CC(t1,t3)=CC(t1,t3)+temp_data;
-            clear temp_data
-        end
-        indextmdt2=nModes+t2;
-        CC(t1,indextmdt2)=CC(t1,indextmdt2)-cTMD(t2)*phiTMD(t2,t1);
-    end
-end
-clear t1 t2 t3
-
-for t1=1:nTMD
-    for t2=1:nModes
-        temp_data=-cTMD(t1)*phiTMD(t1,t2);
-        CC(nModes+t1,t2)=CC(nModes+t1,t2)+temp_data;
-        clear temp_data
-    end
-end
-clear t1
 
 
 % 
@@ -202,6 +168,40 @@ for t1=1:nTMD
 end
 clear t1
 
+%% Create the Damping matrix
+
+
+CC = 0*KK;
+
+
+for t1=1:matrixsize
+    if and(t1>nModes,t1<=matrixsize)
+        CC(t1,t1)=cTMD(t1-nModes);
+    end
+end
+
+for t1=1:nModes
+    for t2=1:nTMD
+        for t3=1:nModes
+            temp_data=cTMD(t2)*phiTMD(t2,t3)*phiTMD(t2,t1);
+            CC(t1,t3)=CC(t1,t3)+temp_data;
+            clear temp_data
+        end
+        indextmdt2=nModes+t2;
+        CC(t1,indextmdt2)=CC(t1,indextmdt2)-cTMD(t2)*phiTMD(t2,t1);
+    end
+end
+clear t1 t2 t3
+
+for t1=1:nTMD
+    for t2=1:nModes
+        temp_data=-cTMD(t1)*phiTMD(t1,t2);
+        CC(nModes+t1,t2)=CC(nModes+t1,t2)+temp_data;
+        clear temp_data
+    end
+end
+clear t1
+
 
 %% 特征值分析
 clearvars -except KK MM CC matrixsize nModes nTMD mode_vec KMmapping
@@ -221,17 +221,10 @@ Freq2 = omeg/(2*pi);
 %% 导入ansys增加TMD后的矩阵
 
 hb_to_mm ( 'KMatrixTMD.matrix', 'KTMD.txt' );
-hb_to_mm ( 'KMatrixTMDre.matrix', 'KTMD2.txt' );
 hb_to_mm ( 'MMatrixTMD.matrix', 'MTMD.txt' );
 hb_to_mm ( 'CMatrixTMD.matrix', 'CTMD.txt' );
 
-Kdata2 = importdata('KTMD2.txt').data;
-Kmatrix2 = zeros(Kdata2(1,1),Kdata2(1,2));
-for i = 2:size(Kdata2,1)
-    Kmatrix2(Kdata2(i,1),Kdata2(i,2)) = Kdata2(i,3);
-end
-K2 =diag(diag(Kmatrix2)/2)+Kmatrix2-diag(diag(Kmatrix2));
-K2 = K2+K2';
+
 
 %%map the node and matrix from the KMatrix.mapping and MMatrix.mapping 
 Kdata = importdata('KTMD.txt').data;
@@ -259,7 +252,7 @@ K = K+K';
 M =diag(diag(Mmatrix)/2)+Mmatrix-diag(diag(Mmatrix));
 M = M+M';
 C =diag(diag(Cmatrix_DP)/2)+Cmatrix_DP-diag(diag(Cmatrix_DP));
-C = C+C'+0.01*K2;
+C = C+C';
 
 % 特征值分析，即计算频率Freq和振型Phi，50代表求50阶，SM表示从较小的特征值开始求解
 calmodes=matrixsize;%考虑模态
