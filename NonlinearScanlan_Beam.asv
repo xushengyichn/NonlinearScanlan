@@ -2,7 +2,7 @@
 %Author: Shengyi xushengyichn@outlook.com
 %Date: 2022-05-22 11:22:16
 %LastEditors: Shengyi xushengyichn@outlook.com
-%LastEditTime: 2022-05-23 15:56:28
+%LastEditTime: 2022-05-23 14:53:15
 %FilePath: \NonlinearScanlan\NonlinearScanlan_Beam.m
 %Description: 实现通过Scanlan气动力非线性模型计算简支梁的动力响应 Realization of the dynamic response of a simply supported beam calculated by the Scanlan aerodynamic nonlinear model
 %
@@ -32,24 +32,6 @@ close all
 % % 结果表明影响非常大，但是对实际计算影响不大，实际的阻尼比需要实测获得
 % % The results show that the influence is very large, but it has little influence on the actual calculation, and the actual damping ratio needs to be measured and obtained.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% 设置TMD参数
-%% Set TMD parameters
-nTMD = 1;
-% mTMD = [100 100];
-% cTMD = [2 * mTMD(1) * omeg(1) * 0.05 2 * mTMD(2) * omeg(2) * 0.05];
-% kTMD = [mTMD(1) * omeg(1)^2 mTMD(2) * omeg(2)^2];
-% nodeTMD = [50 20]; %Node number(location of the TMD)
-mTMD = [500];
-cTMD = [2 * mTMD(1) * 0.069704171453635 * 0.05];
-kTMD = [mTMD(1) * 0.069704171453635];
-nodeTMD = [50]; %Node number(location of the TMD)
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% 设置模态叠加法参数
-%% Set the modal superposition method parameters
-% Number of modes considered
-nModes = 20; %考虑模态
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 设置运行参数Set run parameters
@@ -87,29 +69,6 @@ end
 % 1 Apply modal force
 % 2 Apply nodal forces (need to adjust the code corresponding to the applied load section)
 externalforcemethod = 1;
-
-if externalforcemethod == 1
-    % 施加模态力时需要定义模态力系数，模态力的频率为不施加TMD时的结构频率。
-    % The modal force coefficient (MFC) needs to be defined when applying modal force, and the frequency of the modal force is the structural frequency when TMD is not applied.
-
-    
-    MFC=[1;0;0;0;0;0;0;0;0;0];
-    if length(MFC)<nModes
-        disp("荷载系数个数为"+num2str(length(MFC))+"，小于模态数"+num2str(nModes)+"，其余模态力系数均补充为0")
-        disp("原模态力系数: "+num2str(MFC'))
-        temp_data=nModes-length(MFC);
-        for t1 = 1:temp_data
-            MFC = [MFC;0];
-        end
-        disp("现模态力系数: "+num2str(MFC'))
-    end
-end
-
-% 是否输出振动视频
-% Whether to output vibration video
-% 1 export vides
-% 2 do not export vides
-exportvideo=2;
 
 
 
@@ -174,20 +133,22 @@ KMmapping = importmappingmatrix('KMatrix.mapping');
 
 % 仅保留需要的变量 M C K 矩阵 频率 圆频率 模态向量 对应关系
 % Keep only the required variables M C K Matrix Frequency Circular frequency Mode vector Correspondence
-clearvars -except M C K Freq omeg mode_vec C_exp KMmapping DampingMatrixParameter zeta nodeondeckimport points externalforcemethod nTMD nModes MFC mTMD cTMD kTMD nodeTMD exportvideo
+clearvars -except M C K Freq omeg mode_vec C_exp KMmapping DampingMatrixParameter zeta nodeondeckimport points
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 设置TMD参数
 %% Set TMD parameters
-% mTMD = [100 100];
-% cTMD = [2 * mTMD(1) * omeg(1) * 0.05 2 * mTMD(2) * omeg(2) * 0.05];
-% kTMD = [mTMD(1) * omeg(1)^2 mTMD(2) * omeg(2)^2];
-% nodeTMD = [50 20]; %Node number(location of the TMD)
+nTMD = 2;
+mTMD = [100 100];
+cTMD = [2 * mTMD(1) * omeg(1) * 0.05 2 * mTMD(2) * omeg(2) * 0.05];
+kTMD = [mTMD(1) * omeg(1)^2 mTMD(2) * omeg(2)^2];
+nodeTMD = [50 20]; %Node number(location of the TMD)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 考虑TMD振动响应的模态叠加法
 %% Modal Superposition Method Considering TMD Vibration Response
-
+% Number of modes considered
+nModes = 10; %考虑模态
 matrixsize = nTMD + nModes;
 phiTMD = zeros(nTMD, nModes);
 % phiTMD row:TMD for each loaction column:the mode shape at the each
@@ -340,7 +301,7 @@ clear t1
 
 % 特征值分析（计算增加TMD后结构的模态和振型）
 % Eigenvalue analysis (calculate the mode and mode shape of the structure after adding TMD)
-clearvars -except KK MM CC matrixsize nModes nTMD mode_vec KMmapping nodeondeckimport points nodeTMD externalforcemethod MFC omeg exportvideo
+clearvars -except KK MM CC matrixsize nModes nTMD mode_vec KMmapping nodeondeckimport points nodeTMD
 calmodes = matrixsize; %考虑模态数 Consider the number of modes
 [eig_vec, eig_val] = eigs(KK, MM, calmodes, 'SM');
 [nfdof, nfdof] = size(eig_vec);
@@ -351,9 +312,9 @@ for k1 = 1:nfdof
 end
 
 clear k1 ndof
-[omeg2, w_order] = sort(sqrt(diag(eig_val)));
+[omeg, w_order] = sort(sqrt(diag(eig_val)));
 mode_vec2 = eig_vec(:, w_order);
-Freq2 = omeg2 / (2 * pi);
+Freq2 = omeg / (2 * pi);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % %% 导入ansys增加TMD后的矩阵(这部分代码仅在前期作为验证代码使用，经过验证无误后不再使用)
@@ -460,27 +421,12 @@ case 2
     points = length(nodeondeck); % 主梁节点数 Number of girder nodes
 end
 
-dt = 0.1;
-% 计算时间（秒）Computation time (seconds)
-T = 250;
-NNT = T / dt;
-t = 0:dt:T;
+
 switch externalforcemethod
-case 1 %作用模态力 
+case 1 %作用模态力
+    
     PP = zeros(matrixsize, length(t)); % 生成模态力矩阵，全零 Generate modal force matrix, all zeros
-    % TMD上不作用外力，因此荷载为零 No external force acts on the TMD, so the load is zero
-    for t1 = 1:matrixsize
-
-        if t1 <= nModes
-            PP(t1, :) = MFC(t1)*sin(omeg(t1)*t);
-        else
-            PP(t1, :) = zeros(1, size(t, 2));
-        end
-
-    end    
-    clear t1
-
-case 2 %作用节点力
+case 2 %zu'yo
     fangdaxishu = 10;
     fangdaxishu2 = 100;
     zhenxing1 = 0.99950656036586;
@@ -490,7 +436,11 @@ case 2 %作用节点力
     FRE2 = 0.278900577315756;
     THETA = 2 * PI * FRE;
     THETA2 = 2 * PI * FRE2;
-    
+    dt = 0.1;
+    % 计算时间（秒）Computation time (seconds)
+    T = 500;
+    NNT = T / dt;
+    t = 0:dt:T;
     P1 = fangdaxishu * zhenxing1 * sin(THETA * t)*10;
     P2 = fangdaxishu2 * zhenxing2 * sin(THETA2 * t);
     P_eachpoint = zeros(points, length(t)); %生成外荷载时间序列矩阵，全零 Generate external loads time series matrix, all zeros
@@ -509,7 +459,6 @@ case 2 %作用节点力
         end
 
     end
-    clear t1
 end
 
 
@@ -545,7 +494,7 @@ toc
 
 
 
-if exportvideo ==1 
+
 % Create a new VideoWriter object (an empty video file). Use whatever format you want,
 % but in my experience MP4 (with H.264 codec) is by far the best. Please stop using AVI.
 hvid = VideoWriter('./movie.mp4', 'MPEG-4');
@@ -583,12 +532,9 @@ for t1 = 1:length(t_plot)
     ylim([-1 1])
     hold on
 
-    if nTMD > 0
-        for t2 = 1:length(nodeTMD)
-            Dis_tmd_temp = u1(nModes + t2, seq_temp);
-            scatter(nodeTMD(t2), Dis_tmd_temp);
-        end
-        clear t2
+    for t2 = 1:length(nodeTMD)
+        Dis_tmd_temp = u1(nModes + t2, seq_temp);
+        scatter(nodeTMD(t2), Dis_tmd_temp);
     end
 
     hold off
@@ -597,15 +543,16 @@ for t1 = 1:length(t_plot)
     clear Dis_temp
     writeVideo(hvid, F);
 end
-clear t1
 
 % Close the figure
 close(hfig);
 % Close the video object. This is important! The file may not play properly if you don't close it.
 close(hvid);
-end
 
-
+% figure()
+% plot(t,Dis,'b')
+% xlabel('Time [s]'); ylabel("displacement of point:"+num2str(pointnumber));
+% title("Displacement calculated by superposition method")
 
 %% 所需要使用的函数
 %% functions to be used
