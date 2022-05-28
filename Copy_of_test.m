@@ -1,0 +1,1 @@
+[psd_avg, f, psd_plot] = fft_transfer(10,u1(1,:))

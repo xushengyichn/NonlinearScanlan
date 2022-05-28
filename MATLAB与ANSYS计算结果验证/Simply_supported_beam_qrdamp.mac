@@ -1,0 +1,407 @@
+!! Simply supported beam 增加TMD后进行振型分析并导出阻尼矩阵
+!定义参数
+FINISH$/CLEAR
+/FILENAME,SSBeam
+/PREP7$B=0.2$H=0.3$L=100$N=101
+/TITLE,SSB
+/UNITS,SI
+/triad,off
+CSYS,0
+*DIM,XX1,ARRAY,N
+*DO,I,1,N
+   XX1(I)=(I-1)*L/(N-1)
+*ENDDO
+!定义单元和材料性质
+ET,1,BEAM188$MP,EX,1,2.1E11$MP,PRXY,1,0.3$MP,DENS,1,8000
+!定义梁截面
+SECTYPE,1,BEAM,RECT$SECDATA,B,H
+!创建几何和有限元模型
+*DO,I,1,N
+    N,I,XX1(I),0,0
+*ENDDO
+N,9999,0,1,0
+
+mat,1
+type,1
+
+*DO,I,1,N-1
+    secnum,1$EN,I,I,I+1,9999
+*ENDDO
+
+
+
+
+
+
+!施加约束（注意增加的约束）
+! D,1,UX,,,,,UY$D,20,UY$D,80,UY$D,100,UY$D,ALL,UZ,,,,,ROTX,ROTY,UX
+D,1,UX,,,,,UY$D,N,UY$D,ALL,UZ,,,,,ROTX,ROTY,UX
+
+ALPHAD,0.0				!设定质量阻尼ALPHA为0.05				
+BETAD,0.013699749746335
+
+
+
+
+! /SOLU       
+! ANTYPE,0      
+! LUMPM,0	      !!!!!0为一致质量矩阵，1为集中质量矩阵            
+! EQSLV, , ,0,  !!!!!求解方法设置 
+! PRECISION,0   
+! MSAVE,0       !!!!!求解内存设置   
+! PIVCHECK,1 
+! ! sstif,on   
+! !PSTRES,ON     
+! TOFFST,0,
+! acel,0,0,0     
+! SOLVE         
+! FINISH        
+! /POST1        
+! PLDISP,0
+
+
+
+/SOLU
+ANTYPE,2
+!UPCOORD,1
+MSAVE,0
+EQSLV,SPAR
+LUMPM,0
+! PSTRES,1
+MODOPT,QRDAMP,200,,,ON,ON           !!Define the modal extraction method
+MXPAND,200,,,YES 
+SOLVE
+FINISH
+
+
+
+
+
+
+
+
+! !结果列表,绘制第1振型
+/POST1$ SET,LIST$ SET,1,1$PLDISP,1$PLNSOL,UY
+! !绘制第8振型并制作动画
+! SET,1,8$PLNSOL,UY$PLNSOL,ROTZ$ANMODE,10,0.2
+! !绘制弯曲分布
+! ETABLE,MI,SMISC,3$ETABLE,MJ,SMISC,16$PLLS,MI,MJ
+! !带单元形状绘制振型
+! /ESHAPE,1$PLNSOL,UY$PLNSOL,ROTZ
+
+
+
+/AUX2
+FILE,SSBeam,FULL
+HBMAT,KMatrix,,,ASCII,STIFF,YES,YES
+HBMAT,MMatrix,,,ASCII,MASS,YES,YES
+HBMAT,CMatrix,,,ASCII,DAMP,YES,YES
+! fini
+
+
+
+	
+FINISH	
+	
+    
+allsel,all	
+/post1                                                                           	
+set,first                                                                        	
+/view,1,1,1,1                                                                    	
+plnsol,u,sum,0,                                                                  	
+pldisp,0                                                                         	
+/pnum,real,0                                                                     	
+/num,0                                                                           	
+/rep,fast   	
+
+!提取某一阶振型	
+!选择主梁上的一排节点	
+	
+eplot	
+set,first	
+!输入振型阶数	
+dat=1
+*DO,I,1,dat-1,1	
+   set,next	
+*ENDDO	
+pldisp	
+
+NN= 101	!主梁上节点数
+*DIM,NODEONDECK,ARRAY,NN,1,1            !!定义一数值（array）数组（这里是121*1*1），数组名：NODEONDECK	
+*DO,I,1,N
+   NODEONDECK(I)=I
+*ENDDO
+
+!!!!CREATE ARRAY OF NODE	
+!!获取主梁节点坐标	
+*DIM,DECKCOORD,ARRAY,NN,3,1	
+*DO,I,1,NN,1	
+  DECKCOORD(I,1)=NX(NODEONDECK(I))	
+  DECKCOORD(I,2)=NY(NODEONDECK(I))	
+  DECKCOORD(I,3)=NZ(NODEONDECK(I))	
+*ENDDO	
+
+!!!!获取振型向量	
+*DIM,ZHENXING,ARRAY,NN,3,1	
+*DO,I,1,NN,1	
+  ZHENXING(I,1)=UX(NODEONDECK(I))	
+  ZHENXING(I,2)=UY(NODEONDECK(I))	
+  ZHENXING(I,3)=UZ(NODEONDECK(I))	
+*ENDDO	
+
+
+set,first	
+!输入振型阶数	
+dat=2
+*DO,I,1,dat-1,1	
+   set,next	
+*ENDDO	
+pldisp	
+!!!!CREATE ARRAY OF NODE	
+!!获取主梁节点坐标	
+*DIM,DECKCOORD2,ARRAY,NN,3,1	
+*DO,I,1,NN,1	
+  DECKCOORD2(I,1)=NX(NODEONDECK(I))	
+  DECKCOORD2(I,2)=NY(NODEONDECK(I))	
+  DECKCOORD2(I,3)=NZ(NODEONDECK(I))	
+*ENDDO	
+
+!!!!获取振型向量	
+*DIM,ZHENXING2,ARRAY,NN,3,1	
+*DO,I,1,NN,1	
+  ZHENXING2(I,1)=UX(NODEONDECK(I))	
+  ZHENXING2(I,2)=UY(NODEONDECK(I))	
+  ZHENXING2(I,3)=UZ(NODEONDECK(I))	
+*ENDDO	
+
+
+
+/PREP7
+
+!!阻尼器zuniqi 
+ET,100001,MASS21 
+KEYOPT,100001,3,2 
+ET,100002,COMBIN14 
+KEYOPT,100002,2,2 
+!!阻尼器节点位置 
+N,10001,49,0,0 
+N,10002,19,0,0 
+!!创建弹簧单元 
+R,100002,19.181264445511033,4.379642045362958$TYPE,100002$REAL,100002$E,10001,50 
+R,110002,307.0849728495260,17.523840095542650$TYPE,100002$REAL,110002$E,10002,20 
+!!创建质量单元 
+R,200002,100$TYPE,100001$REAL,200002$E,10001 
+R,210002,100$TYPE,100001$REAL,210002$E,10002 
+D,10001,ROTZ,,,,,UX,UZ,ROTX,ROTY
+D,10002,ROTZ,,,,,UX,UZ,ROTX,ROTY
+allsel,all$eplot		
+
+FINISH
+
+
+/SOLU
+ANTYPE,2
+!UPCOORD,1
+MSAVE,0
+EQSLV,SPAR
+LUMPM,0
+! PSTRES,1
+MODOPT,QRDAMP,200,,,ON,ON           !!Define the modal extraction method
+MXPAND,200,,,YES 
+SOLVE
+FINISH
+
+/AUX2
+FILE,SSBeam,FULL
+HBMAT,KMatrixTMD,,,ASCII,STIFF,YES,YES
+HBMAT,MMatrixTMD,,,ASCII,MASS,YES,YES
+HBMAT,CMatrixTMD,,,ASCII,DAMP,YES,YES
+
+
+PI=3.14159265359			
+FRE=0.069704171453635	
+FRE2=0.278900577315756
+THETA=2*PI*FRE			
+THETA2=2*PI*FRE2		
+DT=0.01				
+!计算时间（秒）				
+NNT=300/DT	
+
+!定义瞬态动力分析及选项
+/SOLU				
+ANTYPE,TRANS				
+TRNOPT,FULL				
+!NLGEOM,ON				
+!EQSLV,PCG,1e-5     !指定方求解器				
+! SSTIF,ON					!打开应力刚化效应				
+TIMINT,OFF					!关闭时间积分效应				
+OUTRES,ALL,ALL			!输出基本项，每一步都输出				
+KBC,1						!指定载荷为阶跃载荷				
+TIME,1E-10					!指定载荷步结束时间				
+!DELTIM,1.0e-3				
+!NSUBST,50,,,1					!指定载荷子步数为50，最大子步数为100				
+NSUBST,25,50,10,1					!指定载荷子步数为50，最大子步数为100				
+! ACEL,0,9.81,0					!施加重力加速度				
+allsel,all						!选中所有元素				
+SOLVE					
+
+!第二和荷载步：打开时间积分效应，进行瞬态动力求解				
+TIMINT,ON				
+				
+SOLCONTROL,ON				
+NROPT,FULL,,ON !NR法				
+!NROPT,MODI  !修正的NR法				
+!NROPT,INIT  !初始刚度矩阵				
+!cnvtol,u,5e10,,,				
+!cnvtol,f,5e10,,,				
+!cnvtol,m,5e10,,,				
+NEQIT,1				
+OUTRES,ALL,ALL			!输出基本项，每一步都输出				
+KBC,1						!指定载荷为递增载荷				
+AUTOTS,ON					!打开自动时间步				
+
+
+
+!DELTIM,1.0e-8				
+*DO,I,1,NNT				
+    TIME,I*DT				
+    AUTOTS,ON				
+    NSUBST,1,,,0					!指定载荷子步数为50，最大子步数为100				
+    !ACEL,0,9.81,0					!施加重力加速度		
+
+    !!!!!!!!!!!!!施加荷载开始！！！！！！！！！！！！！！				
+    fangdaxishu=10			
+    fangdaxishu2=10	
+                    
+    F,50,FY,fangdaxishu*ZHENXING(50,2)*SIN(THETA*I*DT)	
+    F,20,FY,fangdaxishu2*ZHENXING2(20,2)*SIN(THETA2*I*DT)*10				
+    allsel				
+    SOLVE				
+*ENDDO				
+
+FINISH				
+/POST26				
+!NSOL,2,4217,U,Y				
+!NSOL,3,5217,U,Y				
+!ADD,4,2,3,,,,,1,-1,				
+!PLVAR,2				
+/HEADER,OFF,OFF,OFF,OFF,OFF,OFF				
+/page,99999,132,99999,240				
+!prvar,2				
+
+X=50
+! *DO,X,1,NN,1					
+    NSOL,5,NODEONDECK(X),U,Y						
+    tempdata=NODEONDECK(X)				
+    !PLVAR,5									
+    !FILLDATA,5,1,13,1,0,0												
+    !!Displacement								
+    varnam,5,D_Node							
+    /axlab,x,Time(s)									
+    /axlab,y,Displacement(m)									
+                        				
+    xvar,1									
+    plvar,5								
+    prvar,5									
+                        														
+    ! FINISH					
+    XVAR,1                											
+    *GET,num_var,VARI,0,NSETS              											
+    *DIM,T_DIS50,ARRAY,num_var,2    				
+    VGET,T_DIS50(1,1,1),1    				
+    VGET,T_DIS50(1,2,1),5    				
+    *CFOPEN,T_DIS50,txt,,APPEND 											
+    ! 定义数据结果文件，T_DIS.txt							
+    *vwrite,tempdata				
+    ('节点位移:',1x,f12.4)						
+    *VWRITE,T_DIS50(1,1,1),T_DIS50(1,2,1)					
+    (1X,F5.1,3X,E10.3)!注意不要在命令窗口输入，做成宏文件							
+    *CFCLOS											
+    ! FINISH										
+! *ENDDO					
+
+X=20
+! *DO,X,1,NN,1					
+    NSOL,6,NODEONDECK(X),U,Y						
+    tempdata=NODEONDECK(X)				
+    !PLVAR,5									
+    !FILLDATA,5,1,13,1,0,0												
+    !!Displacement								
+    varnam,6,D_Node20							
+    /axlab,x,Time(s)									
+    /axlab,y,Displacement(m)									
+                        				
+    xvar,1									
+    plvar,6							
+    prvar,6								
+                        														
+    ! FINISH					
+    XVAR,1                											
+    *GET,num_var,VARI,0,NSETS              											
+    *DIM,T_DIS20,ARRAY,num_var,2    				
+    VGET,T_DIS20(1,1,1),1    				
+    VGET,T_DIS20(1,2,1),6    				
+    *CFOPEN,T_DIS20,txt,,APPEND 											
+    ! 定义数据结果文件，T_DIS.txt							
+    *vwrite,tempdata				
+    ('节点位移:',1x,f12.4)						
+    *VWRITE,T_DIS20(1,1,1),T_DIS20(1,2,1)					
+    (1X,F5.1,3X,E10.3)!注意不要在命令窗口输入，做成宏文件							
+    *CFCLOS											
+    ! FINISH										
+! *ENDDO		
+				
+NSOL,7,10001,U,Y						
+tempdata=10001			
+							
+varnam,7,D_TMD1						
+/axlab,x,Time(s)									
+/axlab,y,Displacement(m)									
+                                    
+xvar,1									
+plvar,7							
+prvar,7									
+                                                                            
+! FINISH					
+XVAR,1                											
+*GET,num_var,VARI,0,NSETS              											
+*DIM,TMD1_DIS,ARRAY,num_var,2    				
+VGET,TMD1_DIS(1,1,1),1    				
+VGET,TMD1_DIS(1,2,1),7    				
+*CFOPEN,TMD1_DIS,txt,,APPEND 											
+! 定义数据结果文件，TMD_DIS.txt							
+*vwrite,tempdata				
+('节点位移:',1x,f12.4)						
+*VWRITE,TMD1_DIS(1,1,1),TMD1_DIS(1,2,1)					
+(1X,F5.1,3X,E10.3)!注意不要在命令窗口输入，做成宏文件							
+*CFCLOS											
+            
+
+
+NSOL,8,10002,U,Y						
+tempdata=10002			
+							
+varnam,8,D_TMD2					
+/axlab,x,Time(s)									
+/axlab,y,Displacement(m)									
+                                    
+xvar,1									
+plvar,8						
+prvar,8									
+                                                                            
+! FINISH					
+XVAR,1                											
+*GET,num_var,VARI,0,NSETS              											
+*DIM,TMD2_DIS,ARRAY,num_var,2    				
+VGET,TMD2_DIS(1,1,1),1    				
+VGET,TMD2_DIS(1,2,1),8    				
+*CFOPEN,TMD2_DIS,txt,,APPEND 											
+! 定义数据结果文件，TMD_DIS.txt							
+*vwrite,tempdata				
+('节点位移:',1x,f12.4)						
+*VWRITE,TMD2_DIS(1,1,1),TMD2_DIS(1,2,1)					
+(1X,F5.1,3X,E10.3)!注意不要在命令窗口输入，做成宏文件							
+*CFCLOS											
+            
+
+
