@@ -2,7 +2,7 @@
 %Author: Shengyi xushengyichn@outlook.com
 %Date: 2022-05-22 11:22:16
 %LastEditors: Shengyi xushengyichn@outlook.com
-%LastEditTime: 2022-05-29 00:21:17
+%LastEditTime: 2022-05-23 16:49:35
 %FilePath: \NonlinearScanlan\NonlinearScanlan_Beam.m
 %Description: 实现通过Scanlan气动力非线性模型计算简支梁的动力响应 Realization of the dynamic response of a simply supported beam calculated by the Scanlan aerodynamic nonlinear model
 %
@@ -36,7 +36,7 @@ close all
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 设置TMD参数
 %% Set TMD parameters
-nTMD = 0;
+nTMD = 1;
 % mTMD = [100 100];
 % cTMD = [2 * mTMD(1) * omeg(1) * 0.05 2 * mTMD(2) * omeg(2) * 0.05];
 % kTMD = [mTMD(1) * omeg(1)^2 mTMD(2) * omeg(2)^2];
@@ -61,9 +61,7 @@ nModes = 20; %考虑模态
 % 1 means use the Rayleigh damping matrix to generate the corresponding modal superposition method damping matrix
 % 2 means use the modal damping ratio to directly generate the modal superposition method damping matrix, you need to specify the modal Damping ratio zeta
 DampingMatrixParameter = 2;
-if DampingMatrixParameter == 1
-    beta = 0.013699749746335;
-end
+
 if DampingMatrixParameter == 2
     zeta = 0.3/100;
 end
@@ -74,7 +72,7 @@ end
 % Set the bridge deck coordinate import mode
 % 1 Use the program to automatically write an array containing the bridge deck nodes, from 1 to n
 % 2 read in file
-nodeondeckimport = 2;
+nodeondeckimport = 1;
 
 if nodeondeckimport == 1
     %采用导入模式1时默认桥面节点为按顺序排列的的数列，只需要输入节点数
@@ -111,7 +109,7 @@ end
 % Whether to output vibration video
 % 1 export vides
 % 2 do not export vides
-exportvideo=1;
+exportvideo=2;
 
 
 
@@ -120,8 +118,9 @@ exportvideo=1;
 %% Handling sparse matrices in ANSYS as full matrices
 % 导入ANSYS MCK矩阵
 % Import MCK matrix from ANSYS
-hb_to_mm ('MMatrix.matrix', 'M.txt');
 hb_to_mm ('KMatrix.matrix', 'K.txt');
+hb_to_mm ('MMatrix.matrix', 'M.txt');
+hb_to_mm ('CMatrix.matrix', 'C.txt');
 
 %map the node and matrix from the KMatrix.mapping and MMatrix.mapping
 Kdata = importdata('K.txt').data;
@@ -138,6 +137,12 @@ for i = 2:size(Mdata, 1)
     Mmatrix(Mdata(i, 1), Mdata(i, 2)) = Mdata(i, 3);
 end
 
+Cdata = importdata('C.txt').data;
+Cmatrix_DP = zeros(Cdata(1, 1), Cdata(1, 2));
+
+for i = 2:size(Cdata, 1)
+    Cmatrix_DP(Cdata(i, 1), Cdata(i, 2)) = Cdata(i, 3);
+end
 
 % 还原对角线以上元素，使之为对称阵, ANSYS只给出下三角矩阵
 % Restore the elements above the diagonal to make it a symmetric matrix, ANSYS only gives the lower triangular matrix
@@ -145,7 +150,8 @@ K = diag(diag(Kmatrix) / 2) + Kmatrix - diag(diag(Kmatrix));
 K = K + K';
 M = diag(diag(Mmatrix) / 2) + Mmatrix - diag(diag(Mmatrix));
 M = M + M';
-
+C_exp = diag(diag(Cmatrix_DP) / 2) + Cmatrix_DP - diag(diag(Cmatrix_DP));
+C_exp = C_exp + C_exp';
 
 % 特征值分析，即计算频率Freq和振型Phi，calmodes数字代表求解的阶数，eigs中参数SM表示从较小的特征值开始求解
 % Eigenvalue analysis, that is to calculate the frequency Freq and mode shape Phi, the calmodes number represents the order of the solution, and the parameter SM in eigs represents the solution from the smaller eigenvalue.
@@ -168,9 +174,15 @@ KMmapping = importmappingmatrix('KMatrix.mapping');
 
 % 仅保留需要的变量 M C K 矩阵 频率 圆频率 模态向量 对应关系
 % Keep only the required variables M C K Matrix Frequency Circular frequency Mode vector Correspondence
-clearvars -except M C K Freq omeg mode_vec C_exp KMmapping DampingMatrixParameter zeta beta nodeondeckimport points externalforcemethod nTMD nModes MFC mTMD cTMD kTMD nodeTMD exportvideo 
+clearvars -except M C K Freq omeg mode_vec C_exp KMmapping DampingMatrixParameter zeta nodeondeckimport points externalforcemethod nTMD nModes MFC mTMD cTMD kTMD nodeTMD exportvideo
 
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% 设置TMD参数
+%% Set TMD parameters
+% mTMD = [100 100];
+% cTMD = [2 * mTMD(1) * omeg(1) * 0.05 2 * mTMD(2) * omeg(2) * 0.05];
+% kTMD = [mTMD(1) * omeg(1)^2 mTMD(2) * omeg(2)^2];
+% nodeTMD = [50 20]; %Node number(location of the TMD)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 考虑TMD振动响应的模态叠加法
@@ -265,11 +277,11 @@ CC = zeros(matrixsize, matrixsize);
 
 switch DampingMatrixParameter
     case 1
-        CC = beta*KK;
+
         for t1 = 1:matrixsize
 
             if t1 <= nModes
-                % CC(t1, t1) = P_eq(t1, mode_vec, C_exp); %P=parameters
+                CC(t1, t1) = P_eq(t1, mode_vec, C_exp); %P=parameters
             end
 
             if and(t1 > nModes, t1 <= matrixsize)
@@ -284,7 +296,7 @@ switch DampingMatrixParameter
         for t1 = 1:matrixsize
 
             if t1 <= nModes
-                CC(t1, t1) = 2 * MM(t1, t1) * omeg(t1) * zeta; 
+                CC(t1, t1) = 2 * MM(t1, t1) * omeg(t1) * zeta;
             end
 
             if and(t1 > nModes, t1 <= matrixsize)
@@ -328,7 +340,7 @@ clear t1
 
 % 特征值分析（计算增加TMD后结构的模态和振型）
 % Eigenvalue analysis (calculate the mode and mode shape of the structure after adding TMD)
-clearvars -except KK MM CC matrixsize nModes nTMD mode_vec KMmapping nodeondeckimport points nodeTMD externalforcemethod MFC omeg exportvideo Freq
+clearvars -except KK MM CC matrixsize nModes nTMD mode_vec KMmapping nodeondeckimport points nodeTMD externalforcemethod MFC omeg exportvideo
 calmodes = matrixsize; %考虑模态数 Consider the number of modes
 [eig_vec, eig_val] = eigs(KK, MM, calmodes, 'SM');
 [nfdof, nfdof] = size(eig_vec);
@@ -448,9 +460,9 @@ case 2
     points = length(nodeondeck); % 主梁节点数 Number of girder nodes
 end
 
-dt = 0.01;
+dt = 0.1;
 % 计算时间（秒）Computation time (seconds)
-T = 100;
+T = 10000;
 NNT = T / dt;
 t = 0:dt:T;
 switch externalforcemethod
@@ -460,7 +472,7 @@ case 1 %作用模态力
     for t1 = 1:matrixsize
 
         if t1 <= nModes
-            PP(t1, :) = MFC(t1)*sin(omeg2(t1)*t);
+            PP(t1, :) = MFC(t1)*sin(omeg(t1)*t);
         else
             PP(t1, :) = zeros(1, size(t, 2));
         end
@@ -567,7 +579,7 @@ for t1 = 1:length(t_plot)
     plot(nodeondeck, Dis_temp)
     txt = ['Time: ' num2str(t_temp) ' s'];
     legend(txt)
-    xlim([nodeondeck(1) nodeondeck(end)])
+    xlim([1 101])
     ylim([-1 1])
     hold on
 
@@ -617,9 +629,7 @@ case 1
     disp("计算未收敛")
 end
 
-test=Dis(183,:);
-[psd_avg, f, psd_plot] = fft_transfer(1/dt,test');
-plot(f,psd_plot)
+
 %% 所需要使用的函数
 %% functions to be used
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
