@@ -73,6 +73,14 @@ function out = polynomial_NB_withTMD(Fre, Mass, Zeta0, rho, D, U, a, t,h, P,  u0
     ktmd = Omegatmd^2 * mtmd;
     ctmd = 0.05 * 2 * mtmd * Omegatmd;
 
+    mtmd = Mass * 0.00625;
+    disp("质量比为：" + num2str(mtmd / Mass * 100) + "%")
+    Ftmd = 5.25;
+    Omegatmd = Ftmd * 2 * pi;
+    ktmd = Omegatmd^2 * mtmd;
+    ctmd = 0.08 * 2 * mtmd * Omegatmd;
+
+
     MM = [Mass 0; 0 mtmd];
     CC = zeros(size(MM, 1), size(MM, 2));
     CC(1, 1) = Zeta0 * 4 * pi * Mass * Fre + ctmd;

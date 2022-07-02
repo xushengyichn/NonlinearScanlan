@@ -118,12 +118,12 @@ up_a = [up_a1 up_a2 up_a3 up_a4 up_a5];
 D = 0.667; % deck depth
 m = 80; % mass of the segment model
 Mass = m;
-F0 = 5.1835; % Frequency without wind
+F0 = 5.276; % Frequency without wind
 Fre= F0;
 omega0 = 2 * pi * F0; % Circular frequency without wind
 rho = 1.225; % density of the air
 U = 6.21; % wind speed
-Zeta0 = 0.29/100; % damping ratio without wind
+Zeta0 = 0.3/100; % damping ratio without wind
 
 h = 1/256; % 时间步长 % Step size of the algorithm
 up_t=0:h:30; % Time vector
@@ -152,3 +152,18 @@ subplot(1, 2, 2)
 plot(out(:, 1), out(:, 3))
 title("TMD")
 ylim([-0.01 0.01])
+
+figure 
+plot(out(:, 1), out(:, 2))
+ylim([-0.01 0.01])
+title("main structure")
+hold on
+load test.mat
+plot(up_t,UP)
+legend("calculated","windtunnel test")
+fs=1/(up_t(2)-up_t(1));
+% [psd_avg, f, psd_plot] = fft_transfer(fs,UP);
+% figure
+% plot(f, psd_plot)
+
+
