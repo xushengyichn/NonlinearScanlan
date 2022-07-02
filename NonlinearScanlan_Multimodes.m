@@ -424,7 +424,7 @@ epsilon(:,1)=4.0534 / 63.2728 * 12000;
 
 
 h = 0.01;
-T = 3000;
+T = 30;
 t = 0:h:T;
 P = zeros(matrixsize, length(t));
 pp = P;
