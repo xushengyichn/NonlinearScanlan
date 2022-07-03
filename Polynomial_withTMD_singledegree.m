@@ -2,7 +2,7 @@
 %Author: Shengyi Xu xushengyichn@outlook.com
 %Date: 2022-06-27 16:21:36
 %LastEditors: Shengyi Xu xushengyichn@outlook.com
-%LastEditTime: 2022-06-27 19:05:22
+%LastEditTime: 2022-07-03 00:57:22
 %FilePath: \NonlinearScanlan\Polynomial_withTMD_singledegree.m
 %Description: 本代码是用于求解多项式模型下，单自由度模型安装TMD后的响应计算。
 %
@@ -148,6 +148,8 @@ subplot(1, 2, 1)
 plot(out(:, 1), out(:, 2))
 ylim([-0.01 0.01])
 title("main structure")
+xlabel('time(s)');
+ylabel('displacement(m)');
 subplot(1, 2, 2)
 plot(out(:, 1), out(:, 3))
 title("TMD")

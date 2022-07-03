@@ -66,7 +66,7 @@ function out = polynomial_NB_withTMD(Fre, Mass, Zeta0, rho, D, U, a, t,h, P,  u0
 
 
 
-    mtmd = Mass * 0.005;
+    mtmd = Mass * 0.01;
     disp("质量比为：" + num2str(mtmd / Mass * 100) + "%")
     Ftmd = Fre;
     Omegatmd = Ftmd * 2 * pi;
