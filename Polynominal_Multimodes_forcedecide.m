@@ -2,9 +2,9 @@
 %Author: Shengyi xushengyichn@outlook.com
 %Date: 2022-05-15 16:16:48
 %LastEditors: Shengyi Xu xushengyichn@outlook.com
-%LastEditTime: 2022-07-04 00:28:48
-%FilePath: \NonlinearScanlan\Polynominal_Multimodes.m
-%Description: 本函数目的为计算多自由度多项式模型响应TODO:啥都没改，需要推导公式，和单自由度结果对比，看看是否一致
+%LastEditTime: 2022-07-04 01:27:08
+%FilePath: \NonlinearScanlan\Polynominal_Multimodes_forcedecide.m
+%Description: 本函数目的为计算多自由度多项式模型响应，重点对比在荷载展开式中多阶模态对结果的影响
 %
 %Copyright (c) 2022 by Shengyi xushengyichn@outlook.com, All Rights Reserved.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -64,14 +64,7 @@ close all
 % % The results show that the influence is very large, but it has little influence on the actual calculation, and the actual damping ratio needs to be measured and obtained.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% 设置TMD参数
-%% Set TMD parameters
-nTMD = 1;
-mTMD = [12000];
-cTMD = [2 * mTMD(1) * 5.239256655795033 * 0.05]*0;
-kTMD = [mTMD(1) * 5.239256655795033^2];
-nodeTMD = [1168]; %Node number(location of the TMD)
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 设置模态叠加法参数
 %% Set the modal superposition method parameters
@@ -177,7 +170,7 @@ M = M + M';
 
 % 特征值分析，即计算频率Freq和振型Phi，calmodes数字代表求解的阶数，eigs中参数SM表示从较小的特征值开始求解
 % Eigenvalue analysis, that is to calculate the frequency Freq and mode shape Phi, the calmodes number represents the order of the solution, and the parameter SM in eigs represents the solution from the smaller eigenvalue.
-calmodes = 20; %考虑模态数 Consider the number of modes
+calmodes = 2; %考虑模态数 Consider the number of modes
 [eig_vec, eig_val] = eigs(K, M, calmodes, 'SM');
 [nfdof, nfdof] = size(eig_vec);
 
@@ -202,43 +195,17 @@ KMmapping = importmappingmatrix('KMatrix.mapping');
 % Keep only the required variables M C K Matrix Frequency Circular frequency Mode vector Correspondence
 clearvars -except M C K Freq omeg mode_vec C_exp KMmapping DampingMatrixParameter zeta beta nodeondeckimport points externalforcemethod nTMD nModes MFC mTMD cTMD kTMD nodeTMD exportvideo mode
 
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% 考虑TMD振动响应的模态叠加法
-%% Modal Superposition Method Considering TMD Vibration Response
-
-matrixsize = nTMD + nModes;
-phiTMD = zeros(nTMD, nModes);
-% phiTMD row:TMD for each loaction column:the mode shape at the each
-% location of tmd
-for t1 = 1:nTMD
-
-    for t2 = 1:nModes
-        % 找到TMD安装位置对应的振型向量大小并储存到phiTMD变量中
-        % Find the size of the mode shape vector corresponding to the installation position of the TMD and store it in the phiTMD variable
-        position_index = KMmapping.MatrixEqn(find(and(KMmapping.Node == nodeTMD(t1), KMmapping.DOF == 'UY')));
-        phiTMD(t1, t2) = mode_vec(position_index, t2);
-    end
-
-end
-
-clear t1 t2
+%% 未施加TMD情况下响应的模态叠加法(仅考虑二阶，多项式模型仅采用最简单的Scanlan形式)
+%% Modal Superposition Method for Responses Without TMD Applied
+matrixsize=2;
 
 % 创建质量矩阵
 % Create the Mass matrix
 MM = zeros(matrixsize, matrixsize);
 
 for t1 = 1:matrixsize
-
-    if t1 <= nModes
-        MM(t1, t1) = P_eq(t1, mode_vec, M); %行列数小于等于nModes为模态质量 The number of rows and columns is less than nModes is the modal quality
-    end
-
-    if and(t1 > nModes, t1 <= matrixsize)
-        MM(t1, t1) = mTMD(t1 - nModes); %行列数大于nModes为TMD实际质量 The number of rows and columns is greater than nModes for the actual quality of TMD
-    end
-
+    MM(t1, t1) = P_eq(t1, mode_vec, M); %行列数小于等于nModes为模态质量 The number of rows and columns is less than nModes is the modal quality
 end
 
 clear t1
@@ -248,133 +215,21 @@ clear t1
 KK = zeros(matrixsize, matrixsize);
 
 for t1 = 1:matrixsize
-
-    if t1 <= nModes
         KK(t1, t1) = P_eq(t1, mode_vec, K); %P=parameters
-    end
-
-    if and(t1 > nModes, t1 <= matrixsize)
-        KK(t1, t1) = kTMD(t1 - nModes);
-    end
-
 end
 
-clear t1
-
-for t1 = 1:nModes
-
-    for t2 = 1:nTMD
-
-        for t3 = 1:nModes
-            temp_data = kTMD(t2) * phiTMD(t2, t3) * phiTMD(t2, t1);
-            KK(t1, t3) = KK(t1, t3) + temp_data;
-            clear temp_data
-        end
-
-        indextmdt2 = nModes + t2;
-        KK(t1, indextmdt2) = KK(t1, indextmdt2) - kTMD(t2) * phiTMD(t2, t1);
-    end
-
-end
-
-clear t1 t2 t3
-
-for t1 = 1:nTMD
-
-    for t2 = 1:nModes
-        temp_data = -kTMD(t1) * phiTMD(t1, t2);
-        KK(nModes + t1, t2) = KK(nModes + t1, t2) + temp_data;
-        clear temp_data
-    end
-
-end
-
-clear t1
 
 % 创建阻尼矩阵
 % Create the Damping Matrix
 CC = zeros(matrixsize, matrixsize);
 
-switch DampingMatrixParameter
-    case 1
-        CC = beta * KK;
-
-        for t1 = 1:matrixsize
-
-            if t1 <= nModes
-                % CC(t1, t1) = P_eq(t1, mode_vec, C_exp); %P=parameters
-            end
-
-            if and(t1 > nModes, t1 <= matrixsize)
-                CC(t1, t1) = cTMD(t1 - nModes);
-            end
-
-        end
-
-        clear t1
-    case 2
-
-        for t1 = 1:matrixsize
-
-            if t1 <= nModes
-                CC(t1, t1) = 2 * MM(t1, t1) * omeg(t1) * zeta;
-            end
-
-            if and(t1 > nModes, t1 <= matrixsize)
-                CC(t1, t1) = cTMD(t1 - nModes);
-            end
-
-        end
-
-        clear t1
+for t1 = 1:matrixsize
+        CC(t1, t1) = 2 * MM(t1, t1) * omeg(t1) * zeta;
 end
 
-for t1 = 1:nModes
 
-    for t2 = 1:nTMD
-
-        for t3 = 1:nModes
-            temp_data = cTMD(t2) * phiTMD(t2, t3) * phiTMD(t2, t1);
-            CC(t1, t3) = CC(t1, t3) + temp_data;
-            clear temp_data
-        end
-
-        indextmdt2 = nModes + t2;
-        CC(t1, indextmdt2) = CC(t1, indextmdt2) - cTMD(t2) * phiTMD(t2, t1);
-    end
-
-end
-
-clear t1 t2 t3
-
-for t1 = 1:nTMD
-
-    for t2 = 1:nModes
-        temp_data = -cTMD(t1) * phiTMD(t1, t2);
-        CC(nModes + t1, t2) = CC(nModes + t1, t2) + temp_data;
-        clear temp_data
-    end
-
-end
-
-clear t1
-
-% 特征值分析（计算增加TMD后结构的模态和振型）
-% Eigenvalue analysis (calculate the mode and mode shape of the structure after adding TMD)
-clearvars -except KK MM CC matrixsize nModes nTMD mode_vec KMmapping nodeondeckimport points nodeTMD externalforcemethod MFC omeg exportvideo Freq mTMD mode
-calmodes = matrixsize; %考虑模态数 Consider the number of modes
-[eig_vec, eig_val] = eigs(KK, MM, calmodes, 'SM');
-[nfdof, nfdof] = size(eig_vec);
-
-for k1 = 1:nfdof
-    mnorm = sqrt(eig_vec(:, k1)' * MM * eig_vec(:, k1));
-    eig_vec(:, k1) = eig_vec(:, k1) / mnorm; %振型质量归一化 Mode shape mass normalization
-end
-
-clear k1 ndof
-[omeg2, w_order] = sort(sqrt(diag(eig_val)));
-mode_vec2 = eig_vec(:, w_order);
-Freq2 = omeg2 / (2 * pi);
+b1=4e3;
+b3=-2e7;
 
 
 
@@ -390,43 +245,18 @@ D = 4;
 U = 9.5*Freq(1)*D ;
 % K = omeg(1)*D/U;
 
-% K_data = [0; 5; 10; 15; 21; omeg(1)*D/U; 22; 30];
-K_data = [0; 0.01; 0.02; 0.03; omeg(1)*D/U-0.01; omeg(1)*D/U; omeg(1)*D/U+0.01; omeg(1)*D/U*10];
-Y1k_data = [0; 0; 0; 0; 0;8.7081; 0; 0];
-Y2k_data = [0; 0; 0; 0; 0; 0; 0; 0];
-epsilonk_data = [0; 0; 0; 0; 0; 195.6555; 0;0];
-% Y1k_data = [0; 0; 0; 0; 0;0; 0; 0] / 63.2728 * 60;
-% Y2k_data = [0; 0; 0; 0; 0; 0; 0; 0];
-% epsilonk_data = [0; 0; 0; 0; 0; 0; 0;0] / 63.2728 * 12000;
+
 
 omeg0 = omeg(1:nModes);
 K = omeg0 .* D / U;
 rho = 1.225;
 
-Y1 = interp1(K_data, Y1k_data, K);
-Y2 = interp1(K_data, Y2k_data, K);
-epsilon = interp1(K_data, epsilonk_data, K);
-
-Y1 = zeros(size(K,1),1);
-Y2 = zeros(size(K,1),1);
-epsilon = zeros(size(K,1),1);
-
-Y1(:,1)=4.4557 / 63.2728 * 60;
-epsilon(:,1)=4.0534 / 63.2728 * 12000;
 
 
-% Y1 = interp1(K_data, Y1k_data, K, 'spline');
-% Y2 = interp1(K_data, Y2k_data, K, 'spline');
-% epsilon = interp1(K_data, epsilonk_data, K, 'spline');
-
-
-% plot(K_data,Y1k_data)
-% hold on
-% plot(K,Y1,'r')
 
 
 h = 0.01;
-T = 30;
+T = 100;
 t = 0:h:T;
 P = zeros(matrixsize, length(t));
 pp = P;
@@ -460,11 +290,13 @@ end
 clear t2
 
 
-gfun = @(u, udot) Scanlan_nonlinear(u, udot, MM, CC, KK, gamma, beta, h, rho, U, D, Y1, epsilon, Y2, matrixsize, mode,phiResultall,nodegap);
-
+% gfun = @(u, udot) Scanlan_nonlinear(u, udot, MM, CC, KK, gamma, beta, h, rho, U, D, Y1, epsilon, Y2, matrixsize, mode,phiResultall,nodegap);
+gfun = @(u, udot) polysingle(u, udot, MM, CC, KK, gamma, beta, h,b1,b3, matrixsize, mode,phiResultall,nodegap);
 u0 = zeros(matrixsize, 1);
 u0_real = 0.01;
 u0(mode) = u0_real/phiResultall(mode,171);
+u0(1) = 1e-3;
+u0(2) =  1e-3;
 udot0 = zeros(matrixsize, 1);
 
 u = nonlinear_newmark_krenk(gfun, MM, pp, u0, udot0, gamma, beta, h);
@@ -472,115 +304,118 @@ u = nonlinear_newmark_krenk(gfun, MM, pp, u0, udot0, gamma, beta, h);
 u_nounit = u(1,:);
 s = t * U / D;
 out = [s; u_nounit];
+figure
+plot(t,u(1,:))
+hold on
+plot(t,u(2,:))
 
+% % figure
+% % [psd_avg, f, psd_plot] = fft_transfer(1/h,u_nounit');
+% % plot(f,psd_plot)
+
+
+% Dis = zeros(length(nodeondeck), length(t));
+
+% for t2 = 1:length(nodeondeck)
+%     pointnumber = nodeondeck(t2); %查看某个点的振动时程
+%     phiResult = phiY(pointnumber, KMmapping, mode_vec, nModes);
+%     Dis_temp = zeros(1, length(t));
+
+%     for t1 = 1:nModes
+%         Dis_temp = Dis_temp + phiResult(t1) .* u(t1, :);
+%     end
+
+%     Dis(t2, :) = Dis_temp;
+    
+%     clear Dis_temp t1
+% end
+
+% clear t2
 
 % figure
-% [psd_avg, f, psd_plot] = fft_transfer(1/h,u_nounit');
-% plot(f,psd_plot)
+% plot(t,Dis(171,:))
 
+% [psd_avg, f, psd_plot]=fft_transfer(1/h,Dis(100,end/2:end)');
+% figure
+% plot(f, psd_plot)
 
-Dis = zeros(length(nodeondeck), length(t));
+% if nTMD>0
+%     figure()
+% plot(t,u(end,:))
 
-for t2 = 1:length(nodeondeck)
-    pointnumber = nodeondeck(t2); %查看某个点的振动时程
-    phiResult = phiY(pointnumber, KMmapping, mode_vec, nModes);
-    Dis_temp = zeros(1, length(t));
+% phitmd=phiY(nodeTMD, KMmapping, mode_vec, 1);
+% disp("TMD的质量比为"+num2str(mTMD*phitmd^2))
+% end
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    for t1 = 1:nModes
-        Dis_temp = Dis_temp + phiResult(t1) .* u(t1, :);
-    end
+% figure
+% % plot(t(1:end/10),Dis(171,1:end/10))
+% plot(t,Dis(171,:))
+% title("Displacement of node 171")
+%     figure()
+% plot(t,u(end,:))
+% % plot(t,u(end,1:end/10))
+% title("Displacement of TMD, mass ratio: "+num2str(mTMD*phitmd^2*100)+"%")
 
-    Dis(t2, :) = Dis_temp;
-    
-    clear Dis_temp t1
-end
+% if exportvideo ==1 
+% % Create a new VideoWriter object (an empty video file). Use whatever format you want,
+% % but in my experience MP4 (with H.264 codec) is by far the best. Please stop using AVI.
+% hvid = VideoWriter('./movie.mp4', 'MPEG-4');
 
-clear t2
+% % Full quality, because why not?
+% set(hvid, 'Quality', 100);
 
-figure
-plot(t,Dis(171,:))
+% % Set the frame rate
+% set(hvid, 'FrameRate', 30);
 
-[psd_avg, f, psd_plot]=fft_transfer(1/h,Dis(100,end/2:end)');
-figure
-plot(f, psd_plot)
+% % Open the object for writing
+% open(hvid);
 
-if nTMD>0
-    figure()
-plot(t,u(end,:))
+% % Desired frame resolution (see fig2frame). The video will automatically adopt the resolution of the first frame (see HELP VIDEOWRITER).
+% % You could instead set the Width property of the video object, but I prefer this.
+% framepar.resolution = [1024, 768];
 
-phitmd=phiY(nodeTMD, KMmapping, mode_vec, 1);
-disp("TMD的质量比为"+num2str(mTMD*phitmd^2))
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% % Create a new figure
+% hfig = figure();
+% maxDis = max(max(abs(Dis)));
 
-figure
-% plot(t(1:end/10),Dis(171,1:end/10))
-plot(t,Dis(171,:))
-title("Displacement of node 171")
-    figure()
-plot(t,u(end,:))
-% plot(t,u(end,1:end/10))
-title("Displacement of TMD, mass ratio: "+num2str(mTMD*phitmd^2*100)+"%")
+% t_plot = downsample(t,10);
+% t_plot = t_plot(1:round(end/2,0));
+% for t1 = 1:length(t_plot)
+%     disp(['Processing frame ' num2str(t1) '...'])
+%     figure(hfig)
+%     t_temp = t_plot(t1);
+%     seq_temp = find(t==t_temp);
+%     Dis_temp = Dis(:, seq_temp) / maxDis;
+%     title("Displacement of the beam and TMD")
+%     plot(nodeondeck, Dis_temp)
+%     txt = ['Time: ' num2str(t_temp) ' s'];
+%     legend(txt)
+%     xlim([nodeondeck(1) nodeondeck(end)])
+%     ylim([-1 1])
+%     hold on
 
-if exportvideo ==1 
-% Create a new VideoWriter object (an empty video file). Use whatever format you want,
-% but in my experience MP4 (with H.264 codec) is by far the best. Please stop using AVI.
-hvid = VideoWriter('./movie.mp4', 'MPEG-4');
+%     if nTMD > 0
+%         for t2 = 1:length(nodeTMD)
+%             Dis_tmd_temp = u(nModes + t2, seq_temp);
+%             scatter(nodeTMD(t2), Dis_tmd_temp);
+%         end
+%         clear t2
+%     end
 
-% Full quality, because why not?
-set(hvid, 'Quality', 100);
+%     hold off
+%     % F = fig2frame(hfig,framepar); % <-- Use this
+%     F = getframe(hfig); % <-- Not this.
+%     clear Dis_temp
+%     writeVideo(hvid, F);
+% end
+% clear t1
 
-% Set the frame rate
-set(hvid, 'FrameRate', 30);
-
-% Open the object for writing
-open(hvid);
-
-% Desired frame resolution (see fig2frame). The video will automatically adopt the resolution of the first frame (see HELP VIDEOWRITER).
-% You could instead set the Width property of the video object, but I prefer this.
-framepar.resolution = [1024, 768];
-
-% Create a new figure
-hfig = figure();
-maxDis = max(max(abs(Dis)));
-
-t_plot = downsample(t,10);
-t_plot = t_plot(1:round(end/2,0));
-for t1 = 1:length(t_plot)
-    disp(['Processing frame ' num2str(t1) '...'])
-    figure(hfig)
-    t_temp = t_plot(t1);
-    seq_temp = find(t==t_temp);
-    Dis_temp = Dis(:, seq_temp) / maxDis;
-    title("Displacement of the beam and TMD")
-    plot(nodeondeck, Dis_temp)
-    txt = ['Time: ' num2str(t_temp) ' s'];
-    legend(txt)
-    xlim([nodeondeck(1) nodeondeck(end)])
-    ylim([-1 1])
-    hold on
-
-    if nTMD > 0
-        for t2 = 1:length(nodeTMD)
-            Dis_tmd_temp = u(nModes + t2, seq_temp);
-            scatter(nodeTMD(t2), Dis_tmd_temp);
-        end
-        clear t2
-    end
-
-    hold off
-    % F = fig2frame(hfig,framepar); % <-- Use this
-    F = getframe(hfig); % <-- Not this.
-    clear Dis_temp
-    writeVideo(hvid, F);
-end
-clear t1
-
-% Close the figure
-close(hfig);
-% Close the video object. This is important! The file may not play properly if you don't close it.
-close(hvid);
-end
+% % Close the figure
+% close(hfig);
+% % Close the video object. This is important! The file may not play properly if you don't close it.
+% close(hvid);
+% end
 
 
 %% 所需要使用的函数
@@ -707,4 +542,42 @@ end
 
 end
 
+
+%% Function file for the Scanlan nonlinear model
+function [g, ks] = polysingle(u, udot, MM, CC, KK, gamma, beta, h,b1,b3, matrixsize, mode,phiResultall,nodegap)
+    % Y1_diagMatrix = zeros(matrixsize, matrixsize);%Aerodynamice Force decision matrix 决定哪些自由度是否施加气动力
+    % Y2_diagMatrix = zeros(matrixsize, matrixsize);%Aerodynamice Force decision matrix 决定哪些自由度是否施加气动力
+    % epsilon_diagMatrix = zeros(matrixsize, matrixsize);%Aerodynamice Force decision matrix 决定哪些自由度是否施加气动力
+    % diagMatrix = zeros(matrixsize, matrixsize);%Aerodynamice Force decision matrix 决定哪些自由度是否施加气动力
+
+    phi=phiResultall(1,:);
+
+    for k1 =1:length(nodegap)-1
+        dx(k1)=nodegap(k1+1)-nodegap(k1);
+    end
+
+    clear k1
+    phi1_2=0;
+    phi1_4=0;
+    for k1 =1:length(dx)
+        phi1_2=phi1_2+phi(k1)^2*dx(k1);
+        phi1_4=phi1_4+phi(k1)^4*dx(k1);
+    end
+    clear k1
+    
+    q1=u(1);
+    q2=u(2);
+    qdot1=udot(1);
+    qdot2=udot(2);
+
+    g1=CC(1,1)*qdot1-(b3*phi1_2*q1^2+b1)*phi1_2*qdot1+KK(1,1)*q1;
+    g2=CC(2,2)*qdot2+KK(2,2)*q2;
+    g=[g1;g2];
+
+    kc = CC-[b3*phi1_4*q1^2 0 ;0 0];
+    kspring = KK-[2*b3*phi1_4*q1*qdot1 0 ;0 0];
+    ks = kspring + gamma .* h ./ (beta .* h.^2) .* kc + 1 ./ (beta .* h.^2) .* MM; % Linearization
+
+
+end
 % end
