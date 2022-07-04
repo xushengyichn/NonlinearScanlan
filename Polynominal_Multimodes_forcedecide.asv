@@ -2,7 +2,7 @@
 %Author: Shengyi xushengyichn@outlook.com
 %Date: 2022-05-15 16:16:48
 %LastEditors: Shengyi Xu xushengyichn@outlook.com
-%LastEditTime: 2022-07-04 21:51:54
+%LastEditTime: 2022-07-04 11:35:39
 %FilePath: \NonlinearScanlan\Polynominal_Multimodes_forcedecide.m
 %Description: 本函数目的为计算多自由度多项式模型响应，重点对比在荷载展开式中多阶模态对结果的影响
 %
@@ -233,10 +233,19 @@ b3 = -2e11;
 gamma = 1/2; % Factor in the Newmark algorithm
 beta = 1/4; % Factor in the Newmark algorithm
 
+%% Scanlan nonlinear model parameters
+% D = 75/1000;
+D = 4;
+% U = 20.92 * 4.185 * 55/1000;
+U = 9.5 * Freq(1) * D;
+% K = omeg(1)*D/U;
 
+omeg0 = omeg(1:nModes);
+K = omeg0 .* D / U;
+rho = 1.225;
 
 h = 0.01;
-T = 100;
+T = 20;
 t = 0:h:T;
 P = zeros(matrixsize, length(t));
 pp = P;
@@ -274,211 +283,39 @@ u0_real = 0.01;
 u0(mode) = u0_real / phiResultall(mode, 171);
 u0(1) = 1e-1;
 u0(2) = 1e-1;
-% udot0 = zeros(matrixsize, 1);
+udot0 = zeros(matrixsize, 1);
+u0(1) = 1e-1;
+u0(2) = 1e-1;
 
-k1=0;%是否进行不加tmd情况下的响应计算，1为是，0为否
-if k1==1
-    u = nonlinear_newmark_krenk(gfun, MM, pp, u0, udot0, gamma, beta, h);
+u = nonlinear_newmark_krenk(gfun, MM, pp, u0, udot0, gamma, beta, h);
 
-    u_nounit = u(1, :);
-    s = t * U / D;
-    out = [s; u_nounit];
-    figure
-    plot(t, u(1, :))
-    hold on
-    plot(t, u(2, :))
-    ylim([-1.5 1.5])
-    title("Aerodynamic force only consider the first mode displacement")
-    legend("Mode1","Mode2")
+u_nounit = u(1, :);
+s = t * U / D;
+out = [s; u_nounit];
+figure
+plot(t, u(1, :))
+hold on
+plot(t, u(2, :))
+% ylim([-10 10])
 
+gfun2 = @(u, udot) polymulti(u, udot, MM, CC, KK, gamma, beta, h, b1, b3, matrixsize, mode, phiResultall, nodegap);
+u0 = zeros(matrixsize, 1);
+u0_real = 0.01;
+u0(mode) = u0_real / phiResultall(mode, 171);
+u0(1) = 1e-1;
+u0(2) = 1e-1;
+udot0 = zeros(matrixsize, 1);
 
-    gfun2 = @(u, udot) polymulti(u, udot, MM, CC, KK, gamma, beta, h, b1, b3, matrixsize, mode, phiResultall, nodegap);
-    u0_real = 0.01;
-    u0(mode) = u0_real / phiResultall(mode, 171);
-    u0(1) = 1e-1;
-    u0(2) = 1e-1;
-    udot0 = zeros(matrixsize, 1);
+u = nonlinear_newmark_krenk(gfun2, MM, pp, u0, udot0, gamma, beta, h);
 
+u_nounit = u(1, :);
+s = t * U / D;
+out = [s; u_nounit];
 
-    u = nonlinear_newmark_krenk(gfun2, MM, pp, u0, udot0, gamma, beta, h);
-
-    u_nounit = u(1, :);
-    s = t * U / D;
-    out = [s; u_nounit];
-    figure
-    plot(t, u(1, :))
-    hold on
-    plot(t, u(2, :))
-    ylim([-1.5 1.5])
-    title("Aerodynamic force consider the first and second mode displacement")
-    legend("Mode1","Mode2")
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% 设置TMD参数
-%% Set TMD parameters
-nTMD = 1;
-mTMD = [12000];
-cTMD = [2 * mTMD(1) * 5.239256655795033 * 0.05];
-kTMD = [mTMD(1) * 5.239256655795033^2];
-nodeTMD = [1168]; %Node number(location of the TMD)
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% 考虑TMD振动响应的模态叠加法
-%% Modal Superposition Method Considering TMD Vibration Response
-
-matrixsize = nTMD + nModes;
-phiTMD = zeros(nTMD, nModes);
-% phiTMD row:TMD for each loaction column:the mode shape at the each
-% location of tmd
-for t1 = 1:nTMD
-
-    for t2 = 1:nModes
-        % 找到TMD安装位置对应的振型向量大小并储存到phiTMD变量中
-        % Find the size of the mode shape vector corresponding to the installation position of the TMD and store it in the phiTMD variable
-        position_index = KMmapping.MatrixEqn(find(and(KMmapping.Node == nodeTMD(t1), KMmapping.DOF == 'UY')));
-        phiTMD(t1, t2) = mode_vec(position_index, t2);
-    end
-
-end
-
-
-clear t1 t2
-
-% 创建质量矩阵
-% Create the Mass matrix
-MM = zeros(matrixsize, matrixsize);
-
-for t1 = 1:matrixsize
-
-    if t1 <= nModes
-        MM(t1, t1) = P_eq(t1, mode_vec, M); %行列数小于等于nModes为模态质量 The number of rows and columns is less than nModes is the modal quality
-    end
-
-    if and(t1 > nModes, t1 <= matrixsize)
-        MM(t1, t1) = mTMD(t1 - nModes); %行列数大于nModes为TMD实际质量 The number of rows and columns is greater than nModes for the actual quality of TMD
-    end
-
-end
-
-clear t1
-
-% 创建刚度矩阵
-% Create the Stiffness Matrix
-KK = zeros(matrixsize, matrixsize);
-
-for t1 = 1:matrixsize
-
-    if t1 <= nModes
-        KK(t1, t1) = P_eq(t1, mode_vec, K); %P=parameters
-    end
-
-    if and(t1 > nModes, t1 <= matrixsize)
-        KK(t1, t1) = kTMD(t1 - nModes);
-    end
-
-end
-
-clear t1
-
-for t1 = 1:nModes
-
-    for t2 = 1:nTMD
-
-        for t3 = 1:nModes
-            temp_data = kTMD(t2) * phiTMD(t2, t3) * phiTMD(t2, t1);
-            KK(t1, t3) = KK(t1, t3) + temp_data;
-            clear temp_data
-        end
-
-        indextmdt2 = nModes + t2;
-        KK(t1, indextmdt2) = KK(t1, indextmdt2) - kTMD(t2) * phiTMD(t2, t1);
-    end
-
-end
-
-clear t1 t2 t3
-
-for t1 = 1:nTMD
-
-    for t2 = 1:nModes
-        temp_data = -kTMD(t1) * phiTMD(t1, t2);
-        KK(nModes + t1, t2) = KK(nModes + t1, t2) + temp_data;
-        clear temp_data
-    end
-
-end
-
-clear t1
-
-
-% 创建阻尼矩阵
-% Create the Damping Matrix
-CC = zeros(matrixsize, matrixsize);
-
-switch DampingMatrixParameter
-    case 1
-        CC = beta * KK;
-
-        for t1 = 1:matrixsize
-
-            if t1 <= nModes
-                % CC(t1, t1) = P_eq(t1, mode_vec, C_exp); %P=parameters
-            end
-
-            if and(t1 > nModes, t1 <= matrixsize)
-                CC(t1, t1) = cTMD(t1 - nModes);
-            end
-
-        end
-
-        clear t1
-    case 2
-
-        for t1 = 1:matrixsize
-
-            if t1 <= nModes
-                CC(t1, t1) = 2 * MM(t1, t1) * omeg(t1) * zeta;
-            end
-
-            if and(t1 > nModes, t1 <= matrixsize)
-                CC(t1, t1) = cTMD(t1 - nModes);
-            end
-
-        end
-
-        clear t1
-end
-
-for t1 = 1:nModes
-
-    for t2 = 1:nTMD
-
-        for t3 = 1:nModes
-            temp_data = cTMD(t2) * phiTMD(t2, t3) * phiTMD(t2, t1);
-            CC(t1, t3) = CC(t1, t3) + temp_data;
-            clear temp_data
-        end
-
-        indextmdt2 = nModes + t2;
-        CC(t1, indextmdt2) = CC(t1, indextmdt2) - cTMD(t2) * phiTMD(t2, t1);
-    end
-
-end
-
-clear t1 t2 t3
-
-for t1 = 1:nTMD
-
-    for t2 = 1:nModes
-        temp_data = -cTMD(t1) * phiTMD(t1, t2);
-        CC(nModes + t1, t2) = CC(nModes + t1, t2) + temp_data;
-        clear temp_data
-    end
-
-end
-
-clear t1
-
+plot(t, u(1, :))
+hold on
+plot(t, u(2, :))
+ylim([-10 10])
 
 
 % % figure
@@ -765,7 +602,7 @@ function [g, ks] = polymulti(u, udot, MM, CC, KK, gamma, beta, h, b1, b3, matrix
 
     phi1 = phiResultall(1, :);
     phi2= phiResultall(2, :);
-    phi1= zeros(1,length(phi2));
+    phi2= zeros(1,length(phi2));
 
 
     for k1 = 1:length(nodegap) - 1
@@ -808,7 +645,7 @@ function [g, ks] = polymulti(u, udot, MM, CC, KK, gamma, beta, h, b1, b3, matrix
     qdot1 = udot(1);
     qdot2 = udot(2);
 
-    g1 = -qdot1*b3*phi1_4*q1^2 -2*qdot1*b3*phi1_3_phi2*q1*q2-qdot1*b3*phi1_2_phi2_2*q2^2-qdot2*b3*phi1_3_phi2*q1^2-2*qdot2*b3*phi1_2_phi2_2*q1*q2-qdot2*b3*phi2_3_phi1*q2^2-qdot1*b1*phi1_2-qdot2*b1*phi1_phi2+CC(1,1)*qdot1+KK(1,1)*q1; 
+    g1 = -qdot2*b3*phi1_4*q1^2-2*qdot1*b3*phi1_3_phi2*q1*q2+qdot1*b3*phi1_2_phi2_2*q2^2-qdot2*b3*phi1_3_phi2*q1^2-2*qdot2*b3*phi1_2_phi2_2*q1*q2-qdot2*b3*phi2_3_phi1*q2^2-qdot1*b1*phi1_2-qdot2*b1*phi1_phi2+CC(1,1)*qdot1+KK(1,1)*q1; 
     g2 =-qdot2*b3*phi1_2_phi2_2*q1^2-2*qdot2*b3*phi2_3_phi1*q1*q2-qdot2*b3*phi2_4*q2^2-qdot2*b1*phi2_2+CC(2,2)*qdot2-qdot1*b3*phi1_3_phi2*q1^2-2*qdot1*b3*phi1_2_phi2_2*q1*q2-qdot1*b3*phi2_3_phi1*q2^2-qdot1*b1*phi1_phi2+KK(2,2)*q2 ;
     g = [g1; g2];
 
@@ -829,76 +666,4 @@ function [g, ks] = polymulti(u, udot, MM, CC, KK, gamma, beta, h, b1, b3, matrix
 
 end
 
-
-function [g, ks] = polymulti_tmd(u, udot, MM, CC, KK, gamma, beta, h, b1, b3, matrixsize, mode, phiResultall, nodegap)
-    % Y1_diagMatrix = zeros(matrixsize, matrixsize);%Aerodynamice Force decision matrix 决定哪些自由度是否施加气动力
-    % Y2_diagMatrix = zeros(matrixsize, matrixsize);%Aerodynamice Force decision matrix 决定哪些自由度是否施加气动力
-    % epsilon_diagMatrix = zeros(matrixsize, matrixsize);%Aerodynamice Force decision matrix 决定哪些自由度是否施加气动力
-    % diagMatrix = zeros(matrixsize, matrixsize);%Aerodynamice Force decision matrix 决定哪些自由度是否施加气动力
-
-    phi1 = phiResultall(1, :);
-    phi2= phiResultall(2, :);
-    phi1= zeros(1,length(phi2));
-
-
-    for k1 = 1:length(nodegap) - 1
-        dx(k1) = nodegap(k1 + 1) - nodegap(k1);
-    end
-
-    clear k1
-    phi1_1=0;
-    phi2_1=0;
-    phi1_2 = 0;
-    phi2_2= 0;
-    phi1_4=0;
-    phi2_4=0;
-    phi1_3_phi2=0;
-    phi1_2_phi2_2=0;
-    phi2_3_phi1=0;
-    phi1_phi2=0;
-    % phi1_3=0;
-    % phi2_3=0;
-
-    for k1 = 1:length(dx)
-        phi1_1= phi1_1+phi1(k1)^1 * dx(k1);
-        phi2_1= phi2_1+phi2(k1)^1 * dx(k1);
-        phi1_2 = phi1_2 + phi1(k1)^2 * dx(k1);
-        phi1_4 = phi1_4 + phi1(k1)^4 * dx(k1);
-        phi2_2 = phi2_2 + phi2(k1)^2 * dx(k1);
-        phi2_4 = phi2_4 + phi2(k1)^4 * dx(k1);
-        % phi1_3 = phi1_3 + phi1(k1)^3 * dx(k1);
-        % phi2_3 = phi2_3 + phi2(k1)^3 * dx(k1);
-        phi1_3_phi2=phi1_3_phi2+phi1(k1)^3*phi2(k1)*dx(k1);
-        phi1_2_phi2_2=phi1_2_phi2_2+phi1(k1)^2*phi2(k1)^2*dx(k1);
-        phi2_3_phi1=phi2_3_phi1+phi2(k1)^3*phi1(k1)*dx(k1);
-        phi1_phi2=phi1_phi2+phi1(k1)*phi2(k1)*dx(k1);
-    end
-
-    clear k1
-
-    q1 = u(1);
-    q2 = u(2);
-    qdot1 = udot(1);
-    qdot2 = udot(2);
-
-    g1 = -qdot1*b3*phi1_4*q1^2 -2*qdot1*b3*phi1_3_phi2*q1*q2-qdot1*b3*phi1_2_phi2_2*q2^2-qdot2*b3*phi1_3_phi2*q1^2-2*qdot2*b3*phi1_2_phi2_2*q1*q2-qdot2*b3*phi2_3_phi1*q2^2-qdot1*b1*phi1_2-qdot2*b1*phi1_phi2+CC(1,1)*qdot1+KK(1,1)*q1; 
-    g2 =-qdot2*b3*phi1_2_phi2_2*q1^2-2*qdot2*b3*phi2_3_phi1*q1*q2-qdot2*b3*phi2_4*q2^2-qdot2*b1*phi2_2+CC(2,2)*qdot2-qdot1*b3*phi1_3_phi2*q1^2-2*qdot1*b3*phi1_2_phi2_2*q1*q2-qdot1*b3*phi2_3_phi1*q2^2-qdot1*b1*phi1_phi2+KK(2,2)*q2 ;
-    g = [g1; g2];
-
-
-    kc1=-b3*q1^2*phi1_4-2*b3*q1*q2*phi1_3_phi2-b3*phi1_2_phi2_2*q2^2-b1*phi1_2;
-    kc2=-b3*phi1_3_phi2*q1^2-2*b3*phi1_2_phi2_2*q1*q2-b3*phi2_3_phi1*q2^2-b1*phi1_phi2;
-    kc3=-b3*phi1_3_phi2*q1^2-2*b3*phi1_2_phi2_2*q1*q2-b3*phi2_3_phi1*q2^2-b1*phi1_phi2;
-    kc4=-b3*phi1_2_phi2_2*q1^2-2*b3*q1*q2*phi2_3_phi1-b3*q2^2*phi2_4-b1*phi2_2;
-    kc = CC + [kc1 kc2 ;kc3 kc4 ];
-
-    ks1=-2*b3*phi1_4*q1*qdot1-2*b3*phi1_3_phi2*qdot1*q2-2*b3*phi1_3_phi2*qdot2*q1-2*b3*phi1_2_phi2_2*qdot2*q2;
-    ks2=-2*b3*phi1_3_phi2*qdot1*q1-2*b3*phi1_2_phi2_2*qdot1*q2-2*b3*phi1_2_phi2_2*qdot2*q1-2*b3*phi2_3_phi1*qdot2*q2;
-    ks3=-2*b3*phi1_3_phi2*qdot1*q1-2*b3*phi1_2_phi2_2*qdot1*q2-2*b3*phi1_2_phi2_2*qdot2*q1-2*b3*phi2_3_phi1*qdot2*q2;
-    ks4=-2*b3*phi1_2_phi2_2*qdot1*q1-2*b3*phi2_3_phi1*qdot1*q2-2*b3*phi2_3_phi1*qdot2*q1-2*b3*phi2_4*qdot2*q2;
-
-    kspring = KK + [ks1 ks2;ks3 ks4];
-    ks = kspring + gamma .* h ./ (beta .* h.^2) .* kc + 1 ./ (beta .* h.^2) .* MM; % Linearization
-
-end
 % end
