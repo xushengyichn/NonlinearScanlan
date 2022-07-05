@@ -2,7 +2,7 @@
 %Author: Shengyi xushengyichn@outlook.com
 %Date: 2022-05-15 16:16:48
 %LastEditors: Shengyi Xu xushengyichn@outlook.com
-%LastEditTime: 2022-07-04 21:51:54
+%LastEditTime: 2022-07-04 23:34:17
 %FilePath: \NonlinearScanlan\Polynominal_Multimodes_forcedecide.m
 %Description: 本函数目的为计算多自由度多项式模型响应，重点对比在荷载展开式中多阶模态对结果的影响
 %
@@ -267,6 +267,9 @@ end
 
 clear t2
 
+k1=0;%是否进行不加tmd情况下的响应计算，1为是，0为否
+
+if k1==1
 % gfun = @(u, udot) Scanlan_nonlinear(u, udot, MM, CC, KK, gamma, beta, h, rho, U, D, Y1, epsilon, Y2, matrixsize, mode,phiResultall,nodegap);
 gfun = @(u, udot) polysingle(u, udot, MM, CC, KK, gamma, beta, h, b1, b3, matrixsize, mode, phiResultall, nodegap);
 u0 = zeros(matrixsize, 1);
@@ -276,8 +279,6 @@ u0(1) = 1e-1;
 u0(2) = 1e-1;
 % udot0 = zeros(matrixsize, 1);
 
-k1=0;%是否进行不加tmd情况下的响应计算，1为是，0为否
-if k1==1
     u = nonlinear_newmark_krenk(gfun, MM, pp, u0, udot0, gamma, beta, h);
 
     u_nounit = u(1, :);
@@ -317,7 +318,7 @@ end
 %% 设置TMD参数
 %% Set TMD parameters
 nTMD = 1;
-mTMD = [12000];
+mTMD = [40000];
 cTMD = [2 * mTMD(1) * 5.239256655795033 * 0.05];
 kTMD = [mTMD(1) * 5.239256655795033^2];
 nodeTMD = [1168]; %Node number(location of the TMD)
@@ -341,6 +342,7 @@ for t1 = 1:nTMD
 
 end
 
+mTMD*phiTMD(1)^2
 
 clear t1 t2
 
@@ -479,7 +481,33 @@ end
 
 clear t1
 
+% 考虑施加TMD的情况
+P = zeros(matrixsize, length(t));
+pp = P;
+gfun = @(u, udot) polymulti_tmd(u, udot, MM, CC, KK, gamma, beta, h, b1, b3, matrixsize, mode, phiResultall, nodegap);
+u0 = zeros(matrixsize, 1);
+u0_real = 0.01;
+u0(mode) = u0_real / phiResultall(mode, 171);
+u0(1) = 1e-1;
+u0(2) = 1e-1;
+u0(3) = 0;
+udot0 = zeros(matrixsize, 1);
 
+u = nonlinear_newmark_krenk(gfun, MM, pp, u0, udot0, gamma, beta, h);
+
+
+
+
+figure
+plot(t, u(1, :))
+hold on
+plot(t, u(2, :))
+plot(t, u(3,:))
+ylim([-1.5 1.5])
+title("Aerodynamic force only consider the first and second modes of displacement")
+legend("Mode1","Mode2")
+% [psd_avg, f, psd_plot] = fft_transfer(100,u(1, :))
+% plot(f,psd_plot)
 
 % % figure
 % % [psd_avg, f, psd_plot] = fft_transfer(1/h,u_nounit');
@@ -837,8 +865,8 @@ function [g, ks] = polymulti_tmd(u, udot, MM, CC, KK, gamma, beta, h, b1, b3, ma
     % diagMatrix = zeros(matrixsize, matrixsize);%Aerodynamice Force decision matrix 决定哪些自由度是否施加气动力
 
     phi1 = phiResultall(1, :);
-    phi2= phiResultall(2, :);
-    phi1= zeros(1,length(phi2));
+    phi2 = phiResultall(2, :);
+    phi2= zeros(1,length(phi2));
 
 
     for k1 = 1:length(nodegap) - 1
@@ -878,26 +906,29 @@ function [g, ks] = polymulti_tmd(u, udot, MM, CC, KK, gamma, beta, h, b1, b3, ma
 
     q1 = u(1);
     q2 = u(2);
+    utmd=u(3);
     qdot1 = udot(1);
     qdot2 = udot(2);
+    udottmd=udot(3);
 
-    g1 = -qdot1*b3*phi1_4*q1^2 -2*qdot1*b3*phi1_3_phi2*q1*q2-qdot1*b3*phi1_2_phi2_2*q2^2-qdot2*b3*phi1_3_phi2*q1^2-2*qdot2*b3*phi1_2_phi2_2*q1*q2-qdot2*b3*phi2_3_phi1*q2^2-qdot1*b1*phi1_2-qdot2*b1*phi1_phi2+CC(1,1)*qdot1+KK(1,1)*q1; 
-    g2 =-qdot2*b3*phi1_2_phi2_2*q1^2-2*qdot2*b3*phi2_3_phi1*q1*q2-qdot2*b3*phi2_4*q2^2-qdot2*b1*phi2_2+CC(2,2)*qdot2-qdot1*b3*phi1_3_phi2*q1^2-2*qdot1*b3*phi1_2_phi2_2*q1*q2-qdot1*b3*phi2_3_phi1*q2^2-qdot1*b1*phi1_phi2+KK(2,2)*q2 ;
-    g = [g1; g2];
+    g1 = -qdot1*b3*phi1_4*q1^2 -2*qdot1*b3*phi1_3_phi2*q1*q2-qdot1*b3*phi1_2_phi2_2*q2^2-qdot2*b3*phi1_3_phi2*q1^2-2*qdot2*b3*phi1_2_phi2_2*q1*q2-qdot2*b3*phi2_3_phi1*q2^2-qdot1*b1*phi1_2-qdot2*b1*phi1_phi2+CC(1,1)*qdot1+CC(1,2)*qdot2+CC(1,3)*udottmd+KK(1,1)*q1+KK(1,2)*q2+KK(1,3)*utmd; 
+    g2 =-qdot2*b3*phi1_2_phi2_2*q1^2-2*qdot2*b3*phi2_3_phi1*q1*q2-qdot2*b3*phi2_4*q2^2-qdot2*b1*phi2_2+CC(2,2)*qdot2-qdot1*b3*phi1_3_phi2*q1^2-2*qdot1*b3*phi1_2_phi2_2*q1*q2-qdot1*b3*phi2_3_phi1*q2^2-qdot1*b1*phi1_phi2+KK(2,2)*q2 +CC(2,1)*qdot1+CC(2,3)*udottmd+KK(2,1)*q1+KK(2,3)*utmd;
+    g3=CC(3,1)*qdot1+CC(3,2)*qdot2+CC(3,3)*udottmd+KK(3,1)*q1+KK(3,2)*q2+KK(3,3)*utmd;
+    g = [g1; g2;g3];
 
 
     kc1=-b3*q1^2*phi1_4-2*b3*q1*q2*phi1_3_phi2-b3*phi1_2_phi2_2*q2^2-b1*phi1_2;
     kc2=-b3*phi1_3_phi2*q1^2-2*b3*phi1_2_phi2_2*q1*q2-b3*phi2_3_phi1*q2^2-b1*phi1_phi2;
     kc3=-b3*phi1_3_phi2*q1^2-2*b3*phi1_2_phi2_2*q1*q2-b3*phi2_3_phi1*q2^2-b1*phi1_phi2;
     kc4=-b3*phi1_2_phi2_2*q1^2-2*b3*q1*q2*phi2_3_phi1-b3*q2^2*phi2_4-b1*phi2_2;
-    kc = CC + [kc1 kc2 ;kc3 kc4 ];
+    kc = CC + [kc1 kc2 0;kc3 kc4 0; 0 0 0];
 
     ks1=-2*b3*phi1_4*q1*qdot1-2*b3*phi1_3_phi2*qdot1*q2-2*b3*phi1_3_phi2*qdot2*q1-2*b3*phi1_2_phi2_2*qdot2*q2;
     ks2=-2*b3*phi1_3_phi2*qdot1*q1-2*b3*phi1_2_phi2_2*qdot1*q2-2*b3*phi1_2_phi2_2*qdot2*q1-2*b3*phi2_3_phi1*qdot2*q2;
     ks3=-2*b3*phi1_3_phi2*qdot1*q1-2*b3*phi1_2_phi2_2*qdot1*q2-2*b3*phi1_2_phi2_2*qdot2*q1-2*b3*phi2_3_phi1*qdot2*q2;
     ks4=-2*b3*phi1_2_phi2_2*qdot1*q1-2*b3*phi2_3_phi1*qdot1*q2-2*b3*phi2_3_phi1*qdot2*q1-2*b3*phi2_4*qdot2*q2;
 
-    kspring = KK + [ks1 ks2;ks3 ks4];
+    kspring = KK + [ks1 ks2 0 ;ks3 ks4 0 ;0 0 0];
     ks = kspring + gamma .* h ./ (beta .* h.^2) .* kc + 1 ./ (beta .* h.^2) .* MM; % Linearization
 
 end
