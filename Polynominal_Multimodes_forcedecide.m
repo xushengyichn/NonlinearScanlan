@@ -4,7 +4,7 @@
 %LastEditors: Shengyi Xu xushengyichn@outlook.com
 %LastEditTime: 2022-07-04 23:34:17
 %FilePath: \NonlinearScanlan\Polynominal_Multimodes_forcedecide.m
-%Description: 本函数目的为计算多自由度多项式模型响应，重点对比在荷载展开式中多阶模态对结果的影响
+%Description: 本函数目的为计算多自由度多项式模型响应，重点对比在荷载展开式中多阶模态对结果的影响（经过杰哥点拨，此种方法有错误，因为不同阶模态振动频率不一样，该方法弃用）
 %
 %Copyright (c) 2022 by Shengyi xushengyichn@outlook.com, All Rights Reserved.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
