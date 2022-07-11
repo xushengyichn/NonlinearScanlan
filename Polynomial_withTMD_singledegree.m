@@ -151,11 +151,11 @@ up_u0 = [-6.3271e-04; 0;0;0;0];
 up_udot0 = [-0.0161; 0;0;0;0];
 P = zeros(5, length(up_tt));
 %% TMD 参数
-% sel=[11 13 15 17];
-sel=[11];
+sel=[11 13 15 17];
+% sel=[11 11 11 11];
 zetatmd = my_table_tmd.zeta(sel);
 fretmd = my_table_tmd.fre(sel);
-mtmd = ones(length(sel),1)*1;
+mtmd = ones(length(sel),1)*0.25;
 
 %% Calculate the response
 % up_u0 = [-6.3271e-04; 0];
@@ -170,6 +170,13 @@ up_udot0 = [-0.0161; 0;0;0;0];
 P = zeros(5, length(up_tt));
 nModes = 1;
 matrixsize=5;
+
+% up_u0 = [-6.3271e-04; 0];
+% up_udot0 = [-0.0161; 0];
+% P = zeros(2, length(up_tt));
+% nModes = 1;
+% matrixsize=2;
+
 % out = polynomial_NB_withTMDs(Fre, Mass, Zeta0, rho, D, U, up_a, up_t,h, P, up_u0, up_udot0,nModes,mtmd,fretmd,zetatmd);
 
 out = polynomial_NB_withTMDs_addstiff_withlimit(Fre, Mass, Zeta0, rho, D, U, up_a,up_H4, up_t,h, P, up_u0, up_udot0,up_upperlimit,up_lowerlimit,up_Fren_vibration_withwind,nModes,mtmd,fretmd,zetatmd);
@@ -187,7 +194,7 @@ ylim([-0.01 0.01])
 
 figure 
 plot(out(:, 1), out(:, 2))
-ylim([-0.01 0.01])
+ylim([-0.01 0.01]/5)
 title("main structure")
 hold on
 load test.mat
@@ -199,8 +206,11 @@ fs=1/(up_t(2)-up_t(1));
 % figure
 % plot(f1, psd_plot1)
 % hold on 
-% plot(f2, psd_plot2)
-% legend("windtunnel test","calculated")
+figure
+plot(f2, psd_plot2)
+legend("windtunnel test","calculated")
+xlabel("Frequency")
+
 max(out(:, 2))
 [a,b]=max(psd_plot1);
 f1(b)

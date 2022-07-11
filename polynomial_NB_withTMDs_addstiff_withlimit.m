@@ -157,7 +157,7 @@ function out = polynomial_NB_withTMDs_addstiff_withlimit(Fre, Mass, Zeta0, rho, 
 
     % 特征值分析，即计算频率Freq和振型Phi，calmodes数字代表求解的阶数，eigs中参数SM表示从较小的特征值开始求解
     % Eigenvalue analysis, that is to calculate the frequency Freq and mode shape Phi, the calmodes number represents the order of the solution, and the parameter SM in eigs represents the solution from the smaller eigenvalue.
-    calmodes = 10; %考虑模态数 Consider the number of modes
+    calmodes = 5; %考虑模态数 Consider the number of modes
     [eig_vec, eig_val] = eigs(KK, MM, calmodes, 'SM');
     [nfdof, nfdof] = size(eig_vec);
     
@@ -166,7 +166,10 @@ function out = polynomial_NB_withTMDs_addstiff_withlimit(Fre, Mass, Zeta0, rho, 
     [omeg, w_order] = sort(sqrt(diag(eig_val)));
     mode_vec = eig_vec(:, w_order);
     Freq = omeg / (2 * pi);
-
+    
+    for k1 =1:size(mode_vec,2)
+        mode_vec(:,k1)=mode_vec(:,k1)/max(abs(mode_vec(:,k1)));
+    end
 
     %% Calculate the response
 
@@ -180,9 +183,9 @@ function out = polynomial_NB_withTMDs_addstiff_withlimit(Fre, Mass, Zeta0, rho, 
 %     gfun2 = @(u, udot) polynomial_nonlinear(u, udot, MM, CC, KK, gamma, beta, h, b, matrixsize, nModes);
 %     gfun3 = @(u, udot) polynomial_nonlinear(u, udot, MM, CC, KK, gamma, beta, h, b, matrixsize, nModes);
     
-    
+%     Fren_vibration_withwind=5.0;
     u = nonlinear_newmark_krenk(gfun1,gfun2,gfun3, MM, pp, u0, udot0, gamma, beta, h,upperlimit,lowerlimit,Fren_vibration_withwind);
-
+    
     % u_nounit = u / D;
     % s = t * U / D;
 %     out = [s; u_nounit];
@@ -193,7 +196,7 @@ function out = polynomial_NB_withTMDs_addstiff_withlimit(Fre, Mass, Zeta0, rho, 
     %     figure
     %     [psd_avg, f, psd_plot] = fft_transfer(1/h,u_nounit');
     %     plot(f,psd_plot)
-
+disp(Freq)
     %% Nonlinear Newmark algorithm
     function [u, udot, u2dot] = nonlinear_newmark_krenk(gfun1,gfun2,gfun3, MM, pp, u0, udot0, gamma, beta, h,upperlimit,lowerlimit,Fren_vibration_withwind)
         % Initialize variables
