@@ -10,7 +10,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % This is a function
-function out = polynomial_NB_withTMD(Fre, Mass, Zeta0, rho, D, U, a, t,h, P,  u0, udot0,nModes,matrixsize)
+function out = test4(Fre, Mass, Zeta0, rho, D, U, a, t,h, P,  u0, udot0,nModes,matrixsize,mtmd)
 
     % Nonlinear Newmark's Direct Integration Method with polynomial model
     % (n = number of time steps)
@@ -65,15 +65,15 @@ function out = polynomial_NB_withTMD(Fre, Mass, Zeta0, rho, D, U, a, t,h, P,  u0
     
 
 
+% 
+%     mtmd = Mass * 0.01;
+%     disp("质量比为：" + num2str(mtmd / Mass * 100) + "%")
+%     Ftmd = Fre;
+%     Omegatmd = Ftmd * 2 * pi;
+%     ktmd = Omegatmd^2 * mtmd;
+%     ctmd = 0.05 * 2 * mtmd * Omegatmd;
 
-    mtmd = Mass * 0.01;
-    disp("质量比为：" + num2str(mtmd / Mass * 100) + "%")
-    Ftmd = Fre;
-    Omegatmd = Ftmd * 2 * pi;
-    ktmd = Omegatmd^2 * mtmd;
-    ctmd = 0.05 * 2 * mtmd * Omegatmd;
-
-    mtmd = 0.25*4;
+    mtmd = mtmd;
     disp("质量比为：" + num2str(mtmd / Mass * 100) + "%")
     Ftmd = 5.0693;
     Omegatmd = Ftmd * 2 * pi;

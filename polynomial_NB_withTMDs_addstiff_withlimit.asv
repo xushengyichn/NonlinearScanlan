@@ -2,15 +2,15 @@
 %Author: Shengyi Xu xushengyichn@outlook.com
 %Date: 2022-06-27 18:40:52
 %LastEditors: Shengyi Xu xushengyichn@outlook.com
-%LastEditTime: 2022-06-27 19:16:22
-%FilePath: \NonlinearScanlan\polynomial_NB_withTMD.m
-%Description: 本函数目的为计算多项式模型安装tmd后的的响应。
+%LastEditTime: 2022-07-11 15:14:01
+%FilePath: \undefinedd:\Matlab\NonlinearScanlan\polynomial_NB_withTMDs_addstiff_withlimit.m
+%Description: 本函数目的为计算多项式模型安装多个tmd后的的响应。
 %
 %Copyright (c) 2022 by Shengyi Xu xushengyichn@outlook.com, All Rights Reserved. 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % This is a function
-function out = polynomial_NB_withTMD(Fre, Mass, Zeta0, rho, D, U, a, t,h, P,  u0, udot0,nModes,matrixsize)
+function out = polynomial_NB_withTMDs_addstiff_withlimit(Fre, Mass, Zeta0, rho, D, U, a,H4, t,h, P,  u0, udot0,upperlimit,lowerlimit,Fren_vibration_withwind,nModes,mtmd,fretmd,zetatmd)
 
     % Nonlinear Newmark's Direct Integration Method with polynomial model
     % (n = number of time steps)
@@ -44,13 +44,10 @@ function out = polynomial_NB_withTMD(Fre, Mass, Zeta0, rho, D, U, a, t,h, P,  u0
     a3=a(3);
     a4=a(4);
     a5=a(5);
-%     a=zeros(5,1);
-%     a1=a(1);
-%     a2=a(2);
-%     a3=a(3);
-%     a4=a(4);
-%     a5=a(5);
+    a1_lower=a1+4/3*a2/pi*lowerlimit+a3/4*lowerlimit^2+8/15*a4/pi*lowerlimit^3+a5/8*lowerlimit^4;
+    a1_upper=a1+4/3*a2/pi*upperlimit+a3/4*upperlimit^2+8/15*a4/pi*upperlimit^3+a5/8*upperlimit^4;
 
+    
     m=Mass;
     omega0=2*pi*Fre;
 %     b1=rho*U*D*a1/m-2*Zeta0*omega0;
@@ -62,36 +59,96 @@ function out = polynomial_NB_withTMD(Fre, Mass, Zeta0, rho, D, U, a, t,h, P,  u0
 
 
     b=[b1 b2 b3 b4 b5].*m;
+
+    b1_lower=rho*U*D*a1_lower/m;
+    b1_upper=rho*U*D*a1_upper/m;
+    b_lower = [b1_lower 0 0 0 0] .*m;
+    b_upper = [b1_upper 0 0 0 0] .*m;
+    b = [b1 b2 b3 b4 b5] .* m;
+
+    lowerlimit=lowerlimit*D;%Newmark beta法中采用实际位移
+    upperlimit=upperlimit*D;
     
+    % tmd参数处理
+    omegatmd= 2*pi*fretmd;
+    ktmd=mtmd.*omegatmd.^2;
+    ctmd= 2.*mtmd.*omegatmd.*zetatmd;
+    tmdnum=size(mtmd,1);
+    disp("共设置"+num2str(tmdnum)+"个tmd");
 
+    matrixsize=nModes+tmdnum;
 
+    % Initialize the output matrix
+    MM=zeros(matrixsize);
+    
+    for k1 = 1:matrixsize
+        if k1==1
+            MM(k1,k1)=m;
+        elseif k1>=2
+            MM(k1,k1)=mtmd(k1-nModes);
+        end
+    end
+    clear k1
 
-    mtmd = Mass * 0.01;
-    disp("质量比为：" + num2str(mtmd / Mass * 100) + "%")
-    Ftmd = Fre;
-    Omegatmd = Ftmd * 2 * pi;
-    ktmd = Omegatmd^2 * mtmd;
-    ctmd = 0.05 * 2 * mtmd * Omegatmd;
+    CC  = zeros(size(MM, 1), size(MM, 2));
+    CC1 = zeros(size(MM, 1), size(MM, 2));
+    CC2 = zeros(size(MM, 1), size(MM, 2));
 
-    mtmd = 0.25*4;
-    disp("质量比为：" + num2str(mtmd / Mass * 100) + "%")
-    Ftmd = 5.0693;
-    Omegatmd = Ftmd * 2 * pi;
-    ktmd = Omegatmd^2 * mtmd;
-    ctmd = 0.0324 * 2 * mtmd * Omegatmd;
+    for k1 = 1:matrixsize
 
+            if k1<=nModes
+                CC1(k1,k1)=Zeta0 * 4 * pi * Mass * Fre;
+            elseif k1>nModes
+                CC1(k1,k1)=ctmd(k1-nModes);
+            end
+    end
 
-    MM = [Mass 0; 0 mtmd];
-    CC = zeros(size(MM, 1), size(MM, 2));
-    CC(1, 1) = Zeta0 * 4 * pi * Mass * Fre + ctmd;
-    CC(2, 1) = -ctmd;
-    CC(1, 2) = -ctmd;
-    CC(2, 2) = ctmd;
+    for k1 = 1:matrixsize
+        if k1<=nModes
+            for k2 = 1:length(mtmd)
+                CC2(k1,k1)=CC2(k1,k1)+ctmd(k2);
+            end
+        elseif k1>nModes
+            CC2(1,k1)=-ctmd(k1-nModes);
+            CC2(k1,1)=-ctmd(k1-nModes);
+        end
+    end  
+
+    CC = CC1 + CC2;
+
+    clear k1
     KK = zeros(size(MM, 1), size(MM, 2));
-    KK(1, 1) = 4 * pi^2 * Mass * Fre^2 +ktmd;
-    KK(2, 1) = -ktmd;
-    KK(1, 2) = -ktmd;
-    KK(2, 2) = ktmd;
+    KK1 = zeros(size(MM, 1), size(MM, 2));
+    KK2 = zeros(size(MM, 1), size(MM, 2));
+    for k1 = 1:matrixsize
+
+            if k1==1
+                KK1(k1,k1)=Mass*(2*pi*Fre)^2-rho*U^2*H4;
+            elseif k1>1
+                KK1(k1,k1)=ktmd(k1-nModes);
+            end
+    end
+    for k1 = 1:matrixsize
+        if k1<=nModes
+            for k2 = 1:length(mtmd)
+                KK2(k1,k1)=KK2(k1,k1)+ktmd(k2);
+            end
+        elseif k1>nModes
+            KK2(1,k1)=-ktmd(k1-nModes);
+            KK2(k1,1)=-ktmd(k1-nModes);
+        end
+    end
+    KK = KK1 + KK2;
+    clear k1
+    % CC(1, 1) = Zeta0 * 4 * pi * Mass * Fre + ctmd;
+    % CC(2, 1) = -ctmd;
+    % CC(1, 2) = -ctmd;
+    % CC(2, 2) = ctmd;
+    % KK = zeros(size(MM, 1), size(MM, 2));
+    % KK(1, 1) = 4 * pi^2 * Mass * Fre^2 +ktmd;
+    % KK(2, 1) = -ktmd;
+    % KK(1, 2) = -ktmd;
+    % KK(2, 2) = ktmd;
 
     % MM = Mass;
     % CC = Zeta0 * 4 * pi * MM * Fre;
@@ -105,8 +162,13 @@ function out = polynomial_NB_withTMD(Fre, Mass, Zeta0, rho, D, U, a, t,h, P,  u0
 
     nModes = 1;
 
-    gfun = @(u, udot) polynomial_nonlinear(u, udot, MM, CC, KK, gamma, beta, h, b, matrixsize, nModes);
-    u = nonlinear_newmark_krenk(gfun, MM, pp, u0, udot0, gamma, beta, h);
+    % gfun = @(u, udot) polynomial_nonlinear(u, udot, MM, CC, KK, gamma, beta, h, b, matrixsize, nModes);
+    gfun1 = @(u, udot) polynomial_nonlinear(u, udot, MM, CC, KK, gamma, beta, h, b, matrixsize, nModes);
+    gfun2 = @(u, udot) polynomial_nonlinear(u, udot, MM, CC, KK, gamma, beta, h, b_lower, matrixsize, nModes);
+    gfun3 = @(u, udot) polynomial_nonlinear(u, udot, MM, CC, KK, gamma, beta, h, b_upper, matrixsize, nModes);
+    
+    
+    u = nonlinear_newmark_krenk(gfun1,gfun2,gfun3, MM, pp, u0, udot0, gamma, beta, h,upperlimit,lowerlimit,Fren_vibration_withwind);
 
     % u_nounit = u / D;
     % s = t * U / D;
@@ -120,7 +182,7 @@ function out = polynomial_NB_withTMD(Fre, Mass, Zeta0, rho, D, U, a, t,h, P,  u0
     %     plot(f,psd_plot)
 
     %% Nonlinear Newmark algorithm
-    function [u, udot, u2dot] = nonlinear_newmark_krenk(gfun, MM, pp, u0, udot0, gamma, beta, h)
+    function [u, udot, u2dot] = nonlinear_newmark_krenk(gfun1,gfun2,gfun3, MM, pp, u0, udot0, gamma, beta, h,upperlimit,lowerlimit,Fren_vibration_withwind)
         % Initialize variables
         u = zeros(size(MM, 1), size(pp, 2));
         udot = zeros(size(MM, 1), size(pp, 2));
@@ -128,7 +190,22 @@ function out = polynomial_NB_withTMD(Fre, Mass, Zeta0, rho, D, U, a, t,h, P,  u0
         % Initial conditions
         u(:, 1) = u0; % Initial displacements
         udot(:, 1) = udot0; % Initial velocities
-        g = gfun(u0, udot0); % Evaluate the nonlinear function
+        amp0=sqrt(u0(1,1)^2+(udot0(1,1)/(2*pi*Fren_vibration_withwind))^2);
+        if amp0 < lowerlimit
+            g = gfun2(u0, udot0);
+            disp('gfun2')
+        elseif amp0 > upperlimit
+            g = gfun3(u0, udot0);
+            disp('gfun3')
+        else
+            g = gfun1(u0, udot0);
+            disp('gfun1')
+        end
+        
+
+        % g = gfun(u0, udot0); % Evaluate the nonlinear function
+
+
         u2dot(:, 1) = MM \ (pp(:, 1) - g); % Calculate the initial accelerations
 
         for ii = 1:size(pp, 2) - 1
@@ -141,7 +218,18 @@ function out = polynomial_NB_withTMD(Fre, Mass, Zeta0, rho, D, U, a, t,h, P,  u0
             % Reusidal calculation, system matrices and increment correction
             while Nit < 1000 && konv == 0
                 Nit = Nit + 1;
-                [g, Ks] = gfun(u(:, ii + 1), udot(:, ii + 1)); % Calculate function value and the tangent
+                amp= sqrt(u(1,ii+1)^2+(udot(1,ii+1)/(2*pi*Fren_vibration_withwind))^2);
+                if amp < lowerlimit
+                    [g, Ks] = gfun2(u(:, ii + 1), udot(:, ii + 1));
+                    disp('gfun2')
+                elseif amp > upperlimit
+                    [g, Ks] = gfun3(u(:, ii + 1), udot(:, ii + 1));
+                    disp('gfun3')
+                else
+                    [g, Ks] = gfun1(u(:, ii + 1), udot(:, ii + 1));
+                    disp('gfun1')
+                end
+                % [g, Ks] = gfun(u(:, ii + 1), udot(:, ii + 1)); % Calculate function value and the tangent
                 rr = pp(:, ii + 1) - MM * u2dot(:, ii + 1) - g; % Calculate residual
                 du = Ks \ rr; % Increment correction
                 u(:, ii + 1) = u(:, ii + 1) + du; % Add incremental correction to the displacement
