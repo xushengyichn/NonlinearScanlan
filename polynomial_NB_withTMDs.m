@@ -2,15 +2,15 @@
 %Author: Shengyi Xu xushengyichn@outlook.com
 %Date: 2022-06-27 18:40:52
 %LastEditors: Shengyi Xu xushengyichn@outlook.com
-%LastEditTime: 2022-06-27 19:16:22
-%FilePath: \NonlinearScanlan\polynomial_NB_withTMD.m
-%Description: 本函数目的为计算多项式模型安装tmd后的的响应。
+%LastEditTime: 2022-07-11 00:13:26
+%FilePath: \NonlinearScanlan\polynomial_NB_withTMDs.m
+%Description: 本函数目的为计算多项式模型安装多个tmd后的的响应。
 %
 %Copyright (c) 2022 by Shengyi Xu xushengyichn@outlook.com, All Rights Reserved. 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % This is a function
-function out = polynomial_NB_withTMD(Fre, Mass, Zeta0, rho, D, U, a, t,h, P,  u0, udot0,nModes,matrixsize)
+function out = polynomial_NB_withTMD(Fre, Mass, Zeta0, rho, D, U, a, t,h, P,  u0, udot0,nModes,mtmd,fretmd,zetatmd)
 
     % Nonlinear Newmark's Direct Integration Method with polynomial model
     % (n = number of time steps)
@@ -63,35 +63,86 @@ function out = polynomial_NB_withTMD(Fre, Mass, Zeta0, rho, D, U, a, t,h, P,  u0
 
     b=[b1 b2 b3 b4 b5].*m;
     
+    % tmd参数处理
+    omegatmd= 2*pi*fretmd;
+    ktmd=mtmd.*omegatmd.^2;
+    ctmd= 2.*mtmd.*omegatmd.*zetatmd;
+    tmdnum=size(mtmd,1);
+    disp("共设置"+num2str(tmdnum)+"个tmd");
 
+    matrixsize=nModes+tmdnum;
 
+    % Initialize the output matrix
+    MM=zeros(matrixsize);
+    
+    for k1 = 1:matrixsize
+        if k1==1
+            MM(k1,k1)=m;
+        elseif k1>=2
+            MM(k1,k1)=mtmd(k1-nModes);
+        end
+    end
+    clear k1
 
-    mtmd = Mass * 0.01;
-    disp("质量比为：" + num2str(mtmd / Mass * 100) + "%")
-    Ftmd = Fre;
-    Omegatmd = Ftmd * 2 * pi;
-    ktmd = Omegatmd^2 * mtmd;
-    ctmd = 0.05 * 2 * mtmd * Omegatmd;
-
-    mtmd = Mass * 0.0125;
-    disp("质量比为：" + num2str(mtmd / Mass * 100) + "%")
-    Ftmd = 5.25;
-    Omegatmd = Ftmd * 2 * pi;
-    ktmd = Omegatmd^2 * mtmd;
-    ctmd = 0.08 * 2 * mtmd * Omegatmd;
-
-
-    MM = [Mass 0; 0 mtmd];
     CC = zeros(size(MM, 1), size(MM, 2));
-    CC(1, 1) = Zeta0 * 4 * pi * Mass * Fre + ctmd;
-    CC(2, 1) = -ctmd;
-    CC(1, 2) = -ctmd;
-    CC(2, 2) = ctmd;
+    CC1 = zeros(size(MM, 1), size(MM, 2));
+    CC2= zeros(size(MM, 1), size(MM, 2));
+
+    for k1 = 1:matrixsize
+
+            if k1<=nModes
+                CC1(k1,k1)=Zeta0 * 4 * pi * Mass * Fre;
+            elseif k1>nModes
+                CC1(k1,k1)=ctmd(k1-nModes);
+            end
+    end
+
+    for k1 = 1:matrixsize
+        if k1<=nModes
+            for k2 = 1:length(mtmd)
+                CC2(k1,k1)=CC2(k1,k1)+ctmd(k2);
+            end
+        elseif k1>nModes
+            CC2(1,k1)=-ctmd(k1-nModes);
+            CC2(k1,1)=-ctmd(k1-nModes);
+        end
+    end  
+
+    CC = CC1 + CC2;
+
+    clear k1
     KK = zeros(size(MM, 1), size(MM, 2));
-    KK(1, 1) = 4 * pi^2 * Mass * Fre^2 +ktmd;
-    KK(2, 1) = -ktmd;
-    KK(1, 2) = -ktmd;
-    KK(2, 2) = ktmd;
+    KK1 = zeros(size(MM, 1), size(MM, 2));
+    KK2 = zeros(size(MM, 1), size(MM, 2));
+    for k1 = 1:matrixsize
+
+            if k1==1
+                KK1(k1,k1)=Mass*(2*pi*Fre)^2;
+            elseif k1>1
+                KK1(k1,k1)=ktmd(k1-nModes);
+            end
+    end
+    for k1 = 1:matrixsize
+        if k1<=nModes
+            for k2 = 1:length(mtmd)
+                KK2(k1,k1)=KK2(k1,k1)+ktmd(k2);
+            end
+        elseif k1>nModes
+            KK2(1,k1)=-ktmd(k1-nModes);
+            KK2(k1,1)=-ktmd(k1-nModes);
+        end
+    end
+    KK = KK1 + KK2;
+    clear k1
+    % CC(1, 1) = Zeta0 * 4 * pi * Mass * Fre + ctmd;
+    % CC(2, 1) = -ctmd;
+    % CC(1, 2) = -ctmd;
+    % CC(2, 2) = ctmd;
+    % KK = zeros(size(MM, 1), size(MM, 2));
+    % KK(1, 1) = 4 * pi^2 * Mass * Fre^2 +ktmd;
+    % KK(2, 1) = -ktmd;
+    % KK(1, 2) = -ktmd;
+    % KK(2, 2) = ktmd;
 
     % MM = Mass;
     % CC = Zeta0 * 4 * pi * MM * Fre;

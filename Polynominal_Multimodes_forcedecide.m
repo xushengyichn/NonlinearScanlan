@@ -506,12 +506,18 @@ plot(t, u(3,:))
 ylim([-1.5 1.5])
 title("Aerodynamic force only consider the first and second modes of displacement")
 legend("Mode1","Mode2")
-% [psd_avg, f, psd_plot] = fft_transfer(100,u(1, :))
-% plot(f,psd_plot)
 
-% % figure
-% % [psd_avg, f, psd_plot] = fft_transfer(1/h,u_nounit');
-% % plot(f,psd_plot)
+% figure
+% [psd_avg, f, psd_plot] = fft_transfer(100,u(1, :)')
+% plot(f,psd_plot)
+% 
+% figure
+% [psd_avg, f, psd_plot] = fft_transfer(100,u(2, :)');
+% plot(f,psd_plot)
+% 
+% figure
+% [psd_avg, f, psd_plot] = fft_transfer(100,u(3, :)');
+% plot(f,psd_plot)
 
 % Dis = zeros(length(nodeondeck), length(t));
 
@@ -866,7 +872,7 @@ function [g, ks] = polymulti_tmd(u, udot, MM, CC, KK, gamma, beta, h, b1, b3, ma
 
     phi1 = phiResultall(1, :);
     phi2 = phiResultall(2, :);
-    phi2= zeros(1,length(phi2));
+    phi1= zeros(1,length(phi2));
 
 
     for k1 = 1:length(nodegap) - 1
