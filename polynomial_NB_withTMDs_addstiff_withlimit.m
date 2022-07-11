@@ -155,6 +155,17 @@ function out = polynomial_NB_withTMDs_addstiff_withlimit(Fre, Mass, Zeta0, rho, 
     % KK = 4 * pi^2 * MM * Fre^2;
     pp = P;
 
+    % 特征值分析，即计算频率Freq和振型Phi，calmodes数字代表求解的阶数，eigs中参数SM表示从较小的特征值开始求解
+    % Eigenvalue analysis, that is to calculate the frequency Freq and mode shape Phi, the calmodes number represents the order of the solution, and the parameter SM in eigs represents the solution from the smaller eigenvalue.
+    calmodes = 10; %考虑模态数 Consider the number of modes
+    [eig_vec, eig_val] = eigs(KK, MM, calmodes, 'SM');
+    [nfdof, nfdof] = size(eig_vec);
+    
+
+    
+    [omeg, w_order] = sort(sqrt(diag(eig_val)));
+    mode_vec = eig_vec(:, w_order);
+    Freq = omeg / (2 * pi);
 
 
     %% Calculate the response

@@ -152,10 +152,10 @@ up_udot0 = [-0.0161; 0;0;0;0];
 P = zeros(5, length(up_tt));
 %% TMD 参数
 % sel=[11 13 15 17];
-sel=[11 11 11 11];
+sel=[11];
 zetatmd = my_table_tmd.zeta(sel);
 fretmd = my_table_tmd.fre(sel);
-mtmd = ones(length(sel),1)*0.25;
+mtmd = ones(length(sel),1)*1;
 
 %% Calculate the response
 % up_u0 = [-6.3271e-04; 0];
