@@ -1,8 +1,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Author: Shengyi Xu xushengyichn@outlook.com
 %Date: 2022-06-27 16:21:36
-%LastEditors: Shengyi Xu xushengyichn@outlook.com
-%LastEditTime: 2022-07-11 14:33:50
+%LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
+%LastEditTime: 2022-08-22 21:08:02
 %FilePath: \NonlinearScanlan\Polynomial_withTMD_singledegree.m
 %Description: 本代码是用于求解多项式模型下，单自由度模型安装TMD后的响应计算。
 %
@@ -118,6 +118,8 @@ up_a = [up_a1 up_a2 up_a3 up_a4 up_a5];
 up_H4=my_table.up_parameter_H4(isexist);% 气动刚度
 up_upperlimit= my_table.up_upperlimit(isexist); %除以特征长度D的无量纲振幅
 up_lowerlimit= my_table.up_lowerlimit(isexist); %除以特征长度D的无量纲振幅
+up_upperlimit=1000;
+up_lowerlimit=-1000;
 up_Fren_vibration_withwind=my_table.up_Fren_vibration_withwind(isexist); 
 
 
@@ -147,12 +149,13 @@ up_P = zeros(1, size(up_told, 1));
 % up_u0 = [-6.3271e-04; 0];
 % up_udot0 = [-0.0161; 0];
 
+
 up_u0 = [-6.3271e-04; 0;0;0;0];
 up_udot0 = [-0.0161; 0;0;0;0];
 P = zeros(5, length(up_tt));
 %% TMD 参数
-sel=[11 13 15 17];
-% sel=[11 11 11 11];
+% sel=[12 13 15 17];
+sel=[11 11 11 11];
 zetatmd = my_table_tmd.zeta(sel);
 fretmd = my_table_tmd.fre(sel);
 mtmd = ones(length(sel),1)*0.25;
@@ -165,8 +168,12 @@ mtmd = ones(length(sel),1)*0.25;
 % matrixsize=2;
 % out1 = polynomial_NB_withTMD(Fre, Mass, Zeta0, rho, D, U, up_a, up_t,h, P,  up_u0, up_udot0,nModes,matrixsize);
 
-up_u0 = [-6.3271e-04; 0;0;0;0];
-up_udot0 = [-0.0161; 0;0;0;0];
+% up_u0 = [-6.3271e-04; 0;0;0;0];
+% up_udot0 = [-0.0161; 0;0;0;0];
+up_u0 = [-0.086; -1;-1;-1;-1]*10e-3;
+up_udot0 = [0; 0;0;0;0];
+% up_u0 = [0.086; -1;-1;-1;-1]*10e-3;
+% up_udot0 = [0; 0;0;0;0];
 P = zeros(5, length(up_tt));
 nModes = 1;
 matrixsize=5;
@@ -222,3 +229,25 @@ f2(b)
 % plot(out(:, 1), out(:, 2))
 % hold on
 % plot(out1(:, 1), out1(:, 2))
+
+% 
+% % animation
+% % figure
+% displacement=out(:,2:6);
+% % displacement(:,1)=displacement(:,1)/max(abs(displacement(:,1)));
+% % displacement(:,2)=displacement(:,2)/max(abs(displacement(:,2)));
+% % displacement(:,3)=displacement(:,3)/max(abs(displacement(:,3)));
+% % displacement(:,4)=displacement(:,4)/max(abs(displacement(:,4)));
+% % displacement(:,5)=displacement(:,5)/max(abs(displacement(:,5)));
+% line=[1 2 3 4 5];
+% for i = 1:1500
+%     scatter(line,displacement(i+10000,:))
+%     ylim([-max(abs(displacement(:,2))) max(abs(displacement(:,2)))])
+%     M(:, i) = getframe;
+% end
+% % movie(M)
+% 
+% v = VideoWriter('newfile1.avi');
+% open(v)
+% writeVideo(v,M)
+% close(v)

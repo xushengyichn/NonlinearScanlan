@@ -10,7 +10,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % This is a function
-function out = polynomial_NB_withTMDs_addstiff_withlimit(Fre, Mass, Zeta0, rho, D, U, a,H4, t,h, P,  u0, udot0,upperlimit,lowerlimit,Fren_vibration_withwind,nModes,mtmd,fretmd,zetatmd)
+function out = test_polynomial_NB_withTMDs_addstiff_withlimit(Fre, Mass, Zeta0, rho, D, U, a,H4, t,h, P,  u0, udot0,upperlimit,lowerlimit,Fren_vibration_withwind,nModes,mtmd,fretmd,zetatmd)
 
     % Nonlinear Newmark's Direct Integration Method with polynomial model
     % (n = number of time steps)
