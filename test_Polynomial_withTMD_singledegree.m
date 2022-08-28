@@ -2,9 +2,9 @@
 %Author: Shengyi Xu xushengyichn@outlook.com
 %Date: 2022-06-27 16:21:36
 %LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
-%LastEditTime: 2022-08-25 09:58:15
+%LastEditTime: 2022-08-28 20:37:04
 %FilePath: \NonlinearScanlan\test_Polynomial_withTMD_singledegree.m
-%Description: 本代码是用于求解多项式模型下，单自由度模型安装TMD后的响应计算。
+%Description: 本代码是用于求解多项式模型下，测试节段模型安装tmd后产生多阶模态，最后计算得到响应的频率问题。
 %
 %Copyright (c) 2022 by Shengyi Xu xushengyichn@outlook.com, All Rights Reserved. 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -136,7 +136,12 @@ up_told = up_t;
 up_tt = up_told;
 up_P = zeros(1, size(up_told, 1));
 
-
+disp("节段模型质量："+num2str(Mass));
+disp("节段模型阻尼系数："+num2str(Zeta0));
+disp("节段模型频率："+num2str(Fre));
+disp("节段模型风速："+num2str(U));
+disp("节段模型气动阻尼参数"+num2str(up_a));
+disp("节段模型气动刚度参数"+num2str(up_H4));
 
 
 %% TMD 参数
@@ -144,9 +149,11 @@ up_P = zeros(1, size(up_told, 1));
 sel=[11 11 11 11];
 sel=[11];
 zetatmd = my_table_tmd.zeta(sel);
-fretmd = my_table_tmd.fre(sel);
-mtmd = ones(length(sel),1)*0.5;
-
+fretmd = my_table_tmd.fre(sel)*1;
+mtmd = ones(length(sel),1)*1;
+disp("TMD质量："+num2str(mtmd));
+disp("TMD阻尼系数："+num2str(zetatmd));
+disp("TMD频率："+num2str(fretmd));
 %% Calculate the response
 
 
@@ -166,6 +173,7 @@ nModes = 1;
 matrixsize=2;
 
 
+
 out = test_polynomial_NB_withTMDs_addstiff_withlimit(Fre, Mass, Zeta0, rho, D, U, up_a,up_H4, up_t,h, P, up_u0, up_udot0,up_upperlimit,up_lowerlimit,up_Fren_vibration_withwind,nModes,mtmd,fretmd,zetatmd);
 
 subplot(1, 2, 1)
@@ -179,16 +187,16 @@ plot(out(:, 1), out(:, 3))
 title("TMD")
 ylim([-0.01 0.01])
 
-figure 
-plot(out(:, 1), out(:, 2))
-ylim([-0.01 0.01]/5)
-title("main structure")
-hold on
-load test.mat
-plot(up_t,UP)
-legend("calculated","windtunnel test")
+% figure 
+% plot(out(:, 1), out(:, 2))
+% ylim([-0.01 0.01]/5)
+% title("main structure")
+% hold on
+% load test.mat
+% plot(up_t,UP)
+% legend("calculated","windtunnel test")
 fs=1/(up_t(2)-up_t(1));
-[psd_avg, f1, psd_plot1] = fft_transfer(fs,UP);
+% [psd_avg, f1, psd_plot1] = fft_transfer(fs,UP);
 [psd_avg, f2, psd_plot2] = fft_transfer(256,out(:, 2));
 % figure
 % plot(f1, psd_plot1)
@@ -198,11 +206,28 @@ plot(f2, psd_plot2)
 xlabel("Frequency")
 title("计算响应的频谱")
 disp("主结构响应最大值"+num2str(max(out(:, 2))))
-[a,b]=max(psd_plot1);
-f1(b)
+% [a,b]=max(psd_plot1);
+% f1(b)
 
 [a,b]=max(psd_plot2);
-f2(b)
+disp("振动频率为："+num2str(f2(b)))
+
+
+
+
+
+zetatmds=0.01:0.001:0.1;
+allcasenumber=length(zetatmds);
+freq
+parfor i=1:length(zetatmds)
+    out = test_polynomial_NB_withTMDs_addstiff_withlimit(Fre, Mass, Zeta0, rho, D, U, up_a,up_H4, up_t,h, P, up_u0, up_udot0,up_upperlimit,up_lowerlimit,up_Fren_vibration_withwind,nModes,mtmd,fretmd,zetatmds(i));
+    [psd_avg, f2, psd_plot2] = fft_transfer(256,out(:, 2));
+    [a,b]=max(psd_plot2);
+    disp("振动频率为："+num2str(f2(b)))
+    progressbar(i/allcasenumber)
+end
+
+
 
 % figure 
 % plot(out(:, 1), out(:, 2))
