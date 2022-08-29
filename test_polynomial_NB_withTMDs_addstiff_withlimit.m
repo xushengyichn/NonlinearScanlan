@@ -2,7 +2,7 @@
 %Author: Shengyi Xu xushengyichn@outlook.com
 %Date: 2022-06-27 18:40:52
 %LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
-%LastEditTime: 2022-08-25 10:29:07
+%LastEditTime: 2022-08-29 11:02:08
 %FilePath: \NonlinearScanlan\test_polynomial_NB_withTMDs_addstiff_withlimit.m
 %Description: 本函数目的为计算多项式模型安装多个tmd后的的响应。
 %
@@ -10,7 +10,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % This is a function
-function out = test_polynomial_NB_withTMDs_addstiff_withlimit(Fre, Mass, Zeta0, rho, D, U, a,H4, t,h, P,  u0, udot0,upperlimit,lowerlimit,Fren_vibration_withwind,nModes,mtmd,fretmd,zetatmd)
+function [out,Freq] = test_polynomial_NB_withTMDs_addstiff_withlimit(Fre, Mass, Zeta0, rho, D, U, a,H4, t,h, P,  u0, udot0,upperlimit,lowerlimit,Fren_vibration_withwind,nModes,mtmd,fretmd,zetatmd)
 
     % Nonlinear Newmark's Direct Integration Method with polynomial model
     % (n = number of time steps)
@@ -154,6 +154,8 @@ function out = test_polynomial_NB_withTMDs_addstiff_withlimit(Fre, Mass, Zeta0, 
     % CC = Zeta0 * 4 * pi * MM * Fre;
     % KK = 4 * pi^2 * MM * Fre^2;
     pp = P;
+    
+
 
     % 特征值分析，即计算频率Freq和振型Phi，calmodes数字代表求解的阶数，eigs中参数SM表示从较小的特征值开始求解
     % Eigenvalue analysis, that is to calculate the frequency Freq and mode shape Phi, the calmodes number represents the order of the solution, and the parameter SM in eigs represents the solution from the smaller eigenvalue.

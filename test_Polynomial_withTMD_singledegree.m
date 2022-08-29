@@ -2,7 +2,7 @@
 %Author: Shengyi Xu xushengyichn@outlook.com
 %Date: 2022-06-27 16:21:36
 %LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
-%LastEditTime: 2022-08-28 20:37:04
+%LastEditTime: 2022-08-29 15:38:15
 %FilePath: \NonlinearScanlan\test_Polynomial_withTMD_singledegree.m
 %Description: 本代码是用于求解多项式模型下，测试节段模型安装tmd后产生多阶模态，最后计算得到响应的频率问题。
 %
@@ -131,7 +131,7 @@ U = my_table.Windspeed(isexist); % density of the air
 Zeta0 =  my_table.up_dltx_zeta0(isexist); % damping ratio without wind
 
 h = 1/256; % 时间步长 % Step size of the algorithm
-up_t=0:h:60; % Time vector
+up_t=0:h:120; % Time vector
 up_told = up_t;
 up_tt = up_told;
 up_P = zeros(1, size(up_told, 1));
@@ -150,7 +150,7 @@ sel=[11 11 11 11];
 sel=[11];
 zetatmd = my_table_tmd.zeta(sel);
 fretmd = my_table_tmd.fre(sel)*1;
-mtmd = ones(length(sel),1)*1;
+mtmd = ones(length(sel),1);
 disp("TMD质量："+num2str(mtmd));
 disp("TMD阻尼系数："+num2str(zetatmd));
 disp("TMD频率："+num2str(fretmd));
@@ -166,6 +166,7 @@ matrixsize=5;
 
 
 up_u0 = [-0.086; -1]*10e-3;
+up_u0 = [-0.14534; 1]*10e-3;
 up_udot0 = [0; 0];
 
 P = zeros(2, length(up_tt));
@@ -212,22 +213,120 @@ disp("主结构响应最大值"+num2str(max(out(:, 2))))
 [a,b]=max(psd_plot2);
 disp("振动频率为："+num2str(f2(b)))
 
-
-
-
-
-zetatmds=0.01:0.001:0.1;
-allcasenumber=length(zetatmds);
-freq
+% 变化tmd阻尼
+exe=0;
+if exe == 1
+zetatmds=0.001:0.001:0.2;
+numIterations=length(zetatmds);
+ppm = ParforProgressbar(numIterations);
+freqvibration=zeros(length(zetatmds),1); %节段模型振动频率
+freqTMD=zeros(length(zetatmds),1); %TMD振动频率
+Freqsystem=zeros(length(zetatmds),2); 
 parfor i=1:length(zetatmds)
-    out = test_polynomial_NB_withTMDs_addstiff_withlimit(Fre, Mass, Zeta0, rho, D, U, up_a,up_H4, up_t,h, P, up_u0, up_udot0,up_upperlimit,up_lowerlimit,up_Fren_vibration_withwind,nModes,mtmd,fretmd,zetatmds(i));
-    [psd_avg, f2, psd_plot2] = fft_transfer(256,out(:, 2));
+    [out,Freq] = test_polynomial_NB_withTMDs_addstiff_withlimit(Fre, Mass, Zeta0, rho, D, U, up_a,up_H4, up_t,h, P, up_u0, up_udot0,up_upperlimit,up_lowerlimit,up_Fren_vibration_withwind,nModes,mtmd,fretmd,zetatmds(i));
+    outclip=out(round(end/2,0):end,2);
+    outcliptmd=out(round(end/2,0):end,3);
+    [psd_avg, f2, psd_plot2] = fft_transfer(256,outclip);
+    [psd_avg, ftmd, psd_plot3] = fft_transfer(256,outcliptmd);
     [a,b]=max(psd_plot2);
-    disp("振动频率为："+num2str(f2(b)))
-    progressbar(i/allcasenumber)
+    [c,d]=max(psd_plot3);
+    % disp("振动频率为："+num2str(f2(b)))
+    freqvibration(i)=f2(b);
+    freqTMD(i)=ftmd(d);
+    Freqsystem(i,:)=Freq; 
+    % progressbar(i/allcasenumber)
+    ppm.increment();
+end
+delete(ppm);
+figure
+plot(zetatmds,freqvibration)
+hold on 
+plot(zetatmds,freqTMD)
+plot(zetatmds,Freqsystem(:,1))
+plot(zetatmds,Freqsystem(:,2))
+title("Frequency varies with zeta")
+legend("vibration frequency of sectional model","vibration frequency of TMD","mode frequency 1","mode frequency 2")
+xlabel("zeta")
+ylabel("frequency")
 end
 
 
+% 变化tmd频率（通过变化质量实现）
+exe =0 ;
+if exe ==1
+mtmds=0.001:0.001:5;
+numIterations=length(mtmds);
+ppm = ParforProgressbar(numIterations);
+freqvibration=zeros(numIterations,1); %节段模型振动频率
+freqTMD=zeros(numIterations,1); %TMD振动频率
+Freqsystem=zeros(numIterations,2); 
+parfor i=1:numIterations
+    mtmd=mtmds(i);
+    [out,Freq] = test_polynomial_NB_withTMDs_addstiff_withlimit(Fre, Mass, Zeta0, rho, D, U, up_a,up_H4, up_t,h, P, up_u0, up_udot0,up_upperlimit,up_lowerlimit,up_Fren_vibration_withwind,nModes,mtmd,fretmd,zetatmd);
+    outclip=out(round(end/2,0):end,2);
+    outcliptmd=out(round(end/2,0):end,3);
+    [psd_avg, f2, psd_plot2] = fft_transfer(256,outclip);
+    [psd_avg, ftmd, psd_plot3] = fft_transfer(256,outcliptmd);
+    [a,b]=max(psd_plot2);
+    [c,d]=max(psd_plot3);
+    % disp("振动频率为："+num2str(f2(b)))
+    freqvibration(i)=f2(b);
+    freqTMD(i)=ftmd(d);
+    Freqsystem(i,:)=Freq; 
+    % progressbar(i/allcasenumber)
+    ppm.increment();
+end
+delete(ppm);
+figure
+plot(mtmds,freqvibration)
+hold on 
+plot(mtmds,freqTMD)
+plot(mtmds,Freqsystem(:,1))
+plot(mtmds,Freqsystem(:,2))
+title("Frequency varies with mass of tmd")
+legend("vibration frequency of sectional model","vibration frequency of TMD","mode frequency 1","mode frequency 2")
+xlabel("mass of tmd")
+ylabel("frequency")
+
+end
+
+% 变化tmd频率（通过变化刚度实现）
+exe =0;
+if exe ==1
+    fretmds = 3:0.01:7;
+    numIterations=length(fretmds);
+    ppm = ParforProgressbar(numIterations);
+    freqvibration=zeros(numIterations,1); %节段模型振动频率
+    freqTMD=zeros(numIterations,1); %TMD振动频率
+    Freqsystem=zeros(numIterations,2); 
+    parfor i=1:numIterations
+        fretmd=fretmds(i);
+        [out,Freq] = test_polynomial_NB_withTMDs_addstiff_withlimit(Fre, Mass, Zeta0, rho, D, U, up_a,up_H4, up_t,h, P, up_u0, up_udot0,up_upperlimit,up_lowerlimit,up_Fren_vibration_withwind,nModes,mtmd,fretmd,zetatmd);
+        outclip=out(round(end/2,0):end,2);
+        outcliptmd=out(round(end/2,0):end,3);
+        [psd_avg, f2, psd_plot2] = fft_transfer(256,outclip);
+        [psd_avg, ftmd, psd_plot3] = fft_transfer(256,outcliptmd);
+        [a,b]=max(psd_plot2);
+        [c,d]=max(psd_plot3);
+        % disp("振动频率为："+num2str(f2(b)))
+        freqvibration(i)=f2(b);
+        freqTMD(i)=ftmd(d);
+        Freqsystem(i,:)=Freq; 
+        % progressbar(i/allcasenumber)
+        ppm.increment();
+    end
+    delete(ppm);
+    figure
+    plot(fretmds,freqvibration)
+    hold on 
+    plot(fretmds,freqTMD)
+    plot(fretmds,Freqsystem(:,1))
+    plot(fretmds,Freqsystem(:,2))
+    title("Frequency varies with frequency of tmd")
+    legend("vibration frequency of sectional model","vibration frequency of TMD","mode frequency 1","mode frequency 2")
+    xlabel("frequency of tmd")
+    ylabel("frequency")
+end
 
 % figure 
 % plot(out(:, 1), out(:, 2))
