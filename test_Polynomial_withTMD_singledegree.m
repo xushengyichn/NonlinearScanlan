@@ -57,7 +57,7 @@ my_table_tmd=my_table;
 load('SZTD110_logfile.mat');
 
 %% 提取工况设置
-fname = ['SZTD-110-case2-22.3-fasan-2401']; %记录文件名
+fname = ['SZTD-110-case2-22.3-fasan-3101']; %记录文件名
 
 chanum = 8; %记录通道数
 filename = strsplit(fname, '-');
@@ -113,8 +113,8 @@ up_a = [up_a1 up_a2 up_a3 up_a4 up_a5];
 up_H4=my_table.up_parameter_H4(isexist);% 气动刚度
 up_upperlimit= my_table.up_upperlimit(isexist); %除以特征长度D的无量纲振幅
 up_lowerlimit= my_table.up_lowerlimit(isexist); %除以特征长度D的无量纲振幅
-up_upperlimit=1000;
-up_lowerlimit=-1000;
+% up_upperlimit=1000;
+% up_lowerlimit=-1000;
 up_Fren_vibration_withwind=my_table.up_Fren_vibration_withwind(isexist); 
 
 
@@ -145,12 +145,12 @@ disp("节段模型气动刚度参数"+num2str(up_H4));
 
 
 %% TMD 参数
-% sel=[12 13 15 17];
-sel=[11 11 11 11];
-sel=[11];
+sel=[12 13 15 17];
+% sel=[11 11 11 11];
+% sel=[11];
 zetatmd = my_table_tmd.zeta(sel);
 fretmd = my_table_tmd.fre(sel)*1;
-mtmd = ones(length(sel),1);
+mtmd = ones(length(sel),1)*0.25;
 disp("TMD质量："+num2str(mtmd));
 disp("TMD阻尼系数："+num2str(zetatmd));
 disp("TMD频率："+num2str(fretmd));
@@ -164,14 +164,14 @@ P = zeros(5, length(up_tt));
 nModes = 1;
 matrixsize=5;
 
-
-up_u0 = [-0.086; -1]*10e-3;
-up_u0 = [-0.14534; 1]*10e-3;
-up_udot0 = [0; 0];
-
-P = zeros(2, length(up_tt));
-nModes = 1;
-matrixsize=2;
+% 
+% up_u0 = [-0.086; -1]*10e-3;
+% up_u0 = [-0.14534; 1]*10e-3;
+% up_udot0 = [0; 0];
+% 
+% P = zeros(2, length(up_tt));
+% nModes = 1;
+% matrixsize=2;
 
 
 
@@ -188,30 +188,41 @@ plot(out(:, 1), out(:, 3))
 title("TMD")
 ylim([-0.01 0.01])
 
-% figure 
-% plot(out(:, 1), out(:, 2))
-% ylim([-0.01 0.01]/5)
-% title("main structure")
-% hold on
-% load test.mat
-% plot(up_t,UP)
-% legend("calculated","windtunnel test")
 fs=1/(up_t(2)-up_t(1));
-% [psd_avg, f1, psd_plot1] = fft_transfer(fs,UP);
-[psd_avg, f2, psd_plot2] = fft_transfer(256,out(:, 2));
-% figure
-% plot(f1, psd_plot1)
-% hold on 
+caldata=out(round(end/2,0):end,2);
+[psd_avg, f2, psd_plot2] = fft_transfer(256,caldata);
 figure
 plot(f2, psd_plot2)
 xlabel("Frequency")
 title("计算响应的频谱")
-disp("主结构响应最大值"+num2str(max(out(:, 2))))
-% [a,b]=max(psd_plot1);
-% f1(b)
-
+disp("主结构响应均方根值"+num2str(std(out(:, 2))))
 [a,b]=max(psd_plot2);
 disp("振动频率为："+num2str(f2(b)))
+
+% % figure 
+% % plot(out(:, 1), out(:, 2))
+% % ylim([-0.01 0.01]/5)
+% % title("main structure")
+% % hold on
+% % load test.mat
+% % plot(up_t,UP)
+% % legend("calculated","windtunnel test")
+% fs=1/(up_t(2)-up_t(1));
+% % [psd_avg, f1, psd_plot1] = fft_transfer(fs,UP);
+% [psd_avg, f2, psd_plot2] = fft_transfer(256,out(:, 2));
+% % figure
+% % plot(f1, psd_plot1)
+% % hold on 
+% figure
+% plot(f2, psd_plot2)
+% xlabel("Frequency")
+% title("计算响应的频谱")
+% disp("主结构响应最大值"+num2str(max(out(:, 2))))
+% % [a,b]=max(psd_plot1);
+% % f1(b)
+% 
+% [a,b]=max(psd_plot2);
+% disp("振动频率为："+num2str(f2(b)))
 
 % 变化tmd阻尼
 exe=0;
