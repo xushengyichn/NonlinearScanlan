@@ -57,7 +57,7 @@ my_table_tmd=my_table;
 load('SZTD110_logfile.mat');
 
 %% 提取工况设置
-fname = ['SZTD-110-case2-22.3-fasan-3101']; %记录文件名
+fname = ['SZTD-110-case2-22.3-fasan-2401']; %记录文件名
 
 chanum = 8; %记录通道数
 filename = strsplit(fname, '-');
@@ -145,13 +145,13 @@ disp("节段模型气动刚度参数"+num2str(up_H4));
 
 
 %% TMD 参数
-sel=[12 14 15 18];
-% sel=[4 7 8 10];
+% sel=[11 13 15 17];
+sel=[4 7 8 10];
 % sel=[11 11 11 11];
 % sel=[11];
 zetatmd = my_table_tmd.zeta(sel);
-fretmd = my_table_tmd.fre(sel)+0.16;
-mtmd = ones(length(sel),1)*0.000000000025;
+fretmd = my_table_tmd.fre(sel)*1;
+mtmd = ones(length(sel),1)*0.25;
 disp("TMD质量："+num2str(mtmd));
 disp("TMD阻尼系数："+num2str(zetatmd));
 disp("TMD频率："+num2str(fretmd));
@@ -177,8 +177,7 @@ matrixsize=5;
 [MM,CC,KK]=CreateMatrixwithTMD(nModes,Mass,Zeta0,Fre,mtmd,zetatmd,fretmd);
 
 a1_lower=up_a1+4/3*up_a2/pi*up_lowerlimit+up_a3/4*up_lowerlimit^2+8/15*up_a4/pi*up_lowerlimit^3+up_a5/8*up_lowerlimit^4;
-disp("lowerlimit="+a1_lower)
-% a1_lower=a1_lower*2
+
 [CC1,KK1]=AddAerodynamicDampingandStiffness(CC,KK,rho,U,D,a1_lower,up_H4);
 
 Result1= Complex_Eigenvalue_Analysis(MM,CC,KK1);%不考虑气动阻尼的复数特征值分析

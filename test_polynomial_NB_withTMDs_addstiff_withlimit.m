@@ -155,7 +155,7 @@ function [out,Freq] = test_polynomial_NB_withTMDs_addstiff_withlimit(Fre, Mass, 
     % KK = 4 * pi^2 * MM * Fre^2;
     pp = P;
     
-
+    save MCK.mat MM CC KK 
 
     % 特征值分析，即计算频率Freq和振型Phi，calmodes数字代表求解的阶数，eigs中参数SM表示从较小的特征值开始求解
     % Eigenvalue analysis, that is to calculate the frequency Freq and mode shape Phi, the calmodes number represents the order of the solution, and the parameter SM in eigs represents the solution from the smaller eigenvalue.
@@ -238,13 +238,13 @@ function [out,Freq] = test_polynomial_NB_withTMDs_addstiff_withlimit(Fre, Mass, 
                 amp= sqrt(u(1,ii+1)^2+(udot(1,ii+1)/(2*pi*Fren_vibration_withwind))^2);
                 if amp < lowerlimit
                     [g, Ks] = gfun2(u(:, ii + 1), udot(:, ii + 1));
-                    % disp('gfun2')
+                    disp('gfun2')
                 elseif amp > upperlimit
                     [g, Ks] = gfun3(u(:, ii + 1), udot(:, ii + 1));
-                    % disp('gfun3')
+                    disp('gfun3')
                 else
                     [g, Ks] = gfun1(u(:, ii + 1), udot(:, ii + 1));
-                    % disp('gfun1')
+                    disp('gfun1')
                 end
                 % [g, Ks] = gfun(u(:, ii + 1), udot(:, ii + 1)); % Calculate function value and the tangent
                 rr = pp(:, ii + 1) - MM * u2dot(:, ii + 1) - g; % Calculate residual
@@ -256,8 +256,9 @@ function [out,Freq] = test_polynomial_NB_withTMDs_addstiff_withlimit(Fre, Mass, 
                 if sqrt(rr' * rr) / length(rr) < 1.0e-4 % Convergence criteria
                     konv = 1; % konv = 1 if the convergence criteria is fulfilled.
                 end
-                if Nit==999 % Convergence criteria
-                    error("迭代未收敛，此时为第"+num2str(ii)+"个循环")
+                if Nit==9999 % Convergence criteria
+                    disp("迭代未收敛，此时为第"+num2str(ii)+"个循环")
+                    pause
                 end
             end
 
