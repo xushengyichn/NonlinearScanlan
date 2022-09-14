@@ -2,7 +2,7 @@
 %Author: Shengyi Xu xushengyichn@outlook.com
 %Date: 2022-06-27 16:21:36
 %LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
-%LastEditTime: 2022-09-14 10:10:31
+%LastEditTime: 2022-09-14 10:19:09
 %FilePath: \NonlinearScanlan\test_Polynomial_withTMD_singledegree.m
 %Description: 本代码是用于求解多项式模型下，测试节段模型安装tmd后产生多阶模态，最后计算得到响应的频率问题。
 %
@@ -181,8 +181,11 @@ disp("lowerlimit="+a1_lower)
 % a1_lower=a1_lower*2
 [CC1,KK1]=AddAerodynamicDampingandStiffness(CC,KK,rho,U,D,a1_lower,up_H4);
 
+[V,DD]=eigs(KK1,MM);
+Result0=sort(diag(sqrt(DD)/2/pi));
 Result1= Complex_Eigenvalue_Analysis(MM,CC,KK1);%不考虑气动阻尼的复数特征值分析
 Result2=Complex_Eigenvalue_Analysis(MM,CC1,KK1);%考虑气动阻尼的复特征值分析
+disp(Result0)
 % up_a(1)=a1_lower;
 % up_a(2)=0;
 % up_a(3)=0;
