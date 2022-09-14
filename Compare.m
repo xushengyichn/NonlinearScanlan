@@ -37,8 +37,8 @@ if decide == 0
 end
 
 %% 提取工况设置
-fname = ['SZTD-110-case2-22.3-fasan-3101']; %记录文件名
-
+fname = ['SZTD-110-case8-22.3-2401']; %记录文件名
+% fname = ['SZTD-110-case2-22.3-fasan-3101']; %记录文件名
 chanum = 8; %记录通道数
 %% 提取响应数据
 for ii = 1:size(fname, 1)

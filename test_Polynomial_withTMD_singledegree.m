@@ -2,7 +2,7 @@
 %Author: Shengyi Xu xushengyichn@outlook.com
 %Date: 2022-06-27 16:21:36
 %LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
-%LastEditTime: 2022-08-29 15:38:15
+%LastEditTime: 2022-09-14 10:10:31
 %FilePath: \NonlinearScanlan\test_Polynomial_withTMD_singledegree.m
 %Description: 本代码是用于求解多项式模型下，测试节段模型安装tmd后产生多阶模态，最后计算得到响应的频率问题。
 %
@@ -57,7 +57,7 @@ my_table_tmd=my_table;
 load('SZTD110_logfile.mat');
 
 %% 提取工况设置
-fname = ['SZTD-110-case2-22.3-fasan-3101']; %记录文件名
+fname = ['SZTD-110-case2-22.3-fasan-2401']; %记录文件名
 
 chanum = 8; %记录通道数
 filename = strsplit(fname, '-');
@@ -151,7 +151,7 @@ sel=[12 14 15 18];
 % sel=[11];
 zetatmd = my_table_tmd.zeta(sel);
 fretmd = my_table_tmd.fre(sel)+0.16;
-mtmd = ones(length(sel),1)*0.000000000025;
+mtmd = ones(length(sel),1)*0.25;
 disp("TMD质量："+num2str(mtmd));
 disp("TMD阻尼系数："+num2str(zetatmd));
 disp("TMD频率："+num2str(fretmd));
