@@ -1,13 +1,14 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Author: xushengyichn 54436848+xushengyichn@users.noreply.github.com
-%Date: 2022-09-14 10:30:54
+%Date: 2022-09-15 11:00:31
 %LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
-%LastEditTime: 2022-09-14 12:19:35
-%FilePath: \NonlinearScanlan\Compare_multicases.m
-%Description: 试验数据与计算涡振振幅对比，多个工况
+%LastEditTime: 2022-09-15 11:28:29
+%FilePath: \NonlinearScanlan\Compare_multicases_notmd.m
+%Description: 试验数据与计算涡振振幅对比，多个工况，不含TMD
 %
 %Copyright (c) 2022 by xushengyichn 54436848+xushengyichn@users.noreply.github.com, All Rights Reserved. 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 clc; clear; close all;
 % 试验数据路径
@@ -30,13 +31,13 @@ end
 
 
 ExpNames = [
-    'SZTD-110-case8-22.3-2401';
-    'SZTD-110-case8-22.3-2501';
-    'SZTD-110-case8-22.3-2601';
-    'SZTD-110-case8-22.3-2701';
-    'SZTD-110-case8-22.3-2801';
-    'SZTD-110-case8-22.3-2901';
-    'SZTD-110-case8-22.3-3101';
+    'SZTD-110-case2-22.3-fasan-2401';
+    'SZTD-110-case2-22.3-fasan-2501';
+    'SZTD-110-case2-22.3-fasan-2601';
+    'SZTD-110-case2-22.3-fasan-2701';
+    'SZTD-110-case2-22.3-fasan-2801';
+    'SZTD-110-case2-22.3-fasan-2901';
+    'SZTD-110-case2-22.3-fasan-3101';
     ]; %记录文件名
 ExpNames2 = [
     'SZTD-110-case2-22.3-fasan-2401';
@@ -50,20 +51,16 @@ ExpNames2 = [
 
 girderindex=2;
 if girderindex==1
-    TMDsindex=[12 14 15 18];
-    freshift=0.16;
 elseif girderindex==2
-%     TMDsindex=[4 7 8 10];
-%     freshift=-0.1;
-    TMDsindex=[3 6 8 10];
-%     freshift=-0.1;
+%     TMDsindex=[3 6 8 10];
+%     freshift=-0.13;
 end
 
 
 
 
 for k1=1:size(ExpNames,1)    
-% for k1=3
+% for k1=7
     ExpName=ExpNames(k1,:);
     ExpName2=ExpNames2(k1,:);
 
@@ -80,9 +77,9 @@ for k1=1:size(ExpNames,1)
 
 % 数值响应计算
 
-[t_cal, dis_cal] = CalData_Polynomial_withTMD_singledegree(ExpName2, girderindex, TMDsindex, freshift);
-% figure
-% plot(t_cal,dis_cal)
+[t_cal, dis_cal] = CalData_Polynomial_noTMD_singledegree(ExpName2, girderindex);
+figure
+plot(t_cal,dis_cal)
 
 % 计算与试验数据对比
 if girderindex==1
@@ -98,7 +95,7 @@ hold on
 plot(t_cal,dis_cal)
 % close all
 % 计算与试验数据对比
-expamp(k1)=std(dis_exp(round(end/2,0):end))*sqrt(2);
+expamp(k1)=std(dis_exp(round(end/2*0.9,0):end/2*1.2))*sqrt(2);
 calamp(k1)=std(dis_cal(round(end/2,0):end))*sqrt(2);
 end
 

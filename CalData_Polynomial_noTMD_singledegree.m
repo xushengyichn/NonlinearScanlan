@@ -1,15 +1,16 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Author: xushengyichn 54436848+xushengyichn@users.noreply.github.com
-%Date: 2022-09-14 10:49:00
+%Date: 2022-09-15 11:02:00
 %LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
-%LastEditTime: 2022-09-15 10:42:36
-%FilePath: \NonlinearScanlan\CalData_Polynomial_withTMD_singledegree.m
-%Description: 该函数用于计算多项式模型下安装TMD后的振动响应
+%LastEditTime: 2022-09-15 11:06:01
+%FilePath: \NonlinearScanlan\CalData_Polynomial_noTMD_singledegree.m
+%Description: 该函数用于计算多项式模型的振动响应
 %
-%Copyright (c) 2022 by xushengyichn 54436848+xushengyichn@users.noreply.github.com, All Rights Reserved.
+%Copyright (c) 2022 by xushengyichn 54436848+xushengyichn@users.noreply.github.com, All Rights Reserved. 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function [t, dis] = CalData_Polynomial_withTMD_singledegree(ExpName, girderindex, TMDsindex, freshift)
+
+function [t, dis] = CalData_Polynomial_noTMD_singledegree(ExpName, girderindex)
     %该函数用于计算多项式模型下安装TMD后的振动响应
     %ExpName:实验名称
     %girderindex:梁号(上游输入1，下游输入2)
@@ -17,15 +18,9 @@ function [t, dis] = CalData_Polynomial_withTMD_singledegree(ExpName, girderindex
     %freshift:频率偏移，因为TMD频率分辨率很低，在一定范围中移动可以更好与试验结果相对照
 
     % 导入试验数据
-    my_table_tmd=load('TMD_logfile.mat');
-    my_table_tmd=my_table_tmd.my_table;
     my_table=load('SZTD110_logfile.mat');
     my_table=my_table.my_table;
 
-%     ExpName='SZTD-110-case2-22.3-fasan-2401';
-%     girderindex=1;
-%     TMDsindex=[12 14 15 18];
-%     freshift=0.16;
 
     fname = ExpName;
     chanum = 8; %记录通道数
@@ -130,36 +125,20 @@ function [t, dis] = CalData_Polynomial_withTMD_singledegree(ExpName, girderindex
     disp("节段模型气动阻尼参数"+num2str(a));
     disp("节段模型气动刚度参数"+num2str(H4));
 
-    %% TMD 参数
-    sel=TMDsindex;  
-    zetatmd = my_table_tmd.zeta(sel);
-    fretmd = my_table_tmd.fre(sel)+freshift;
-    mtmd = ones(length(sel),1)*0.25;
-    disp("TMD质量："+num2str(mtmd));
-    disp("TMD阻尼系数："+num2str(zetatmd));
-    disp("TMD频率："+num2str(fretmd));
-
     %% Calculate the response
-    u0 = [-0.086; -1;-1;-1;-1]*10e-3;
-    udot0 = [0; 0;0;0;0];
-
-    P = zeros(5, length(tt));
+    u0 = [-0.086]*10e-3;
+    udot0 = [0];
+%     u0=-0.0023
+%     udot0=0.0436
+    P = zeros(1, length(tt));
     Lb=Buffeting(rho,t,0.02,U,0.078,0.015,-0.165);%见深中通道110m报告
     P(1,:) = Lb;
     nModes = 1;
-    matrixsize=length(TMDsindex);
+    MM=m;
+    CC=2*MM*(2*pi*Fre)*Zeta0;
+    KK=MM*(2*pi*Fre)^2;
 
-    [MM,CC,KK]=CreateMatrixwithTMD(nModes,Mass,Zeta0,Fre,mtmd,zetatmd,fretmd);
+    out = polynomial_NB_adstiff_withlimit(Fre, Mass, Zeta0, rho, D, U, a,H4, t, P, u0, udot0,upperlimit,lowerlimit,Fre)
 
-    a1_lower=a1+4/3*a2/pi*lowerlimit+a3/4*lowerlimit^2+8/15*a4/pi*lowerlimit^3+a5/8*lowerlimit^4;
-    disp("lowerlimit="+a1_lower)
-
-    [CC1,KK1]=AddAerodynamicDampingandStiffness(CC,KK,rho,U,D,a1_lower,H4);
-    [V,DD]=eigs(KK1,MM);
-    Result0=sort(diag(sqrt(DD)/2/pi));
-    Result1= Complex_Eigenvalue_Analysis(MM,CC,KK1);%不考虑气动阻尼的复数特征值分析
-    Result2=Complex_Eigenvalue_Analysis(MM,CC1,KK1);%考虑气动阻尼的复特征值分析
-    disp(Result2)
-    out = test_polynomial_NB_withTMDs_addstiff_withlimit(Fre, Mass, Zeta0, rho, D, U, a,H4, t,h, P, u0, udot0,upperlimit,lowerlimit,Fre,nModes,mtmd,fretmd,zetatmd);
     dis=out(:,2);%节段模型位移
 end

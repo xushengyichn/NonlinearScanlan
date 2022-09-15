@@ -4,7 +4,8 @@
 %LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
 %LastEditTime: 2022-09-14 12:19:35
 %FilePath: \NonlinearScanlan\Compare_multicases.m
-%Description: 试验数据与计算涡振振幅对比，多个工况
+%Description: 试验数据与计算涡振振幅对比，多个工况，含TMD
+
 %
 %Copyright (c) 2022 by xushengyichn 54436848+xushengyichn@users.noreply.github.com, All Rights Reserved. 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -54,7 +55,7 @@ if girderindex==1
     freshift=0.16;
 elseif girderindex==2
     TMDsindex=[4 7 8 10];
-    freshift=-0.1;
+    freshift=-0.128;
 %     TMDsindex=[3 6 8 10];
 %     freshift=-0.13;
 end
@@ -63,7 +64,7 @@ end
 
 
 for k1=1:size(ExpNames,1)    
-% for k1=3
+% for k1=7
     ExpName=ExpNames(k1,:);
     ExpName2=ExpNames2(k1,:);
 
