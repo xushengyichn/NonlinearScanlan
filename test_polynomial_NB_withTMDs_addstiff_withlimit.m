@@ -155,7 +155,7 @@ function [out,Freq] = test_polynomial_NB_withTMDs_addstiff_withlimit(Fre, Mass, 
     % KK = 4 * pi^2 * MM * Fre^2;
     pp = P;
     
-    save MCK.mat MM CC KK 
+%     save MCK.mat MM CC KK 
 
     % 特征值分析，即计算频率Freq和振型Phi，calmodes数字代表求解的阶数，eigs中参数SM表示从较小的特征值开始求解
     % Eigenvalue analysis, that is to calculate the frequency Freq and mode shape Phi, the calmodes number represents the order of the solution, and the parameter SM in eigs represents the solution from the smaller eigenvalue.
@@ -204,6 +204,7 @@ function [out,Freq] = test_polynomial_NB_withTMDs_addstiff_withlimit(Fre, Mass, 
 % disp(Freq)
     %% Nonlinear Newmark algorithm
     function [u, udot, u2dot] = nonlinear_newmark_krenk(gfun1,gfun2,gfun3, MM, pp, u0, udot0, gamma, beta, h,upperlimit,lowerlimit,Fren_vibration_withwind)
+        flag=0;
         % Initialize variables
         u = zeros(size(MM, 1), size(pp, 2));
         udot = zeros(size(MM, 1), size(pp, 2));
@@ -238,13 +239,22 @@ function [out,Freq] = test_polynomial_NB_withTMDs_addstiff_withlimit(Fre, Mass, 
                 amp= sqrt(u(1,ii+1)^2+(udot(1,ii+1)/(2*pi*Fren_vibration_withwind))^2);
                 if amp < lowerlimit
                     [g, Ks] = gfun2(u(:, ii + 1), udot(:, ii + 1));
-                    disp('gfun2')
+                    if flag~=2
+                        disp('gfun2')
+                        flag=2;
+                    end
                 elseif amp > upperlimit
                     [g, Ks] = gfun3(u(:, ii + 1), udot(:, ii + 1));
-                    disp('gfun3')
+                    if flag~=3
+                        disp('gfun3')
+                        flag=3;
+                    end
                 else
                     [g, Ks] = gfun1(u(:, ii + 1), udot(:, ii + 1));
-                    disp('gfun1')
+                    if flag~=1
+                        disp('gfun1')
+                        flag=1;
+                    end
                 end
                 % [g, Ks] = gfun(u(:, ii + 1), udot(:, ii + 1)); % Calculate function value and the tangent
                 rr = pp(:, ii + 1) - MM * u2dot(:, ii + 1) - g; % Calculate residual

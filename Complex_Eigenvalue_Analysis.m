@@ -52,7 +52,7 @@ function Mode = Complex_Eigenvalue_Analysis(M,C,K)
     mode=[modenum Fre xi];
     TableName={'Mode','Frequency','Damping ratio'};
     Mode=array2table(mode,'VariableNames',TableName);
-    disp(Mode)
+%     disp(Mode)
 end
 
     % 以下为计算自由振动计算初始状态以及自由振动响应的代码，此处不需要

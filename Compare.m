@@ -4,7 +4,7 @@
 %LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
 %LastEditTime: 2022-09-12 21:02:17
 %FilePath: \NonlinearScanlan\Compare.m
-%Description: 计算振幅与试验振幅对比
+%Description: 计算振幅与试验振幅对比，仅为单个工况对比，后续调整为批量对比
 %
 %Copyright (c) 2022 by xushengyichn 54436848+xushengyichn@users.noreply.github.com, All Rights Reserved. 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
