@@ -1,8 +1,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Author: xushengyichn 54436848+xushengyichn@users.noreply.github.com
 %Date: 2022-09-26 19:35:04
-%LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
-%LastEditTime: 2022-09-26 22:35:00
+%LastEditors: Shengyi Xu xushengyichn@outlook.com
+%LastEditTime: 2022-09-27 00:27:46
 %FilePath: \NonlinearScanlan\CalData_Polynomial_withTMD_multidegree.m
 %Description: 计算多模态，施加某一阶模态多项式气动力模型后的响应，考虑TMD
 %
@@ -11,6 +11,9 @@
 clc; clear; close all;
 
 %% 参数设置
+
+D=20; %断面参考宽度
+
 nTMD = 1;
 mTMD = [2400];
 cTMD = [2 * mTMD(1) * 0.069704171453635 * 0.05];
@@ -40,6 +43,8 @@ ExpNames = [
 
 Zeta0=0.3/100;
 disp("模态阻尼比未定义，采用默认值，每阶模态阻尼比均为："+num2str(Zeta0))
+
+mode_number=1; %气动力施加的模态
 
 
 %% 读取梁桥模型
@@ -151,7 +156,21 @@ for k1 = 1:length(nodeondeck)
 end
 
 nodegap=importdata('nodegap.txt');
+for k1 =1:nModes
+    integral_2(k1)=sum(mode(:,k1).^2.*nodegap);
+    integral_3(k1)=sum(mode(:,k1).^2.*abs(mode(:,k1)).*nodegap);
+    integral_4(k1)=sum(mode(:,k1).^4.*nodegap);
+    integral_5(k1)=sum(mode(:,k1).^2.*abs(mode(:,k1)).^3.*nodegap);
+    integral_6(k1)=sum(mode(:,k1).^6.*nodegap);
+end
 
+
+phi=mode(:,mode_number);
+mode_integral_2=integral_2(mode_number);
+mode_integral_3=integral_3(mode_number);
+mode_integral_4=integral_4(mode_number);
+mode_integral_5=integral_5(mode_number);
+mode_integral_6=integral_6(mode_number);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 考虑TMD振动响应的模态叠加法
@@ -342,12 +361,38 @@ else
     ReducedFrequency = my_table.down_Fre_vibration(isexist); % 折减频率
 end
 
+U=2*pi*Freq(mode_number)*D/ReducedFrequency; %风速
+rho=1.225;
+omega0=2*pi*F0; %无风振动频率
+m=MM(mode_number,mode_number); %质量
+b1=(rho*U*D*a1/m-2*Zeta0*omega0)*m;
+b2=rho*U*a2;
+b3=rho*U*a3/D;
+b4=rho*U*a4/D^2;
+b5=rho*U*a5/D^3;
 
+%% 响应计算
+
+h=0.1;% Time step
+t=0:h:100;% Time
+p=zeros(2,length(t)); %Initialize external load
+gamma = 1/2; % Parameter in the Newmark algorithm
+beta = 1/4; % Parameter in the Newmark algorithm
+gfun = @(u,udot) bridge_damper(u,udot,rou,U,D,b1,b2,b3,b4,b5,MM,CC,KK,mode_integral_2,mode_integral_3,mode_integral_4,mode_integral_5,mode_integral_6,gamma,beta,h); % Handle to the nonlinear function
+% TODO: 还没有考虑气动刚度
 
 %% 所需要使用的函数
 %% functions to be used
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+function [g,ks]=bridge_damper(u,udot,rou,U,D,a1,a2,a3,a4,a5,MM,CC,KK,mode_integral_2,mode_integral_3,mode_integral_4,mode_integral_5,mode_integral_6,gamma,beta,h,matrixsize,mode_number)
+for k1 = 1:matrixsize
+    g(k1)=0;
+    if k1==mode_number
+        for k2 = 1:matrixsize
+            g(k1)=g(k1)+CC(k1,k2)*udot(k2)+KK(k1,k2)*u(k2);
+        end
+        g(k1)=g(k1)-b1*udot(k1)*
+    
 function result = P_eq(mode, temp_vec, Matrix)
     vec = temp_vec(:, mode);
     result = vec' * Matrix * vec;
