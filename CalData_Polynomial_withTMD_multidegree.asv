@@ -2,7 +2,7 @@
 %Author: xushengyichn 54436848+xushengyichn@users.noreply.github.com
 %Date: 2022-09-26 19:35:04
 %LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
-%LastEditTime: 2022-09-28 15:08:25
+%LastEditTime: 2022-09-28 19:22:05
 %FilePath: \NonlinearScanlan\CalData_Polynomial_withTMD_multidegree.m
 %Description: 计算多模态，施加某一阶模态多项式气动力模型后的响应，考虑TMD
 %
@@ -13,12 +13,17 @@ clc; clear; close all;
 %% 参数设置
 
 D=20; %断面参考宽度
-
+Ftmd=0.833853594612216;
+omegatmd=2*pi*Ftmd;
 nTMD = 1;
-mTMD = [2400]*0.001;
-cTMD = [2 * mTMD(1) * 0.069704171453635 * 0.05];
-kTMD = [mTMD(1) * 0.069704171453635];
-nodeTMD = [2157]; %Node number(location of the TMD)
+mTMD = [2400]*1;
+cTMD = [2 * mTMD(1) * omegatmd * 0.05];
+kTMD = [mTMD(1) * omegatmd^2];
+
+% mTMD = 0;
+% cTMD = 0;
+% kTMD = 0;
+nodeTMD = [3171]; %Node number(location of the TMD)
 
 girderindex=1;
 
@@ -41,7 +46,7 @@ ExpNames = [
 
 
 
-Zeta0=0.3/100;
+Zeta0=0.0/100;
 disp("模态阻尼比未定义，采用默认值，每阶模态阻尼比均为："+num2str(Zeta0))
 
 mode_number=1; %气动力施加的模态
@@ -191,6 +196,7 @@ for t1 = 1:nTMD
 
 end
 
+disp("第一阶模态质量比"+num2str(phiTMD(1,1)^2*mTMD(1)*100))
 clear t1 t2
 
 % 创建质量矩阵
@@ -215,24 +221,43 @@ clear t1
 % Create the Stiffness Matrix
 KK = zeros(size(MM, 1), size(MM, 2));
 KK1 = zeros(size(MM, 1), size(MM, 2));
-KK2 = zeros(size(MM, 1), size(MM, 2));
 for k1 = 1:matrixsize
         if k1<=nModes
-            KK1(k1,k1)=MM(k1,k1)*(2*pi*Freq(k1))^2;
+            KK1(k1,k1)=P_eq(k1, mode_vec, K); %P=parameters
         elseif k1>nModes
             KK1(k1,k1)=kTMD(k1-nModes);
         end
 end
-for k1 = 1:matrixsize
-    if k1<=nModes
-        for k2 = 1:length(mTMD)
-            KK2(k1,k1)=KK2(k1,k1)+kTMD(k2);
+
+KK2 = zeros(matrixsize,matrixsize);
+for k1 = 1:nModes % 第k1行
+        for k2 = 1:nModes % 第k2列
+            for k3=1:nTMD % 第k3个TMD
+                KK2(k1,k2)=KK2(k1,k2)+kTMD(k3)*phiTMD(k3,k1)*phiTMD(k3,k2);
+            end
         end
-    elseif k1>nModes
-        KK2(1,k1)=-kTMD(k1-nModes);
-        KK2(k1,1)=-kTMD(k1-nModes);
+end
+
+clear k1 k2 
+for k1= 1:nModes
+    for k2 = 1:nTMD
+        KK2(k1,k2+nModes)=-kTMD(k2)*phiTMD(k2,k1);
+        KK2(k2+nModes,k1)=-kTMD(k2)*phiTMD(k2,k1);
     end
 end
+
+
+
+% for k1 = 1:matrixsize
+%     if k1<=nModes
+%         for k2 = 1:length(mTMD)
+%             KK2(k1,k1)=KK2(k1,k1)+kTMD(k2);
+%         end
+%     elseif k1>nModes
+%         KK2(1,k1)=-kTMD(k1-nModes);
+%         KK2(k1,1)=-kTMD(k1-nModes);
+%     end
+% end
 KK = KK1 + KK2;
 clear k1 k2
 
@@ -251,16 +276,33 @@ for k1 = 1:matrixsize
         end
 end
 
-for k1 = 1:matrixsize
-    if k1<=nModes
-        for k2 = 1:length(mTMD)
-            CC2(k1,k1)=CC2(k1,k1)+cTMD(k2);
+for k1 = 1:nModes % 第k1行
+        for k2 = 1:nModes % 第k2列
+            for k3=1:nTMD % 第k3个TMD
+                CC2(k1,k2)=CC2(k1,k2)+cTMD(k3)*phiTMD(k3,k1)*phiTMD(k3,k2);
+            end
         end
-    elseif k1>nModes
-        CC2(1,k1)=-cTMD(k1-nModes);
-        CC2(k1,1)=-cTMD(k1-nModes);
+end
+
+clear k1 k2 
+for k1= 1:nModes
+    for k2 = 1:nTMD
+        CC2(k1,k2+nModes)=-cTMD(k2)*phiTMD(k2,k1);
+        CC2(k2+nModes,k1)=-cTMD(k2)*phiTMD(k2,k1);
     end
-end  
+end
+
+
+% for k1 = 1:matrixsize
+%     if k1<=nModes
+%         for k2 = 1:length(mTMD)
+%             CC2(k1,k1)=CC2(k1,k1)+cTMD(k2);
+%         end
+%     elseif k1>nModes
+%         CC2(1,k1)=-cTMD(k1-nModes);
+%         CC2(k1,1)=-cTMD(k1-nModes);
+%     end
+% end  
 
 CC = CC1 + CC2;
 clear k1 k2
@@ -408,7 +450,7 @@ u0(1)=u0max/phi1max; % Initial displacement of the first mode;
 figure
 plot(u(1,:))
 figure
-plot(u(3))
+plot(u(end,:))
 %% 所需要使用的函数
 %% functions to be used
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

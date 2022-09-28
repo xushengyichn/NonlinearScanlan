@@ -2,8 +2,8 @@
 %Author: xushengyichn 54436848+xushengyichn@users.noreply.github.com
 %Date: 2022-09-26 19:35:04
 %LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
-%LastEditTime: 2022-09-28 19:22:05
-%FilePath: \NonlinearScanlan\CalData_Polynomial_withTMD_multidegree.m
+%LastEditTime: 2022-09-28 23:46:28
+%FilePath: /NonlinearScanlan/CalData_Polynomial_withTMD_multidegree.m
 %Description: 计算多模态，施加某一阶模态多项式气动力模型后的响应，考虑TMD
 %
 %Copyright (c) 2022 by xushengyichn 54436848+xushengyichn@users.noreply.github.com, All Rights Reserved. 
@@ -15,15 +15,15 @@ clc; clear; close all;
 D=20; %断面参考宽度
 Ftmd=0.833853594612216;
 omegatmd=2*pi*Ftmd;
-nTMD = 1;
-mTMD = [2400]*1;
-cTMD = [2 * mTMD(1) * omegatmd * 0.05];
-kTMD = [mTMD(1) * omegatmd^2];
+nTMD = 0;
+% mTMD = [2400]*10;
+% cTMD = [2 * mTMD(1) * omegatmd * 0.05];
+% kTMD = [mTMD(1) * omegatmd^2];
 
-% mTMD = 0;
-% cTMD = 0;
-% kTMD = 0;
-nodeTMD = [2157]; %Node number(location of the TMD)
+mTMD = 0;
+cTMD = 0;
+kTMD = 0;
+nodeTMD = [3171]; %Node number(location of the TMD)
 
 girderindex=1;
 
@@ -195,7 +195,9 @@ for t1 = 1:nTMD
     end
 
 end
-
+if nTMD ~= 0
+    disp("第一阶模态质量比"+num2str(phiTMD(1,1)^2*mTMD(1)*100)+"%")
+end
 clear t1 t2
 
 % 创建质量矩阵
@@ -415,17 +417,17 @@ b2=rho*U*a2;
 b3=rho*U*a3/D;
 b4=rho*U*a4/D^2;
 b5=rho*U*a5/D^3;
-b1=0;
-b2=0;
-b3=0;
-b4=0;
-b5=0;
-a1_lower=a1+4/3*a2/pi*lowerlimit+a3/4*lowerlimit^2+8/15*a4/pi*lowerlimit^3+a5/8*lowerlimit^4;
-a1_upper=a1+4/3*a2/pi*upperlimit+a3/4*upperlimit^2+8/15*a4/pi*upperlimit^3+a5/8*upperlimit^4;
-b1_lower=rho*U*D*a1_lower/m;
-b1_upper=rho*U*D*a1_upper/m;
-b_lower = [b1_lower 0 0 0 0] .*m;
-b_upper = [b1_upper 0 0 0 0] .*m;
+% b1=0;
+% b2=0;
+% b3=0;
+% b4=0;
+% b5=0;
+% a1_lower=a1+4/3*a2/pi*lowerlimit+a3/4*lowerlimit^2+8/15*a4/pi*lowerlimit^3+a5/8*lowerlimit^4;
+% a1_upper=a1+4/3*a2/pi*upperlimit+a3/4*upperlimit^2+8/15*a4/pi*upperlimit^3+a5/8*upperlimit^4;
+% b1_lower=rho*U*D*a1_lower/m;
+% b1_upper=rho*U*D*a1_upper/m;
+% b_lower = [b1_lower 0 0 0 0] .*m;
+% b_upper = [b1_upper 0 0 0 0] .*m;
 %% 响应计算
 
 h=0.01;% Time step
