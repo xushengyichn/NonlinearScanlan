@@ -1,8 +1,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Author: xushengyichn 54436848+xushengyichn@users.noreply.github.com
 %Date: 2022-09-26 19:35:04
-%LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
-%LastEditTime: 2022-09-28 11:42:08
+%LastEditors: Shengyi xushengyichn@outlook.com
+%LastEditTime: 2022-09-28 12:41:59
 %FilePath: \NonlinearScanlan\CalData_Polynomial_withTMD_multidegree.m
 %Description: 计算多模态，施加某一阶模态多项式气动力模型后的响应，考虑TMD
 %
@@ -399,7 +399,13 @@ for k1 = 1:matrixsize
     end
 end
 Kc=CC;
-Kc(mode_number,mode_number)=Kc(mode_number,mode_number)-;
+Kc(mode_number,mode_number)=Kc(mode_number,mode_number)-(b1*integral_2+b2*abs(u(mode_number))*integral_3+b3*u(mode_number)^2*integral_4+b4*abs(u(mode_number))^3*integral_5+b5*u(mode_number)^4*integral_6);
+
+Kk=KK;
+Kk(mode_number,mode_number)=Kk(mode_number,mode_number)-udot(mode_number)*b2*sign(u(mode_number))*integral_3-2*b3*udot(mode_number)*u(mode_number)*integral_4-3*udot(mode_number)*b4*abs(u(mode_number))^2*integral_5*sign(u(mode_number))-4*b5*udot(mode_number)*u(mode_number)^3*integral_6;
+
+ks=Kk+gamma*h/beta/h^2*Kc+1/beta/h^2*MM;
+end
     
 function result = P_eq(mode, temp_vec, Matrix)
     vec = temp_vec(:, mode);
