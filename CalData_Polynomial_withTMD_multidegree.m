@@ -1,8 +1,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Author: xushengyichn 54436848+xushengyichn@users.noreply.github.com
 %Date: 2022-09-26 19:35:04
-%LastEditors: Shengyi Xu xushengyichn@outlook.com
-%LastEditTime: 2022-09-27 00:27:46
+%LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
+%LastEditTime: 2022-09-28 11:42:08
 %FilePath: \NonlinearScanlan\CalData_Polynomial_withTMD_multidegree.m
 %Description: 计算多模态，施加某一阶模态多项式气动力模型后的响应，考虑TMD
 %
@@ -391,7 +391,15 @@ for k1 = 1:matrixsize
         for k2 = 1:matrixsize
             g(k1)=g(k1)+CC(k1,k2)*udot(k2)+KK(k1,k2)*u(k2);
         end
-        g(k1)=g(k1)-b1*udot(k1)*
+        g(k1)=g(k1)-(b1*integral_2+b2*abs(u(k1))*integral_3+b3*u(k1)^2*integral_4+b4*abs(u(k1))^3*integral_5+b5*u(k1)^4*integral_6)*udot(k1)
+    else
+        for k2 = 1:matrixsize
+            g(k1)=g(k1)+CC(k1,k2)*udot(k2)+KK(k1,k2)*u(k2);
+        end
+    end
+end
+Kc=CC;
+Kc(mode_number,mode_number)=Kc(mode_number,mode_number)-;
     
 function result = P_eq(mode, temp_vec, Matrix)
     vec = temp_vec(:, mode);
