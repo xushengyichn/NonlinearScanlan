@@ -2,7 +2,7 @@
 %Author: xushengyichn 54436848+xushengyichn@users.noreply.github.com
 %Date: 2022-09-26 19:35:04
 %LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
-%LastEditTime: 2022-09-28 17:18:18
+%LastEditTime: 2022-09-28 19:22:05
 %FilePath: \NonlinearScanlan\CalData_Polynomial_withTMD_multidegree.m
 %Description: 计算多模态，施加某一阶模态多项式气动力模型后的响应，考虑TMD
 %
@@ -16,7 +16,7 @@ D=20; %断面参考宽度
 Ftmd=0.833853594612216;
 omegatmd=2*pi*Ftmd;
 nTMD = 1;
-mTMD = [2400]*0.01;
+mTMD = [2400]*1;
 cTMD = [2 * mTMD(1) * omegatmd * 0.05];
 kTMD = [mTMD(1) * omegatmd^2];
 
@@ -222,35 +222,41 @@ KK = zeros(size(MM, 1), size(MM, 2));
 KK1 = zeros(size(MM, 1), size(MM, 2));
 for k1 = 1:matrixsize
         if k1<=nModes
-            KK1(k1,k1)=P_eq(t1, mode_vec, K); %P=parameters
+            KK1(k1,k1)=P_eq(k1, mode_vec, K); %P=parameters
         elseif k1>nModes
             KK1(k1,k1)=kTMD(k1-nModes);
         end
 end
 
-KK2 = zeros(nModes,nModes);
+KK2 = zeros(matrixsize,matrixsize);
 for k1 = 1:nModes % 第k1行
         for k2 = 1:nModes % 第k2列
             for k3=1:nTMD % 第k3个TMD
-                KK2(k1,k1)=KK2(k1,k1)+kTMD(k3)*phiTMD(k3,k1)*phiTMD(k3,k2);
+                KK2(k1,k2)=KK2(k1,k2)+kTMD(k3)*phiTMD(k3,k1)*phiTMD(k3,k2);
             end
         end
 end
 
-
-
-
-
-for k1 = 1:matrixsize
-    if k1<=nModes
-        for k2 = 1:length(mTMD)
-            KK2(k1,k1)=KK2(k1,k1)+kTMD(k2);
-        end
-    elseif k1>nModes
-        KK2(1,k1)=-kTMD(k1-nModes);
-        KK2(k1,1)=-kTMD(k1-nModes);
+clear k1 k2 
+for k1= 1:nModes
+    for k2 = 1:nTMD
+        KK2(k1,k2+nModes)=-kTMD(k2)*phiTMD(k2,k1);
+        KK2(k2+nModes,k1)=-kTMD(k2)*phiTMD(k2,k1);
     end
 end
+
+
+
+% for k1 = 1:matrixsize
+%     if k1<=nModes
+%         for k2 = 1:length(mTMD)
+%             KK2(k1,k1)=KK2(k1,k1)+kTMD(k2);
+%         end
+%     elseif k1>nModes
+%         KK2(1,k1)=-kTMD(k1-nModes);
+%         KK2(k1,1)=-kTMD(k1-nModes);
+%     end
+% end
 KK = KK1 + KK2;
 clear k1 k2
 
@@ -269,16 +275,33 @@ for k1 = 1:matrixsize
         end
 end
 
-for k1 = 1:matrixsize
-    if k1<=nModes
-        for k2 = 1:length(mTMD)
-            CC2(k1,k1)=CC2(k1,k1)+cTMD(k2);
+for k1 = 1:nModes % 第k1行
+        for k2 = 1:nModes % 第k2列
+            for k3=1:nTMD % 第k3个TMD
+                CC2(k1,k2)=CC2(k1,k2)+cTMD(k3)*phiTMD(k3,k1)*phiTMD(k3,k2);
+            end
         end
-    elseif k1>nModes
-        CC2(1,k1)=-cTMD(k1-nModes);
-        CC2(k1,1)=-cTMD(k1-nModes);
+end
+
+clear k1 k2 
+for k1= 1:nModes
+    for k2 = 1:nTMD
+        CC2(k1,k2+nModes)=-cTMD(k2)*phiTMD(k2,k1);
+        CC2(k2+nModes,k1)=-cTMD(k2)*phiTMD(k2,k1);
     end
-end  
+end
+
+
+% for k1 = 1:matrixsize
+%     if k1<=nModes
+%         for k2 = 1:length(mTMD)
+%             CC2(k1,k1)=CC2(k1,k1)+cTMD(k2);
+%         end
+%     elseif k1>nModes
+%         CC2(1,k1)=-cTMD(k1-nModes);
+%         CC2(k1,1)=-cTMD(k1-nModes);
+%     end
+% end  
 
 CC = CC1 + CC2;
 clear k1 k2
