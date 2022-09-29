@@ -16,13 +16,13 @@ D=20; %断面参考宽度
 Ftmd=0.833853594612216;
 omegatmd=2*pi*Ftmd;
 nTMD = 0;
-% mTMD = [2400]*10;
-% cTMD = [2 * mTMD(1) * omegatmd * 0.05];
-% kTMD = [mTMD(1) * omegatmd^2];
+mTMD = [2400]*10;
+cTMD = [2 * mTMD(1) * omegatmd * 0.05];
+kTMD = [mTMD(1) * omegatmd^2];
 
-mTMD = 0;
-cTMD = 0;
-kTMD = 0;
+% mTMD = 0;
+% cTMD = 0;
+% kTMD = 0;
 nodeTMD = [3171]; %Node number(location of the TMD)
 
 girderindex=1;
@@ -410,18 +410,18 @@ end
 
 U=2*pi*Freq(mode_number)*D/ReducedFrequency; %风速
 rho=1.225;
-omega0=2*pi*F0; %无风振动频率
+omega0=2*pi*Freq(mode_number); %无风振动频率
 m=MM(mode_number,mode_number); %质量
-b1=(rho*U*D*a1/m-2*Zeta0*omega0)*m;
+b1=(rho*U*D*a1/m-2*Zeta0*omega0)*m/3.6;
 b2=rho*U*a2;
 b3=rho*U*a3/D;
 b4=rho*U*a4/D^2;
 b5=rho*U*a5/D^3;
 % b1=0;
-% b2=0;
-% b3=0;
-% b4=0;
-% b5=0;
+b2=0;
+b3=0;
+b4=0;
+b5=0;
 % a1_lower=a1+4/3*a2/pi*lowerlimit+a3/4*lowerlimit^2+8/15*a4/pi*lowerlimit^3+a5/8*lowerlimit^4;
 % a1_upper=a1+4/3*a2/pi*upperlimit+a3/4*upperlimit^2+8/15*a4/pi*upperlimit^3+a5/8*upperlimit^4;
 % b1_lower=rho*U*D*a1_lower/m;
@@ -431,7 +431,7 @@ b5=rho*U*a5/D^3;
 %% 响应计算
 
 h=0.01;% Time step
-t=0:h:20;% Time
+t=0:h:100;% Time
 p=zeros(matrixsize,length(t)); %Initialize external load
 gamma = 1/2; % Parameter in the Newmark algorithm
 beta = 1/4; % Parameter in the Newmark algorithm
@@ -450,8 +450,8 @@ u0(1)=u0max/phi1max; % Initial displacement of the first mode;
 [u, udot, u2dot] = nonlinear_newmark_krenk(gfun1,MM,p,u0,udot0,gamma,beta,h); % Solve the response by the Nonlinear Newmark algorithm
 figure
 plot(u(1,:))
-figure
-plot(u(end,:))
+% figure
+% plot(u(end,:))
 %% 所需要使用的函数
 %% functions to be used
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
