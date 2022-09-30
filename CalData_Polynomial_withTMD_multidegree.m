@@ -2,7 +2,7 @@
 %Author: xushengyichn 54436848+xushengyichn@users.noreply.github.com
 %Date: 2022-09-26 19:35:04
 %LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
-%LastEditTime: 2022-09-30 10:13:07
+%LastEditTime: 2022-09-30 14:49:15
 %FilePath: \NonlinearScanlan\CalData_Polynomial_withTMD_multidegree.m
 %Description: 计算多模态，施加某一阶模态多项式气动力模型后的响应，考虑TMD
 %
@@ -172,6 +172,7 @@ for k1 = 1:length(nodegap) - 1
 end
 
 for k1 = 1:nModes
+    integral_1(k1) = sum(abs(modecal(:, k1)) .* nodedis);
     integral_2(k1) = sum(modecal(:, k1).^2 .* nodedis);
     integral_3(k1) = sum(modecal(:, k1).^2 .* abs(modecal(:, k1)) .* nodedis);
     integral_4(k1) = sum(modecal(:, k1).^4 .* nodedis);
@@ -180,6 +181,7 @@ for k1 = 1:nModes
 end
 
 phi = mode(:, mode_number);
+mode_integral_1 = integral_1(mode_number);
 mode_integral_2 = integral_2(mode_number);
 mode_integral_3 = integral_3(mode_number);
 mode_integral_4 = integral_4(mode_number);
@@ -447,11 +449,20 @@ b2 = rho * U * a2;
 b3 = rho * U * a3 / D;
 b4 = rho * U * a4 / D^2;
 b5 = rho * U * a5 / D^3;
-figure
-Amplitude = (0:0.000001:0.01)';
+
+phi1max=max(mode_vec(:, 1));
+Amplitude = (lowerlimit/phi1max:0.001:upperlimit/phi1max)';
 m = 1;
-[Zeta] = polynomial_zeta(Amplitude, a1, a2, a3, a4, a5, rho, U, D, omega0, m);
+[Zeta] = polynomial_zeta(Amplitude,a1,a2,a3,a4,a5,rho,U,D,omega0,m,mode_integral_1,mode_integral_2,mode_integral_3,mode_integral_4,mode_integral_5);
+figure
 plot(Amplitude, Zeta)
+hold on 
+Amplitude_low=  (0:0.001:lowerlimit/phi1max)';
+[Zeta_low]= polynomial_zeta(Amplitude_low,a1_lower,0,0,0,0,rho,U,D,omega0,m,mode_integral_1,mode_integral_2,mode_integral_3,mode_integral_4,mode_integral_5);
+plot(Amplitude_low,Zeta_low)
+Amplitude_up=  (upperlimit/phi1max:0.001:upperlimit/phi1max*2)';
+[Zeta_up]= polynomial_zeta(Amplitude_up,a1_upper,0,0,0,0,rho,U,D,omega0,m,mode_integral_1,mode_integral_2,mode_integral_3,mode_integral_4,mode_integral_5);
+plot(Amplitude_up,Zeta_up)
 % b1=0;
 % b2=0;
 % b3=0;
@@ -462,13 +473,11 @@ b1_lower = rho * U * D * a1_lower / m;
 b1_upper = rho * U * D * a1_upper / m;
 b_lower = [b1_lower 0 0 0 0] .* m;
 b_upper = [b1_upper 0 0 0 0] .* m;
-b_upper = [b1_upper*-5 0 0 0 0] .* m;
-% b_lower = [0 0 0 0 0] .* m;
 
 %% 响应计算
 
 h = 0.01; % Time step
-t = 0:h:50; % Time
+t = 0:h:100; % Time
 p = zeros(matrixsize, length(t)); %Initialize external load
 gamma = 1/2; % Parameter in the Newmark algorithm
 beta = 1/4; % Parameter in the Newmark algorithm
@@ -480,21 +489,22 @@ gfun3 = @(u, udot) bridge_damper(u, udot, U, D, b_upper(1), 0, 0, 0, 0, MM, CC, 
 
 u0 = zeros(matrixsize, 1); % Initial displacement;
 udot0 = zeros(matrixsize, 1); % Initial velocity;
-u0max = 0.1; % Initial displacement of the first mode;
+u0max = 0.01; % Initial displacement of the first mode;
 phi1max = max(mode_vec(:, 1)); % Maximum value of the first mode shape
 u0(1) = u0max / phi1max; % Initial displacement of the first mode;
 [u, udot, u2dot] = nonlinear_newmark_krenk(gfun1, gfun2, gfun3, MM, p, u0, udot0, gamma, beta, h, mode_number, phideckmax, upperlimit, lowerlimit, Freq(mode_number)); % Solve the response by the Nonlinear Newmark algorithm
 figure
-plot(t, u(1, :)*phideckmax(1))
+% plot(t, u(1, :)*phideckmax(1))
+plot(t, u(1, :))
 
 for k1 = 1:nModes
-    umax(k1) = max(u(k1, :));
-    modemaxdis(k1, 1) = umax(k1) * phideckmax(k1);
+    umax(k1,1) = max(u(k1, :));
+    modemaxdis(k1, 1) = umax(k1,1) * phideckmax(k1);
 end
 
 modenum = (1:1:nModes)';
-tabledata = [modenum modemaxdis]
-modemaxdises = array2table(tabledata, 'VariableNames', {'ModeNumber', 'MaxDisplacement'});
+tabledata = [modenum umax modemaxdis];
+modemaxdises = array2table(tabledata, 'VariableNames', {'ModeNumber', 'Umax','MaxDisplacement'});
 disp(modemaxdises)
 
 % figure
@@ -551,12 +561,14 @@ function [u, udot, u2dot] = nonlinear_newmark_krenk(gfun1, gfun2, gfun3, MM, pp,
         Nit = 0; % Number of iterations
         konv = 0; % Has the iterations converged 0=No, 1=Yes
         % Reusidal calculation, system matrices and increment correction
+        amp = sqrt((u(mode_number, ii + 1) * phideckmax(mode_number))^2 + ((udot(mode_number, ii + 1) * phideckmax(mode_number)) / (2 * pi * Fren_vibration_withoutwind))^2);
+
         while Nit < 1000 && konv == 0
             Nit = Nit + 1;
             if Nit>990
                 disp("迭代次数为："+num2str(Nit)+"，已经接近上限")
             end
-            amp = sqrt((u(mode_number, ii + 1) * phideckmax(mode_number))^2 + ((udot(mode_number, ii + 1) * phideckmax(mode_number)) / (2 * pi * Fren_vibration_withoutwind))^2);
+
 
             if amp < lowerlimit
 
@@ -583,6 +595,7 @@ function [u, udot, u2dot] = nonlinear_newmark_krenk(gfun1, gfun2, gfun3, MM, pp,
                 end
 
                 [g, Ks] = gfun1(u(:, ii + 1), udot(:, ii + 1)); % Calculate function value and the tangent
+                
             end
 
             % [g, Ks] = gfun(u(:,ii+1),udot(:,ii+1)); % Calculate function value and the tangent
