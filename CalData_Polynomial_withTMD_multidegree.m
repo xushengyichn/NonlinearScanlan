@@ -475,11 +475,16 @@ b_lower = [b1_lower 0 0 0 0] .* m;
 b_upper = [b1_upper 0 0 0 0] .* m;
 
 %% 试验阻尼比计算与实桥计算对比
-    m_exp= 80;
-    U_exp=6.21;
-    D_exp=0.667;
-    omega0_exp=32.8990;
-[zeta_exp]=polynomial_zeta_exp()
+m_exp= 80;
+U_exp=6.21;
+D_exp=0.667;
+omega0_exp=32.8990;
+Amplitude_exp=0:0.0001:0.01;
+[zeta_exp]=polynomial_zeta_exp(Amplitude_exp,a1,a2,a3,a4,a5,rho,U_exp,D_exp,omega0_exp,m_exp);
+
+figure
+plot(Amplitude_exp*D_exp,zeta_exp)
+
 
 
 %% 响应计算
@@ -763,5 +768,5 @@ end
 
 
 function    [Zeta]=polynomial_zeta_exp(Amplitude,a1,a2,a3,a4,a5,rho,U,D,omega0,m)
-    Zeta= -rho .* U .* D .* (a1 + 4 .* a2 .* up_amp ./ 3 ./ pi + a3 .* up_amp.^2/4 + 8 .* a4 .* up_amp.^3/15 / pi + a5 .* up_amp.^4/8) ./ 2 ./ omega0 ./ m;
+    Zeta= -rho .* U .* D .* (a1 + 4 .* a2 .* Amplitude ./ 3 ./ pi + a3 .* Amplitude.^2/4 + 8 .* a4 .* Amplitude.^3/15 / pi + a5 .* Amplitude.^4/8) ./ 2 ./ omega0 ./ m;
 end
