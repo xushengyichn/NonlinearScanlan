@@ -1,8 +1,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Author: xushengyichn 54436848+xushengyichn@users.noreply.github.com
 %Date: 2022-09-26 19:35:04
-%LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
-%LastEditTime: 2022-09-30 14:49:15
+%LastEditors: Shengyi Xu xushengyichn@outlook.com
+%LastEditTime: 2022-09-30 19:53:56
 %FilePath: \NonlinearScanlan\CalData_Polynomial_withTMD_multidegree.m
 %Description: 计算多模态，施加某一阶模态多项式气动力模型后的响应，考虑TMD
 %
@@ -474,6 +474,14 @@ b1_upper = rho * U * D * a1_upper / m;
 b_lower = [b1_lower 0 0 0 0] .* m;
 b_upper = [b1_upper 0 0 0 0] .* m;
 
+%% 试验阻尼比计算与实桥计算对比
+    m_exp= 80;
+    U_exp=6.21;
+    D_exp=0.667;
+    omega0_exp=32.8990;
+[zeta_exp]=polynomial_zeta_exp()
+
+
 %% 响应计算
 
 h = 0.01; % Time step
@@ -751,4 +759,9 @@ function result = Peq(Pmode, mode_vec, Mmapping, P_eachpoint, points, t)
 
     end
 
+end
+
+
+function    [Zeta]=polynomial_zeta_exp(Amplitude,a1,a2,a3,a4,a5,rho,U,D,omega0,m)
+    Zeta= -rho .* U .* D .* (a1 + 4 .* a2 .* up_amp ./ 3 ./ pi + a3 .* up_amp.^2/4 + 8 .* a4 .* up_amp.^3/15 / pi + a5 .* up_amp.^4/8) ./ 2 ./ omega0 ./ m;
 end
