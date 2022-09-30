@@ -2,7 +2,7 @@
 %Author: xushengyichn 54436848+xushengyichn@users.noreply.github.com
 %Date: 2022-09-26 19:35:04
 %LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
-%LastEditTime: 2022-09-29 16:43:09
+%LastEditTime: 2022-09-30 10:13:07
 %FilePath: \NonlinearScanlan\CalData_Polynomial_withTMD_multidegree.m
 %Description: 计算多模态，施加某一阶模态多项式气动力模型后的响应，考虑TMD
 %
@@ -55,41 +55,41 @@ mode_number = 1; %气动力施加的模态
 %% Handling sparse matrices in ANSYS as full matrices
 % 导入ANSYS MCK矩阵
 % Import MCK matrix from ANSYS
-hb_to_mm ('KMatrix.matrix', 'K.txt');
-hb_to_mm ('MMatrix.matrix', 'M.txt');
-% hb_to_mm ('CMatrix.matrix', 'C.txt');
-
-%map the node and matrix from the KMatrix.mapping and MMatrix.mapping
-Kdata = importdata('K.txt').data;
-Kmatrix = zeros(Kdata(1, 1), Kdata(1, 2));
-
-for i = 2:size(Kdata, 1)
-    Kmatrix(Kdata(i, 1), Kdata(i, 2)) = Kdata(i, 3);
-end
-
-Mdata = importdata('M.txt').data;
-Mmatrix = zeros(Mdata(1, 1), Mdata(1, 2));
-
-for i = 2:size(Mdata, 1)
-    Mmatrix(Mdata(i, 1), Mdata(i, 2)) = Mdata(i, 3);
-end
-
-% Cdata = importdata('C.txt').data;
-% Cmatrix_DP = zeros(Cdata(1, 1), Cdata(1, 2));
-%
-% for i = 2:size(Cdata, 1)
-%     Cmatrix_DP(Cdata(i, 1), Cdata(i, 2)) = Cdata(i, 3);
+% hb_to_mm ('KMatrix.matrix', 'K.txt');
+% hb_to_mm ('MMatrix.matrix', 'M.txt');
+% % hb_to_mm ('CMatrix.matrix', 'C.txt');
+% 
+% %map the node and matrix from the KMatrix.mapping and MMatrix.mapping
+% Kdata = importdata('K.txt').data;
+% Kmatrix = zeros(Kdata(1, 1), Kdata(1, 2));
+% 
+% for i = 2:size(Kdata, 1)
+%     Kmatrix(Kdata(i, 1), Kdata(i, 2)) = Kdata(i, 3);
 % end
-
-% 还原对角线以上元素，使之为对称阵, ANSYS只给出下三角矩阵
-% Restore the elements above the diagonal to make it a symmetric matrix, ANSYS only gives the lower triangular matrix
-K = diag(diag(Kmatrix) / 2) + Kmatrix - diag(diag(Kmatrix));
-K = K + K';
-M = diag(diag(Mmatrix) / 2) + Mmatrix - diag(diag(Mmatrix));
-M = M + M';
-% C_exp = diag(diag(Cmatrix_DP) / 2) + Cmatrix_DP - diag(diag(Cmatrix_DP));
-% C_exp = C_exp + C_exp';
-% C =C_exp;
+% 
+% Mdata = importdata('M.txt').data;
+% Mmatrix = zeros(Mdata(1, 1), Mdata(1, 2));
+% 
+% for i = 2:size(Mdata, 1)
+%     Mmatrix(Mdata(i, 1), Mdata(i, 2)) = Mdata(i, 3);
+% end
+% 
+% % Cdata = importdata('C.txt').data;
+% % Cmatrix_DP = zeros(Cdata(1, 1), Cdata(1, 2));
+% %
+% % for i = 2:size(Cdata, 1)
+% %     Cmatrix_DP(Cdata(i, 1), Cdata(i, 2)) = Cdata(i, 3);
+% % end
+% 
+% % 还原对角线以上元素，使之为对称阵, ANSYS只给出下三角矩阵
+% % Restore the elements above the diagonal to make it a symmetric matrix, ANSYS only gives the lower triangular matrix
+% K = diag(diag(Kmatrix) / 2) + Kmatrix - diag(diag(Kmatrix));
+% K = K + K';
+% M = diag(diag(Mmatrix) / 2) + Mmatrix - diag(diag(Mmatrix));
+% M = M + M';
+% % C_exp = diag(diag(Cmatrix_DP) / 2) + Cmatrix_DP - diag(diag(Cmatrix_DP));
+% % C_exp = C_exp + C_exp';
+% % C =C_exp;
 
 % 设置模态叠加法生成阻尼矩阵的方式
 % 1 表示采用瑞利阻尼矩阵生成对应的模态叠加法阻尼矩阵
@@ -123,7 +123,9 @@ exportvideo = 2;
 % Eigenvalue analysis, that is to calculate the frequency Freq and mode shape Phi, the calmodes number represents the order of the solution, and the parameter SM in eigs represents the solution from the smaller eigenvalue.
 calmodes = 5; %考虑模态数 Consider the number of modes
 nModes = calmodes;
-[eig_vec, eig_val] = eigs(K, M, calmodes, 'SM');
+% [eig_vec, eig_val] = eigs(K, M, calmodes, 'SM');
+load('modenew.mat')
+load('matrix.mat')
 [nfdof, nfdof] = size(eig_vec);
 
 for j = 1:nfdof
@@ -134,6 +136,7 @@ end
 [omeg, w_order] = sort(sqrt(diag(eig_val)));
 mode_vec = eig_vec(:, w_order);
 Freq = omeg / (2 * pi);
+
 
 %% 构建包含TMD的MCK矩阵
 % 导入矩阵序号对应节点自由度关系。导入KCM中 *.mapping 文件的任意一个即可。他们是一样的。
@@ -459,10 +462,13 @@ b1_lower = rho * U * D * a1_lower / m;
 b1_upper = rho * U * D * a1_upper / m;
 b_lower = [b1_lower 0 0 0 0] .* m;
 b_upper = [b1_upper 0 0 0 0] .* m;
+b_upper = [b1_upper*-5 0 0 0 0] .* m;
+% b_lower = [0 0 0 0 0] .* m;
+
 %% 响应计算
 
 h = 0.01; % Time step
-t = 0:h:100; % Time
+t = 0:h:50; % Time
 p = zeros(matrixsize, length(t)); %Initialize external load
 gamma = 1/2; % Parameter in the Newmark algorithm
 beta = 1/4; % Parameter in the Newmark algorithm
@@ -474,12 +480,12 @@ gfun3 = @(u, udot) bridge_damper(u, udot, U, D, b_upper(1), 0, 0, 0, 0, MM, CC, 
 
 u0 = zeros(matrixsize, 1); % Initial displacement;
 udot0 = zeros(matrixsize, 1); % Initial velocity;
-u0max = 0.01; % Initial displacement of the first mode;
+u0max = 0.1; % Initial displacement of the first mode;
 phi1max = max(mode_vec(:, 1)); % Maximum value of the first mode shape
 u0(1) = u0max / phi1max; % Initial displacement of the first mode;
 [u, udot, u2dot] = nonlinear_newmark_krenk(gfun1, gfun2, gfun3, MM, p, u0, udot0, gamma, beta, h, mode_number, phideckmax, upperlimit, lowerlimit, Freq(mode_number)); % Solve the response by the Nonlinear Newmark algorithm
 figure
-plot(t, u(1, :))
+plot(t, u(1, :)*phideckmax(1))
 
 for k1 = 1:nModes
     umax(k1) = max(u(k1, :));
@@ -576,7 +582,7 @@ function [u, udot, u2dot] = nonlinear_newmark_krenk(gfun1, gfun2, gfun3, MM, pp,
                     disp(flag)
                 end
 
-                [g, Ks] = gfun3(u(:, ii + 1), udot(:, ii + 1)); % Calculate function value and the tangent
+                [g, Ks] = gfun1(u(:, ii + 1), udot(:, ii + 1)); % Calculate function value and the tangent
             end
 
             % [g, Ks] = gfun(u(:,ii+1),udot(:,ii+1)); % Calculate function value and the tangent
