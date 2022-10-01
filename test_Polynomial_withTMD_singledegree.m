@@ -57,7 +57,7 @@ my_table_tmd=my_table;
 load('SZTD110_logfile.mat');
 
 %% 提取工况设置
-fname = ['SZTD-110-case2-22.3-fasan-2401']; %记录文件名
+fname = ['SZTD-110-case2-22.3-fasan-2501']; %记录文件名
 
 chanum = 8; %记录通道数
 filename = strsplit(fname, '-');
@@ -121,7 +121,8 @@ up_Fren_vibration_withwind=my_table.up_Fren_vibration_withwind(isexist);
 % 结构参数
 % Structural parameters
 D = 0.667; % deck depth
-m = 80; % mass of the segment model
+L = 3.6; %length of the sectional model
+m = 80; % mass of the segment model per unit length
 Mass = m;
 F0 = my_table.up_Fre_vibration(isexist); % Frequency without wind
 Fre= F0;

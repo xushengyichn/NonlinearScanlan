@@ -2,7 +2,7 @@
 %Author: xushengyichn 54436848+xushengyichn@users.noreply.github.com
 %Date: 2022-09-26 19:35:04
 %LastEditors: Shengyi Xu xushengyichn@outlook.com
-%LastEditTime: 2022-09-30 19:53:56
+%LastEditTime: 2022-10-01 11:05:53
 %FilePath: \NonlinearScanlan\CalData_Polynomial_withTMD_multidegree.m
 %Description: 计算多模态，施加某一阶模态多项式气动力模型后的响应，考虑TMD
 %
@@ -397,11 +397,11 @@ if girderindex == 1
     %导入试验数据
     Name = my_table.casename;
     isexist = find(Name == fname);
-    a1 = my_table.up_parameter_a1(isexist) / 3.6; %除以3.6是由于在识别气动力参数的时候未考虑到节段模型长度3.6m
-    a2 = my_table.up_parameter_a2(isexist) / 3.6;
-    a3 = my_table.up_parameter_a3(isexist) / 3.6;
-    a4 = my_table.up_parameter_a4(isexist) / 3.6;
-    a5 = my_table.up_parameter_a5(isexist) / 3.6;
+    a1 = my_table.up_parameter_a1(isexist); 
+    a2 = my_table.up_parameter_a2(isexist);
+    a3 = my_table.up_parameter_a3(isexist);
+    a4 = my_table.up_parameter_a4(isexist);
+    a5 = my_table.up_parameter_a5(isexist);
     a = [a1 a2 a3 a4 a5];
 
     H4 = my_table.up_parameter_H4(isexist); % 气动刚度
@@ -420,11 +420,11 @@ else
     %导入试验数据
     Name = my_table.casename;
     isexist = find(Name == fname);
-    a1 = my_table.down_parameter_a1(isexist) / 3.6;
-    a2 = my_table.down_parameter_a2(isexist) / 3.6;
-    a3 = my_table.down_parameter_a3(isexist) / 3.6;
-    a4 = my_table.down_parameter_a4(isexist) / 3.6;
-    a5 = my_table.down_parameter_a5(isexist) / 3.6;
+    a1 = my_table.down_parameter_a1(isexist);
+    a2 = my_table.down_parameter_a2(isexist);
+    a3 = my_table.down_parameter_a3(isexist);
+    a4 = my_table.down_parameter_a4(isexist);
+    a5 = my_table.down_parameter_a5(isexist);
     a = [a1 a2 a3 a4 a5];
 
     H4 = my_table.down_parameter_H4(isexist); % 气动刚度

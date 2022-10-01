@@ -15,7 +15,7 @@ function [t, dis] = CalData_Polynomial_withTMD_singledegree(ExpName, girderindex
     %girderindex:梁号(上游输入1，下游输入2)
     %TMDsindex:安装TMD的需要（TMD的序号，每个TMD对应的序号见TMD_logfile.mat）
     %freshift:频率偏移，因为TMD频率分辨率很低，在一定范围中移动可以更好与试验结果相对照
-
+    L = 3.6; %模型长度
     % 导入试验数据
     my_table_tmd=load('TMD_logfile.mat');
     my_table_tmd=my_table_tmd.my_table;
@@ -78,9 +78,9 @@ function [t, dis] = CalData_Polynomial_withTMD_singledegree(ExpName, girderindex
         a3 = my_table.up_parameter_a3(isexist);
         a4 = my_table.up_parameter_a4(isexist);
         a5 = my_table.up_parameter_a5(isexist);
-        a = [a1 a2 a3 a4 a5];
+        a = [a1 a2 a3 a4 a5]*L;
 
-        H4 = my_table.up_parameter_H4(isexist); % 气动刚度
+        H4 = my_table.up_parameter_H4(isexist)*L; % 气动刚度
         upperlimit = my_table.up_upperlimit(isexist); %除以特征长度D的无量纲振幅
         lowerlimit = my_table.up_lowerlimit(isexist); %除以特征长度D的无量纲振幅
         Fren_vibration_withwind = my_table.up_Fren_vibration_withwind(isexist);
@@ -96,9 +96,9 @@ function [t, dis] = CalData_Polynomial_withTMD_singledegree(ExpName, girderindex
         a3 = my_table.down_parameter_a3(isexist);
         a4 = my_table.down_parameter_a4(isexist);
         a5 = my_table.down_parameter_a5(isexist);
-        a = [a1 a2 a3 a4 a5];
+        a = [a1 a2 a3 a4 a5]*L;
 
-        H4 = my_table.down_parameter_H4(isexist); % 气动刚度
+        H4 = my_table.down_parameter_H4(isexist)*L; % 气动刚度
         upperlimit = my_table.down_upperlimit(isexist); %除以特征长度D的无量纲振幅
         lowerlimit = my_table.down_lowerlimit(isexist); %除以特征长度D的无量纲振幅
         Fren_vibration_withwind = my_table.down_Fren_vibration_withwind(isexist);
@@ -111,6 +111,7 @@ function [t, dis] = CalData_Polynomial_withTMD_singledegree(ExpName, girderindex
     D = 0.667; % deck depth
     m = 80; % mass of the segment model
     Mass = m;
+    
     
     Fre= F0;
     rho = 1.225; % density of the air
