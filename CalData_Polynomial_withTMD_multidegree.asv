@@ -9,7 +9,7 @@
 %Copyright (c) 2022 by xushengyichn 54436848+xushengyichn@users.noreply.github.com, All Rights Reserved.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % clc; clear; close all;
-function modemaxdis_single=CalData_Polynomial_withTMD_multidegree(nTMD,mTMD,zetaTMD,omegaTMD,nodeTMD,mode_number)
+function sum_modemaxdis=CalData_Polynomial_withTMD_multidegree(nTMD,mTMD,zetaTMD,omegaTMD,nodeTMD,mode_number)
 %% 参数设置
 
 D = 20; %断面参考宽度
@@ -27,17 +27,16 @@ if ~exist("zetaTMD","var")
     omegatmd = 2 * pi * Ftmd;
     zetaTMD=0.05;
     cTMD = [2 * mTMD(1) * omegatmd * zetaTMD];
-    disp("变量zetaTMD不存在，取默认值："+num2str(zetaTMD))
+    disp("变量cTMD不存在，取默认值："+num2str(zetaTMD))
 else
     cTMD = [2 * mTMD(1) .* omegaTMD .* zetaTMD];
 end
-if ~exist("omegaTMD","var")
+if ~exist("kTMD","var")
     Ftmd = 0.833853594612216;
     omegatmd = 2 * pi * Ftmd;
     kTMD = [mTMD(1) * omegatmd^2];
-    disp("变量omegaTMD不存在，取默认值："+num2str(kTMD))
-else
-    kTMD = [mTMD(1) * omegaTMD.^2];
+    disp("变量kTMD不存在，取默认值："+num2str(kTMD))
+    
 end
 if ~exist("mode_number","var")
     mode_number = 1; %气动力施加的模态
@@ -239,15 +238,11 @@ for t1 = 1:nTMD
         % 找到TMD安装位置对应的振型向量大小并储存到phiTMD变量中
         % Find the size of the mode shape vector corresponding to the installation position of the TMD and store it in the phiTMD variable
         position_index = KMmapping.MatrixEqn(find(and(KMmapping.Node == nodeTMD(t1), KMmapping.DOF == 'UY')));
-        if isempty(position_index)
-            phiTMD(t1, t2)=0;
-        else
-            phiTMD(t1, t2) = mode_vec(position_index, t2);
-        end
+        phiTMD(t1, t2) = mode_vec(position_index, t2);
     end
 
 end
-clear t1
+
 if nTMD ~= 0
     disp("第一阶模态质量比" + num2str(phiTMD(1, 1)^2 * mTMD(1) * 100) + "%")
 end
@@ -517,19 +512,19 @@ Zeta = - rho *U*D*(d1+4*d2.*Amplitude/3/pi+d3.*Amplitude.^2/4+8*d4.*Amplitude.^3
 
 % [Zeta] = polynomial_zeta(Amplitude,a1,a2,a3,a4,a5,rho,U,D,omega0,m,mode_integral_1,mode_integral_2,mode_integral_3,mode_integral_4,mode_integral_5);
 
-% figure
-% plot(Amplitude*phideckmax(mode_number)*D, Zeta)
-% hold on 
+figure
+plot(Amplitude*phideckmax(mode_number)*D, Zeta)
+hold on 
 Amplitude_lows=  (0:0.001:lowerlimit/phideckmax(mode_number)/D)';
 Zeta_low= - rho *U*D*(d1_lower)/2*m_modal(mode_number)/omega0;
 Zeta_lows(1:length(Amplitude_lows))=Zeta_low;
-% plot(Amplitude_lows*phideckmax(mode_number)*D,Zeta_lows);
+plot(Amplitude_lows*phideckmax(mode_number)*D,Zeta_lows);
 
 Amplitude_ups= (upperlimit/phideckmax(mode_number)/D:0.001:2*upperlimit/phideckmax(mode_number)/D)';
 Zeta_up= - rho *U*D*(d1_upper)/2*m_modal(mode_number)/omega0;
 Zeta_ups(1:length(Amplitude_ups))=Zeta_up;
 
-% plot(Amplitude_ups*phideckmax(mode_number)*D,Zeta_ups);
+plot(Amplitude_ups*phideckmax(mode_number)*D,Zeta_ups);
 
 
 % [Zeta_low]= polynomial_zeta(Amplitude_low,a1_lower,0,0,0,0,rho,U,D,omega0,m,mode_integral_1,mode_integral_2,mode_integral_3,mode_integral_4,mode_integral_5);
@@ -569,8 +564,8 @@ u0max = 0.001; % Initial displacement of the first mode;
 % phi1max = max(mode_vec(:, mode_number)); % Maximum value of the first mode shape
 u0(mode_number) = u0max / phideckmax(mode_number); % Initial displacement of the first mode;
 [u, udot, u2dot] = nonlinear_newmark_krenk(gfun1, gfun2, gfun3, MM, p, u0, udot0, gamma, beta, h, mode_number, phideckmax, upperlimit, lowerlimit, Freq(mode_number)); % Solve the response by the Nonlinear Newmark algorithm
-% figure
-% plot(t, u(mode_number, :)*phideckmax(mode_number))
+figure
+plot(t, u(mode_number, :)*phideckmax(mode_number))
 % plot(t, u(1, :))
 
 for k1 = 1:nModes
@@ -580,7 +575,7 @@ end
 
 modenum = (1:1:nModes)';
 tabledata = [modenum umax modemaxdis];
-modemaxdis_single=modemaxdis(mode_number);
+sum_modemaxdis=sum(modemaxdis);
 modemaxdises = array2table(tabledata, 'VariableNames', {'ModeNumber', 'Umax','MaxDisplacement'});
 disp(modemaxdises)
 fs=1/h;
@@ -612,7 +607,7 @@ function [u, udot, u2dot] = nonlinear_newmark_krenk(gfun1, gfun2, gfun3, MM, pp,
 
         if flag ~= 2
             flag = 2;
-%             disp(flag)
+            disp(flag)
         end
 
     elseif amp0 > upperlimit
@@ -620,14 +615,14 @@ function [u, udot, u2dot] = nonlinear_newmark_krenk(gfun1, gfun2, gfun3, MM, pp,
 
         if flag ~= 3
             flag = 3;
-%             disp(flag)
+            disp(flag)
         end
 
     else
 
         if flag ~= 1
             flag = 2;
-%             disp(flag)
+            disp(flag)
         end
 
         g = gfun1(u0, udot0); % Evaluate the nonlinear function
@@ -657,7 +652,7 @@ function [u, udot, u2dot] = nonlinear_newmark_krenk(gfun1, gfun2, gfun3, MM, pp,
 
                 if flag ~= 2
                     flag = 2;
-%                     disp(flag)
+                    disp(flag)
                 end
 
                 [g, Ks] = gfun2(u(:, ii + 1), udot(:, ii + 1)); % Calculate function value and the tangent
@@ -665,7 +660,7 @@ function [u, udot, u2dot] = nonlinear_newmark_krenk(gfun1, gfun2, gfun3, MM, pp,
 
                 if flag ~= 3
                     flag = 3;
-%                     disp(flag)
+                    disp(flag)
                 end
 
                 [g, Ks] = gfun3(u(:, ii + 1), udot(:, ii + 1)); % Calculate function value and the tangent
@@ -673,7 +668,7 @@ function [u, udot, u2dot] = nonlinear_newmark_krenk(gfun1, gfun2, gfun3, MM, pp,
 
                 if flag ~= 1
                     flag = 1;
-%                     disp(flag)
+                    disp(flag)
                 end
 
                 [g, Ks] = gfun1(u(:, ii + 1), udot(:, ii + 1)); % Calculate function value and the tangent
