@@ -2,7 +2,7 @@
 %Author: Shengyi Xu xushengyichn@outlook.com
 %Date: 2022-10-01 10:05:10
 %LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
-%LastEditTime: 2022-10-03 18:10:15
+%LastEditTime: 2022-10-03 15:35:34
 %FilePath: \NonlinearScanlan\ADcomparison.m
 %Description: aerodynamic damping ratio comparison between real displacement and mode displacement
 %
@@ -74,11 +74,11 @@ integral_7=sum(abs(mode_re(:,1)).^7)*dl;
 % plot(z,mode_re)
 U=U_exp;
 D=D_exp;
-Amplitude1=Amplitude_exp/D;%试验无量纲振幅
-Amplitude2=Amplitude_exp/max(mode_re)/D;%模态坐标无量纲振幅
+Amplitude=Amplitude_exp/max(mode_re);
 m=m_modal;
+% zeta_exp= -rho .* U_exp .* D_exp .* (a1 + 4 .* a2 .* Amplitude_exp ./ 3 ./ pi + a3 .* Amplitude_exp.^2/4 + 8 .* a4 .* Amplitude_exp.^3/15 / pi + a5 .* Amplitude_exp.^4/8)*L ./ 2 ./ omega0_exp ./ m_exp;
+% Zeta=-rho.*U.*D.*(a1*integral_1 + 4 .* a2 .* Amplitude ./ 3 ./ pi*integral_2 + a3 .* Amplitude.^2/4*integral_3 + 8 .* a4 .* Amplitude.^3/15 / pi*integral_4 + a5 .* Amplitude.^4/8*integral_5)./ 2 ./ omega0 ./ m;
 
-%模态坐标下气动力系数换算
 d1=m_modal*a1/m_exp;
 d2=m_modal*a2/m_exp*max(mode_re);
 d3=m_modal*a3/m_exp*max(mode_re)^2;
@@ -87,18 +87,16 @@ d5=m_modal*a5/m_exp*max(mode_re)^4;
 
 
 
-% zeta_exp= -rho .* U_exp .* D_exp .* (a1 +4 .* a2 .* Amplitude*max(mode_re) ./ 3 ./ pi+a3.*(Amplitude*max(mode_re)).^2/4+8*a4.*(Amplitude*max(mode_re)).^3/15/pi+a5.*(Amplitude*max(mode_re)).^4/8) ./ 2 ./ omega0_exp ./ m_exp;
+zeta_exp= -rho .* U_exp .* D_exp .* (a1 +4 .* a2 .* Amplitude*max(mode_re) ./ 3 ./ pi+a3.*(Amplitude*max(mode_re)).^2/4+8*a4.*(Amplitude*max(mode_re)).^3/15/pi+a5.*(Amplitude*max(mode_re)).^4/8) ./ 2 ./ omega0_exp ./ m_exp;
 
-% Zeta=-rho.*U.*D.*(d1+4*d2.*Amplitude/3/pi+d3.*Amplitude.^2/4+8*d4.*Amplitude.^3/15/pi+d5.*Amplitude.^4/8)./ 2 ./ omega0 ./m_modal;
+Zeta=-rho.*U.*D.*(d1+4*d2.*Amplitude/3/pi+d3.*Amplitude.^2/4+8*d4.*Amplitude.^3/15/pi+d5.*Amplitude.^4/8)./ 2 ./ omega0 ./m_modal;
 
-
-zeta_exp= -rho .* U_exp .* D_exp .* (a1 +4 .* a2 .* Amplitude1 ./ 3 ./ pi+a3.*Amplitude1.^2/4+8.*a4.*(Amplitude1).^3/15/pi+a5.*Amplitude1.^4/8) ./ 2 ./ omega0_exp ./ m_exp
-
-Zeta=-rho.*U.*D.*(d1+4*d2.*Amplitude2/3/pi+d3.*Amplitude2.^2/4+8.*d4.*(Amplitude2).^3/15/pi+d5.*Amplitude2.^4/8)./ 2 ./ omega0 ./m_modal
-
+U_real=U_exp*4.719;
+D_real=D_exp*30;
+omega0_real=30
 
 figure
-plot(Amplitude_exp,Zeta)
+plot(Amplitude*max(mode_re),Zeta)
 hold on
 plot(Amplitude_exp,zeta_exp)
 legend("模态坐标","单自由度")
