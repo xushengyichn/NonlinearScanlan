@@ -1,8 +1,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Author: xushengyichn 54436848+xushengyichn@users.noreply.github.com
 %Date: 2022-09-26 19:35:04
-%LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
-%LastEditTime: 2022-10-03 19:56:03
+%LastEditors: Shengyi Xu xushengyichn@outlook.com
+%LastEditTime: 2022-10-04 01:57:44
 %FilePath: \NonlinearScanlan\CalData_Polynomial_withTMD_multidegree.m
 %Description: 计算多模态，施加某一阶模态多项式气动力模型后的响应，考虑TMD
 %
@@ -572,7 +572,7 @@ u0(mode_number) = u0max / phideckmax(mode_number); % Initial displacement of the
 % figure
 % plot(t, u(mode_number, :)*phideckmax(mode_number))
 % plot(t, u(1, :))
-
+% ylim([-0.2 0.2])
 for k1 = 1:nModes
     umax(k1,1) = max(u(k1, :));
     modemaxdis(k1, 1) = umax(k1,1) * phideckmax(k1);

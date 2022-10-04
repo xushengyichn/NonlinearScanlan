@@ -98,10 +98,13 @@ Zeta=-rho.*U.*D.*(d1+4*d2.*Amplitude2/3/pi+d3.*Amplitude2.^2/4+8.*d4.*(Amplitude
 
 
 figure
+
 plot(Amplitude_exp,Zeta)
+xlim([0 0.006]);
 hold on
 plot(Amplitude_exp,zeta_exp)
-legend("模态坐标","单自由度")
+
+legend("modal coordinates","rigid model")
 
 % %%%mode shape of a 6-span beam
 % lamda=[3.141592654	3.260534994	3.55640846	3.926602312	4.297529693	4.601417878];
