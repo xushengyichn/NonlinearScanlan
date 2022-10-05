@@ -1,0 +1,3 @@
+运行Compare_multicases.m或Compare_multicases_notmd.m分别可以获得安装或者未安装TMD情况下的涡振响应对比
+
+其余脚本文件为测试过程中产生的文件
