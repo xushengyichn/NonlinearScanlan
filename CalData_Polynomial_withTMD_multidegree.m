@@ -1,21 +1,35 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Author: xushengyichn 54436848+xushengyichn@users.noreply.github.com
 %Date: 2022-09-26 19:35:04
-%LastEditors: Shengyi Xu xushengyichn@outlook.com
-%LastEditTime: 2022-10-04 01:57:44
+%LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
+%LastEditTime: 2022-10-07 12:20:54
 %FilePath: \NonlinearScanlan\CalData_Polynomial_withTMD_multidegree.m
-%Description: 计算多模态，施加某一阶模态多项式气动力模型后的响应，考虑TMD
+%Description: 计算多模态，施加某一阶模态多项式气动力模型后的响应，考虑TMD，通过干预大小振幅情况下的阻尼比，使得动力计算无需分段
 %
 %Copyright (c) 2022 by xushengyichn 54436848+xushengyichn@users.noreply.github.com, All Rights Reserved.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % clc; clear; close all;
-function modemaxdis_single=CalData_Polynomial_withTMD_multidegree(nTMD,mTMD,zetaTMD,omegaTMD,nodeTMD,mode_number)
+function modemaxdis_single=CalData_Polynomial_withTMD_multidegree(nTMD,mTMD,zetaTMD,omegaTMD,nodeTMD,mode_number,ifcalmode,MM_eq,KK_eq,calmodes,eig_val,eig_vec)
+% function modemaxdis_single=CalData_Polynomial_withTMD_multidegree(nTMD,mTMD,zetaTMD,omegaTMD,nodeTMD,mode_number,ifcalmode,calmodes,eig_val,eig_vec)
 %% 参数设置
+
+% nTMD; % TMD的数量   [1*1]
+% mTMD; % TMD的质量 [1*n]
+% zetaTMD; % TMD的阻尼比 [1*n]
+% omegaTMD; % TMD的角频率 [1*n]
+% nodeTMD; % TMD的节点 [1*n]
+% mode_number; % 气动力施加的模态 [1*1]
+% ifcalmode; % 是否计算模态 [1*1]     1:[脚本]：采用导入的KM矩阵计算模态； 2：[脚本]：直接导入计算好的特征值和特征向量； 3：[函数]：直接导入计算好的特征值和特征向量；
+% MM_eq; % 质量矩阵 [calmodes*calmodes]
+% KK_eq; % 刚度矩阵 [calmodes*calmodes]
+% calmodes; % 计算模态的模态数 [1*1]
+
+
 
 D = 20; %断面参考宽度
 
 if ~exist("nTMD","var")
-    nTMD = 1;
+    nTMD = 0;
     disp("变量nTMD不存在，取默认值："+num2str(nTMD))
 end
 if ~exist("mTMD","var")
@@ -48,10 +62,34 @@ if ~exist("nodeTMD","var")
     disp("变量nodeTMD不存在，取默认值："+num2str(nodeTMD))
 end
 
+
+if ~exist("ifcalmode","var")
+    ifcalmode = 1; %是否计算模态
+    disp("变量ifcalmode不存在，取默认值："+num2str(ifcalmode))
+end
+
+if ifcalmode==1
+    calmodes = 5; %考虑模态数 Consider the number of modes
+    matrix=load('matrix.mat');
+    K=matrix.K;
+    M=matrix.M;
+    disp("质量刚度矩阵不存在，自动导入中")
+    [eig_vec, eig_val] = eigs(K, M, calmodes, 'SM');
+else
+    if ifcalmode==2
+        calmodes = 5; %考虑模态数 Consider the number of modes
+        modenew=load('modenew.mat');
+        eig_val=modenew.eig_val;
+        eig_vec=modenew.eig_vec;   
+    else
+        disp("从函数读入计算完成的模态")
+    end 
+end
+
 % mTMD = 0;
 % cTMD = 0;
 % kTMD = 0;
-
+nModes = calmodes;
 
 girderindex = 1;
 
@@ -149,25 +187,21 @@ exportvideo = 2;
 
 % 特征值分析，即计算频率Freq和振型Phi，calmodes数字代表求解的阶数，eigs中参数SM表示从较小的特征值开始求解
 % Eigenvalue analysis, that is to calculate the frequency Freq and mode shape Phi, the calmodes number represents the order of the solution, and the parameter SM in eigs represents the solution from the smaller eigenvalue.
-calmodes = 5; %考虑模态数 Consider the number of modes
-nModes = calmodes;
-% [eig_vec, eig_val] = eigs(K, M, calmodes, 'SM');
-modenew=load('modenew.mat');
-eig_val=modenew.eig_val;
-eig_vec=modenew.eig_vec;
-matrix=load('matrix.mat');
-K=matrix.K;
-M=matrix.M;
+
+
+
+
 [nfdof, nfdof] = size(eig_vec);
 
-for j = 1:nfdof
-    mnorm = sqrt(eig_vec(:, j)' * M * eig_vec(:, j));
-    eig_vec(:, j) = eig_vec(:, j) / mnorm; %振型质量归一化 Mode shape mass normalization
-end
+% for j = 1:nfdof
+%     mnorm = sqrt(eig_vec(:, j)' * M * eig_vec(:, j));
+%     eig_vec(:, j) = eig_vec(:, j) / mnorm; %振型质量归一化 Mode shape mass normalization
+% end
 
-for j = 1:nfdof
-    m_modal(j) = sqrt(eig_vec(:, j)' * M * eig_vec(:, j));
-end
+% for j = 1:nfdof
+%     m_modal(j) = sqrt(eig_vec(:, j)' * M * eig_vec(:, j));
+% end
+
 
 [omeg, w_order] = sort(sqrt(diag(eig_val)));
 mode_vec = eig_vec(:, w_order);
@@ -228,7 +262,7 @@ mode_integral_6 = integral_6(mode_number);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 考虑TMD振动响应的模态叠加法
 %% Modal Superposition Method Considering TMD Vibration Response
-
+tic
 matrixsize = nTMD + nModes;
 phiTMD = zeros(nTMD, nModes);
 % phiTMD row:TMD for each loaction column:the mode shape at the each
@@ -257,34 +291,50 @@ clear t1 t2
 % 创建质量矩阵
 % Create the Mass matrix
 MM = zeros(matrixsize, matrixsize);
+if ~exist("MM_eq","var")
+    for t1 = 1:matrixsize
 
-for t1 = 1:matrixsize
+        if t1 <= nModes
+            MM(t1, t1) = P_eq(t1, mode_vec, M); %行列数小于等于nModes为模态质量 The number of rows and columns is less than nModes is the modal quality
+        end
 
-    if t1 <= nModes
-        MM(t1, t1) = P_eq(t1, mode_vec, M); %行列数小于等于nModes为模态质量 The number of rows and columns is less than nModes is the modal quality
+        if and(t1 > nModes, t1 <= matrixsize)
+            MM(t1, t1) = mTMD(t1 - nModes); %行列数大于nModes为TMD实际质量 The number of rows and columns is greater than nModes for the actual quality of TMD
+        end
+
     end
-
-    if and(t1 > nModes, t1 <= matrixsize)
-        MM(t1, t1) = mTMD(t1 - nModes); %行列数大于nModes为TMD实际质量 The number of rows and columns is greater than nModes for the actual quality of TMD
+else
+    MM(1:nModes,1:nModes)=MM_eq;
+    for k1 =nModes+1:matrixsize
+        MM(k1,k1)=mTMD(k1-nModes);
     end
-
 end
-
 clear t1
+
+for j = 1:nfdof
+    m_modal(j) =MM(j,j);
+end
 
 % 创建刚度矩阵
 % Create the Stiffness Matrix
 KK = zeros(size(MM, 1), size(MM, 2));
 KK1 = zeros(size(MM, 1), size(MM, 2));
 
-for k1 = 1:matrixsize
+if ~exist("KK_eq","var")
+    for k1 = 1:matrixsize
 
-    if k1 <= nModes
-        KK1(k1, k1) = P_eq(k1, mode_vec, K); %P=parameters
-    elseif k1 > nModes
-        KK1(k1, k1) = kTMD(k1 - nModes);
+        if k1 <= nModes
+            KK1(k1, k1) = P_eq(k1, mode_vec, K); %P=parameters
+        elseif k1 > nModes
+            KK1(k1, k1) = kTMD(k1 - nModes);
+        end
+
     end
-
+else
+    KK1(1:nModes,1:nModes)=KK_eq;
+    for k1 =nModes+1:matrixsize
+        KK1(k1,k1)=kTMD(k1-nModes);
+    end
 end
 
 KK2 = zeros(matrixsize, matrixsize);
@@ -312,16 +362,7 @@ for k1 = 1:nModes
 
 end
 
-% for k1 = 1:matrixsize
-%     if k1<=nModes
-%         for k2 = 1:length(mTMD)
-%             KK2(k1,k1)=KK2(k1,k1)+kTMD(k2);
-%         end
-%     elseif k1>nModes
-%         KK2(1,k1)=-kTMD(k1-nModes);
-%         KK2(k1,1)=-kTMD(k1-nModes);
-%     end
-% end
+
 KK = KK1 + KK2;
 clear k1 k2
 
@@ -364,20 +405,10 @@ for k1 = 1:nModes
 
 end
 
-% for k1 = 1:matrixsize
-%     if k1<=nModes
-%         for k2 = 1:length(mTMD)
-%             CC2(k1,k1)=CC2(k1,k1)+cTMD(k2);
-%         end
-%     elseif k1>nModes
-%         CC2(1,k1)=-cTMD(k1-nModes);
-%         CC2(k1,1)=-cTMD(k1-nModes);
-%     end
-% end
 
 CC = CC1 + CC2;
 clear k1 k2
-
+toc
 %% 导入气动力模型数据
 
 for k1 = 1
@@ -444,14 +475,8 @@ if girderindex == 1
     a4 = my_table.up_parameter_a4(isexist);
     a5 = my_table.up_parameter_a5(isexist);
     % a = [a1 a2 a3 a4 a5];
-    m_exp=80; %试验中模型的质量
+    m_exp=my_table.up_m(isexist); %试验中单位长度模型的质量
     H4 = my_table.up_parameter_H4(isexist); % 气动刚度
-    upperlimit = my_table.up_upperlimit(isexist); %除以特征长度D的无量纲振幅
-    lowerlimit = my_table.up_lowerlimit(isexist); %除以特征长度D的无量纲振幅
-    % a1_lower = a1 + 4/3 * a2 / pi * lowerlimit + a3 / 4 * lowerlimit^2 + 8/15 * a4 / pi * lowerlimit^3 + a5 / 8 * lowerlimit^4;
-    % a1_upper = a1 + 4/3 * a2 / pi * upperlimit + a3 / 4 * upperlimit^2 + 8/15 * a4 / pi * upperlimit^3 + a5 / 8 * upperlimit^4;
-    lowerlimit = lowerlimit * D; %Newmark beta法中采用实际位移
-    upperlimit = upperlimit * D;
     Fren_vibration_withwind = my_table.up_Fren_vibration_withwind(isexist);
     F0 = my_table.up_Fre_vibration(isexist); % Frequency without wind
     Zeta0 = my_table.up_dltx_zeta0(isexist); % damping ratio without wind
@@ -467,14 +492,8 @@ else
     a4 = my_table.down_parameter_a4(isexist);
     a5 = my_table.down_parameter_a5(isexist);
     % a = [a1 a2 a3 a4 a5];
-    m_exp=80; %试验中模型的质量
+    m_exp=my_table.down_m(isexist); %试验中单位长度模型的质量
     H4 = my_table.down_parameter_H4(isexist); % 气动刚度
-    upperlimit = my_table.down_upperlimit(isexist); %除以特征长度D的无量纲振幅
-    lowerlimit = my_table.down_lowerlimit(isexist); %除以特征长度D的无量纲振幅
-    % a1_lower = a1 + 4/3 * a2 / pi * lowerlimit + a3 / 4 * lowerlimit^2 + 8/15 * a4 / pi * lowerlimit^3 + a5 / 8 * lowerlimit^4;
-    % a1_upper = a1 + 4/3 * a2 / pi * upperlimit + a3 / 4 * upperlimit^2 + 8/15 * a4 / pi * upperlimit^3 + a5 / 8 * upperlimit^4;
-    lowerlimit = lowerlimit * D; %Newmark beta法中采用实际位移
-    upperlimit = upperlimit * D;
     Fren_vibration_withwind = my_table.down_Fren_vibration_withwind(isexist);
     F0 = my_table.down_Fre_vibration(isexist); % Frequency without wind
     Zeta0 = my_table.down_dltx_zeta0(isexist); % damping ratio without wind
@@ -488,12 +507,6 @@ d4=m_modal(mode_number)*a4/m_exp*phideckmax(mode_number)^3;
 d5=m_modal(mode_number)*a5/m_exp*phideckmax(mode_number)^4;
 
 
-Amplitude_low=lowerlimit/D/phideckmax(mode_number);%此处需要无量纲振幅
-Amplitude_up=upperlimit/D/phideckmax(mode_number);
-d1_lower=d1+4*d2.*Amplitude_low/3/pi+d3.*Amplitude_low.^2/4+8*d4.*Amplitude_low.^3/15/pi+d5.*Amplitude_low.^4/8;
-d1_upper=d1+4*d2.*Amplitude_up/3/pi+d3.*Amplitude_up.^2/4+8*d4.*Amplitude_up.^3/15/pi+d5.*Amplitude_up.^4/8;
-a1_lower=d1_lower*m_exp/m_modal(mode_number);
-a1_upper=d1_upper*m_exp/m_modal(mode_number);
 
 
 
@@ -506,47 +519,9 @@ b2 = rho * U * a2/ m_modal(mode_number);
 b3 = rho * U * a3 / D/ m_modal(mode_number);
 b4 = rho * U * a4 / D^2/ m_modal(mode_number);
 b5 = rho * U * a5 / D^3/ m_modal(mode_number);
-b1_lower = rho * U * D * a1_lower / m_modal(mode_number);
-b1_upper = rho * U * D * a1_upper / m_modal(mode_number);
 
 phi1max=max(mode_vec(:, 1));
-Amplitude = (lowerlimit/D/phideckmax(mode_number):0.001:upperlimit/D/phideckmax(mode_number))';
 m =  m_modal(mode_number);
-
-Zeta = - rho *U*D*(d1+4*d2.*Amplitude/3/pi+d3.*Amplitude.^2/4+8*d4.*Amplitude.^3/15/pi+d5.*Amplitude.^4/8)/2*m_modal(mode_number)/omega0;
-
-% [Zeta] = polynomial_zeta(Amplitude,a1,a2,a3,a4,a5,rho,U,D,omega0,m,mode_integral_1,mode_integral_2,mode_integral_3,mode_integral_4,mode_integral_5);
-
-% figure
-% plot(Amplitude*phideckmax(mode_number)*D, Zeta)
-% hold on 
-Amplitude_lows=  (0:0.001:lowerlimit/phideckmax(mode_number)/D)';
-Zeta_low= - rho *U*D*(d1_lower)/2*m_modal(mode_number)/omega0;
-Zeta_lows(1:length(Amplitude_lows))=Zeta_low;
-% plot(Amplitude_lows*phideckmax(mode_number)*D,Zeta_lows);
-
-Amplitude_ups= (upperlimit/phideckmax(mode_number)/D:0.001:2*upperlimit/phideckmax(mode_number)/D)';
-Zeta_up= - rho *U*D*(d1_upper)/2*m_modal(mode_number)/omega0;
-Zeta_ups(1:length(Amplitude_ups))=Zeta_up;
-
-% plot(Amplitude_ups*phideckmax(mode_number)*D,Zeta_ups);
-
-
-% [Zeta_low]= polynomial_zeta(Amplitude_low,a1_lower,0,0,0,0,rho,U,D,omega0,m,mode_integral_1,mode_integral_2,mode_integral_3,mode_integral_4,mode_integral_5);
-% plot(Amplitude_low,Zeta_low)
-% Amplitude_up=  (upperlimit/phi1max:0.001:upperlimit/phi1max*2)';
-% [Zeta_up]= polynomial_zeta(Amplitude_up,a1_upper,0,0,0,0,rho,U,D,omega0,m,mode_integral_1,mode_integral_2,mode_integral_3,mode_integral_4,mode_integral_5);
-% plot(Amplitude_up,Zeta_up)
-% b1=0;
-% b2=0;
-% b3=0;
-% b4=0;
-% b5=0;
-
-% b1_lower = rho * U * D * a1_lower / m;
-% b1_upper = rho * U * D * a1_upper / m;
-b_lower = [b1_lower 0 0 0 0] .* m;
-b_upper = [b1_upper 0 0 0 0] .* m;
 
 
 
@@ -559,8 +534,6 @@ gamma = 1/2; % Parameter in the Newmark algorithm
 beta = 1/4; % Parameter in the Newmark algorithm
 % Newmark-beta法中采用真实位移
 gfun1 = @(u, udot) bridge_damper(u, udot, U, D, b1, b2, b3, b4, b5, MM, CC, KK, mode_integral_2, mode_integral_3, mode_integral_4, mode_integral_5, mode_integral_6, gamma, beta, h, matrixsize, mode_number); % Handle to the nonlinear function
-gfun2 = @(u, udot) bridge_damper(u, udot, U, D, b_lower(1), 0, 0, 0, 0, MM, CC, KK, mode_integral_2, mode_integral_3, mode_integral_4, mode_integral_5, mode_integral_6, gamma, beta, h, matrixsize, mode_number); % Handle to the nonlinear function
-gfun3 = @(u, udot) bridge_damper(u, udot, U, D, b_upper(1), 0, 0, 0, 0, MM, CC, KK, mode_integral_2, mode_integral_3, mode_integral_4, mode_integral_5, mode_integral_6, gamma, beta, h, matrixsize, mode_number); % Handle to the nonlinear function
 % TODO: 还没有考虑气动刚度
 
 u0 = zeros(matrixsize, 1); % Initial displacement;
@@ -568,11 +541,13 @@ udot0 = zeros(matrixsize, 1); % Initial velocity;
 u0max = 0.001; % Initial displacement of the first mode;
 % phi1max = max(mode_vec(:, mode_number)); % Maximum value of the first mode shape
 u0(mode_number) = u0max / phideckmax(mode_number); % Initial displacement of the first mode;
-[u, udot, u2dot] = nonlinear_newmark_krenk(gfun1, gfun2, gfun3, MM, p, u0, udot0, gamma, beta, h, mode_number, phideckmax, upperlimit, lowerlimit, Freq(mode_number)); % Solve the response by the Nonlinear Newmark algorithm
-% figure
-% plot(t, u(mode_number, :)*phideckmax(mode_number))
+tic
+[u, udot, u2dot] = nonlinear_newmark_krenk(gfun1, MM, p, u0, udot0, gamma, beta, h); % Solve the response by the Nonlinear Newmark algorithm
+toc
+figure
+plot(t, u(mode_number, :)*phideckmax(mode_number))
 % plot(t, u(1, :))
-% ylim([-0.2 0.2])
+ylim([-0.2 0.2])
 for k1 = 1:nModes
     umax(k1,1) = max(u(k1, :));
     modemaxdis(k1, 1) = umax(k1,1) * phideckmax(k1);
@@ -596,42 +571,18 @@ data=u(mode_number, :)*phideckmax(mode_number);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Nonlinear Newmark algorithm
-function [u, udot, u2dot] = nonlinear_newmark_krenk(gfun1, gfun2, gfun3, MM, pp, u0, udot0, gamma, beta, h, mode_number, phideckmax, upperlimit, lowerlimit, Fren_vibration_withoutwind)
+function [u, udot, u2dot] = nonlinear_newmark_krenk(gfun1, MM, pp, u0, udot0, gamma, beta, h)
     % Initialize variables
-    flag = 0;
     u = zeros(size(MM, 1), size(pp, 2));
     udot = zeros(size(MM, 1), size(pp, 2));
     u2dot = zeros(size(MM, 1), size(pp, 2));
     % Initial conditions
     u(:, 1) = u0; % Initial displacements
     udot(:, 1) = udot0; % Initial velocities
-    amp0 = sqrt((u0(mode_number) * phideckmax(mode_number))^2 + ((udot(mode_number) * phideckmax(mode_number)) / (2 * pi * Fren_vibration_withoutwind))^2);
 
-    if amp0 < lowerlimit
-        g = gfun2(u0, udot0);
 
-        if flag ~= 2
-            flag = 2;
-%             disp(flag)
-        end
+    g = gfun1(u0, udot0); % Evaluate the nonlinear function
 
-    elseif amp0 > upperlimit
-        g = gfun3(u0, udot0);
-
-        if flag ~= 3
-            flag = 3;
-%             disp(flag)
-        end
-
-    else
-
-        if flag ~= 1
-            flag = 2;
-%             disp(flag)
-        end
-
-        g = gfun1(u0, udot0); % Evaluate the nonlinear function
-    end
 
     u2dot(:, 1) = MM \ (pp(:, 1) - g); % Calculate the initial accelerations
 
@@ -643,7 +594,6 @@ function [u, udot, u2dot] = nonlinear_newmark_krenk(gfun1, gfun2, gfun3, MM, pp,
         Nit = 0; % Number of iterations
         konv = 0; % Has the iterations converged 0=No, 1=Yes
         % Reusidal calculation, system matrices and increment correction
-        amp = sqrt((u(mode_number, ii + 1) * phideckmax(mode_number))^2 + ((udot(mode_number, ii + 1) * phideckmax(mode_number)) / (2 * pi * Fren_vibration_withoutwind))^2);
 
         while Nit < 1000 && konv == 0
             Nit = Nit + 1;
@@ -651,34 +601,8 @@ function [u, udot, u2dot] = nonlinear_newmark_krenk(gfun1, gfun2, gfun3, MM, pp,
                 disp("迭代次数为："+num2str(Nit)+"，已经接近上限")
             end
 
-
-            if amp < lowerlimit
-
-
-                if flag ~= 2
-                    flag = 2;
-%                     disp(flag)
-                end
-
-                [g, Ks] = gfun2(u(:, ii + 1), udot(:, ii + 1)); % Calculate function value and the tangent
-            elseif amp > upperlimit
-
-                if flag ~= 3
-                    flag = 3;
-%                     disp(flag)
-                end
-
-                [g, Ks] = gfun3(u(:, ii + 1), udot(:, ii + 1)); % Calculate function value and the tangent
-            else
-
-                if flag ~= 1
-                    flag = 1;
-%                     disp(flag)
-                end
-
-                [g, Ks] = gfun1(u(:, ii + 1), udot(:, ii + 1)); % Calculate function value and the tangent
-                
-            end
+            [g, Ks] = gfun1(u(:, ii + 1), udot(:, ii + 1)); % Calculate function value and the tangent
+  
 
             % [g, Ks] = gfun(u(:,ii+1),udot(:,ii+1)); % Calculate function value and the tangent
             rr = pp(:, ii + 1) - MM * u2dot(:, ii + 1) - g; % Calculate residual
