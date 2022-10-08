@@ -82,7 +82,7 @@ else
         eig_val=modenew.eig_val;
         eig_vec=modenew.eig_vec;   
     else
-        disp("从函数读入计算完成的模态")
+%         disp("从函数读入计算完成的模态")
     end 
 end
 
@@ -262,7 +262,7 @@ mode_integral_6 = integral_6(mode_number);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 考虑TMD振动响应的模态叠加法
 %% Modal Superposition Method Considering TMD Vibration Response
-tic
+% tic
 matrixsize = nTMD + nModes;
 phiTMD = zeros(nTMD, nModes);
 % phiTMD row:TMD for each loaction column:the mode shape at the each
@@ -283,7 +283,7 @@ for t1 = 1:nTMD
 end
 clear t1
 if nTMD ~= 0
-    disp("第一阶模态质量比" + num2str(phiTMD(1, 1)^2 * mTMD(1) * 100) + "%")
+%     disp("第一阶模态质量比" + num2str(phiTMD(1, 1)^2 * mTMD(1) * 100) + "%")
 end
 
 clear t1 t2
@@ -408,7 +408,7 @@ end
 
 CC = CC1 + CC2;
 clear k1 k2
-toc
+% toc
 %% 导入气动力模型数据
 
 for k1 = 1
@@ -541,13 +541,13 @@ udot0 = zeros(matrixsize, 1); % Initial velocity;
 u0max = 0.001; % Initial displacement of the first mode;
 % phi1max = max(mode_vec(:, mode_number)); % Maximum value of the first mode shape
 u0(mode_number) = u0max / phideckmax(mode_number); % Initial displacement of the first mode;
-tic
+% tic
 [u, udot, u2dot] = nonlinear_newmark_krenk(gfun1, MM, p, u0, udot0, gamma, beta, h); % Solve the response by the Nonlinear Newmark algorithm
-toc
-figure
-plot(t, u(mode_number, :)*phideckmax(mode_number))
+% toc
+% figure
+% plot(t, u(mode_number, :)*phideckmax(mode_number))
 % plot(t, u(1, :))
-ylim([-0.2 0.2])
+% ylim([-0.2 0.2])
 for k1 = 1:nModes
     umax(k1,1) = max(u(k1, :));
     modemaxdis(k1, 1) = umax(k1,1) * phideckmax(k1);
@@ -557,7 +557,7 @@ modenum = (1:1:nModes)';
 tabledata = [modenum umax modemaxdis];
 modemaxdis_single=modemaxdis(mode_number);
 modemaxdises = array2table(tabledata, 'VariableNames', {'ModeNumber', 'Umax','MaxDisplacement'});
-disp(modemaxdises)
+% disp(modemaxdises)
 fs=1/h;
 data=u(mode_number, :)*phideckmax(mode_number);
 
