@@ -83,6 +83,19 @@ addpath("函数/")
 % 
 % save data
 load data
+
+%% 计算不安装TMD情况下各阶模态各点最大位移
+nTMD=0;
+mTMD=0;
+zetaTMD=0;
+omegaTMD=0;
+nodeTMD=0;
+mode_numbers=1:1:5;
+ifcalmode=3;
+for mode_number=1:length(mode_numbers)
+    [modemaxdis_single_noTMD(mode_number),usinglemax_noTMD(:,mode_number),uallmax_noTMD(:,mode_number)]=CalData_Polynomial_withTMD_multidegree(nTMD,mTMD,zetaTMD,omegaTMD,nodeTMD,mode_number,ifcalmode,MM_eq,KK_eq,calmodes,eig_val,eig_vec);
+end
+clear nTMD mTMD zetaTMD omegaTMD nodeTMD mode_numbers ifcalmode
 %% 
 % 设置TMD参数
 
@@ -143,7 +156,7 @@ zetaTMD=optimvar('zetaTMD','LowerBound',0.05,'UpperBound',0.1);
 omegaTMD=optimvar('omegaTMD','LowerBound',0.8*2*pi,'UpperBound',1.2*2*pi);
 nodeTMD=optimvar('nodeTMD','Type','integer','LowerBound',1001,'UpperBound',1406);
 options = optimoptions('ga','Display','iter','PlotFcn',{'gaplotscorediversity','gaplotbestf','gaplotrange'},'UseParallel', true);
-prob.Objective=fcn2optimexpr(@CalData_Polynomial_withTMD_multidegree,nTMD,mTMD,zetaTMD,omegaTMD,nodeTMD,mode_number,ifcalmode,MM_eq,KK_eq,calmodes,eig_val,eig_vec);
+[~,~,~,prob.Objective]=fcn2optimexpr(@CalData_Polynomial_withTMD_multidegree_multifocemode,nTMD,mTMD,zetaTMD,omegaTMD,nodeTMD,mode_number,ifcalmode,MM_eq,KK_eq,calmodes,eig_val,eig_vec);
 x0.zetaTMD=0.05;
 x0.omegaTMD=0.8*2*pi;
 x0.nodeTMD=1001;
@@ -151,26 +164,27 @@ x0.nodeTMD=1001;
 save op_result
 
 %% 结果分析
-nodeondeck = importdata('nodeondeck.txt');
-mode = zeros(length(nodeondeck), 1);
-
-for k1 = 1:length(nodeondeck)
-    position_index = KMmapping.MatrixEqn(find(and(KMmapping.Node == nodeondeck(k1), KMmapping.DOF == 'UY')));
-
-    if isempty(position_index)
-        mode(k1, :) = zeros(1, 1);
-    else
-        mode(k1, :) = mode_vec(position_index, 1);
-    end
-
-end
-figure
-plot(nodegap, mode(:, 1))
-index=find(nodeondeck==sol.nodeTMD);
-locationTMD=nodegap(index);
-yTMd=mode(index,1);
-hold on 
-scatter(locationTMD,yTMd,'r','filled')
+% load op_result
+% nodeondeck = importdata('nodeondeck.txt');
+% mode = zeros(length(nodeondeck), 1);
+% 
+% for k1 = 1:length(nodeondeck)
+%     position_index = KMmapping.MatrixEqn(find(and(KMmapping.Node == nodeondeck(k1), KMmapping.DOF == 'UY')));
+% 
+%     if isempty(position_index)
+%         mode(k1, :) = zeros(1, 1);
+%     else
+%         mode(k1, :) = mode_vec(position_index, 1);
+%     end
+% 
+% end
+% figure
+% plot(nodegap, mode(:, 1))
+% index=find(nodeondeck==sol.nodeTMD);
+% locationTMD=nodegap(index);
+% yTMd=mode(index,1);
+% hold on 
+% scatter(locationTMD,yTMd,'r','filled')
 
 %% 
 % 

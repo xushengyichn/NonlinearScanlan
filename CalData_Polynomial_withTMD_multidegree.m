@@ -9,7 +9,7 @@
 %Copyright (c) 2022 by xushengyichn 54436848+xushengyichn@users.noreply.github.com, All Rights Reserved.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % clc; clear; close all;
-function modemaxdis_single=CalData_Polynomial_withTMD_multidegree(nTMD,mTMD,zetaTMD,omegaTMD,nodeTMD,mode_number,ifcalmode,MM_eq,KK_eq,calmodes,eig_val,eig_vec)
+function [modemaxdis_single,usinglemax,uallmax]=CalData_Polynomial_withTMD_multidegree(nTMD,mTMD,zetaTMD,omegaTMD,nodeTMD,mode_number,ifcalmode,MM_eq,KK_eq,calmodes,eig_val,eig_vec)
 % function modemaxdis_single=CalData_Polynomial_withTMD_multidegree(nTMD,mTMD,zetaTMD,omegaTMD,nodeTMD,mode_number,ifcalmode,calmodes,eig_val,eig_vec)
 %% 参数设置
 
@@ -20,9 +20,11 @@ function modemaxdis_single=CalData_Polynomial_withTMD_multidegree(nTMD,mTMD,zeta
 % nodeTMD; % TMD的节点 [1*n]
 % mode_number; % 气动力施加的模态 [1*1]
 % ifcalmode; % 是否计算模态 [1*1]     1:[脚本]：采用导入的KM矩阵计算模态； 2：[脚本]：直接导入计算好的特征值和特征向量； 3：[函数]：直接导入计算好的特征值和特征向量；
-% MM_eq; % 质量矩阵 [calmodes*calmodes]
-% KK_eq; % 刚度矩阵 [calmodes*calmodes]
+% MM_eq; % 原始模型模态化质量矩阵 [calmodes*calmodes]
+% KK_eq; % 原始模型模态化刚度矩阵 [calmodes*calmodes]
 % calmodes; % 计算模态的模态数 [1*1]
+% eig_val; %原始模型的特征值
+% eig_vec; %原始模型的特征向量
 
 
 
@@ -548,10 +550,15 @@ u0(mode_number) = u0max / phideckmax(mode_number); % Initial displacement of the
 % plot(t, u(mode_number, :)*phideckmax(mode_number))
 % plot(t, u(1, :))
 % ylim([-0.2 0.2])
+uall=zeros(size(mode,1),size(u,2));
 for k1 = 1:nModes
-    umax(k1,1) = max(u(k1, :));
+    umax(k1,1) = max(abs(u(k1, :)));
     modemaxdis(k1, 1) = umax(k1,1) * phideckmax(k1);
+    uall=uall+mode(:,k1).*u(k1,:);
 end
+
+usinglemax=max(abs(mode(:,mode_number).*u(mode_number,:)),[],2);
+uallmax=max(abs(uall),[],2);
 
 modenum = (1:1:nModes)';
 tabledata = [modenum umax modemaxdis];
