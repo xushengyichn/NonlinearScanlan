@@ -149,6 +149,29 @@ x0.omegaTMD=0.8*2*pi;
 x0.nodeTMD=1001;
 [sol,optval] = solve(prob,x0,'Options',options);
 save op_result
+
+%% 结果分析
+nodeondeck = importdata('nodeondeck.txt');
+mode = zeros(length(nodeondeck), 1);
+
+for k1 = 1:length(nodeondeck)
+    position_index = KMmapping.MatrixEqn(find(and(KMmapping.Node == nodeondeck(k1), KMmapping.DOF == 'UY')));
+
+    if isempty(position_index)
+        mode(k1, :) = zeros(1, 1);
+    else
+        mode(k1, :) = mode_vec(position_index, 1);
+    end
+
+end
+figure
+plot(nodegap, mode(:, 1))
+index=find(nodeondeck==sol.nodeTMD);
+locationTMD=nodegap(index);
+yTMd=mode(index,1);
+hold on 
+scatter(locationTMD,yTMd,'r','filled')
+
 %% 
 % 
 
