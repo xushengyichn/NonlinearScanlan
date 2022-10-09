@@ -157,6 +157,7 @@ omegaTMD=optimvar('omegaTMD','LowerBound',0.8*2*pi,'UpperBound',1.2*2*pi);
 nodeTMD=optimvar('nodeTMD','Type','integer','LowerBound',1001,'UpperBound',1406);
 options = optimoptions('ga','Display','iter','PlotFcn',{'gaplotscorediversity','gaplotbestf','gaplotrange'},'UseParallel', true);
 [~,~,~,prob.Objective]=fcn2optimexpr(@CalData_Polynomial_withTMD_multidegree_multifocemode,nTMD,mTMD,zetaTMD,omegaTMD,nodeTMD,mode_number,ifcalmode,MM_eq,KK_eq,calmodes,eig_val,eig_vec);
+[prob.Objective,~,~]=fcn2optimexpr(@CalData_Polynomial_withTMD_multidegree,nTMD,mTMD,zetaTMD,omegaTMD,nodeTMD,mode_number,ifcalmode,MM_eq,KK_eq,calmodes,eig_val,eig_vec);
 x0.zetaTMD=0.05;
 x0.omegaTMD=0.8*2*pi;
 x0.nodeTMD=1001;
