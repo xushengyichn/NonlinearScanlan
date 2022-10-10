@@ -114,10 +114,8 @@ clear nTMD mTMD zetaTMD omegaTMD nodeTMD mode_numbers ifcalmode
 
 mass_six_span = 10007779.7;
 mu = 1/100;
-mTMDall = mass_six_span * mu;
-
+mTMD = mass_six_span * mu;
 nTMD = numberofTMD;
-mTMD=mTMDall/nTMD*ones(nTMD,1);
 Ftmds = 0.8:0.01:1.2;
 zetaTMDs = 0.05:0.002:0.1;
 omegatmds = 2 * pi * Ftmds;
@@ -176,9 +174,9 @@ nodeTMD = optimvar('nodeTMD', nTMD,'Type', 'integer', 'LowerBound', 1001, 'Upper
 options = optimoptions('ga', 'Display', 'iter', 'PlotFcn', {'gaplotscorediversity', 'gaplotbestf', 'gaplotrange'}, 'UseParallel', true);
 [~, ~, ~, prob.Objective] = fcn2optimexpr(@CalData_Polynomial_withTMD_multidegree_multifocemode, nTMD, mTMD, zetaTMD, omegaTMD, nodeTMD, mode_number, ifcalmode, MM_eq, KK_eq, calmodes, eig_val, eig_vec);
 % [prob.Objective,~,~]=fcn2optimexpr(@CalData_Polynomial_withTMD_multidegree,nTMD,mTMD,zetaTMD,omegaTMD,nodeTMD,mode_number,ifcalmode,MM_eq,KK_eq,calmodes,eig_val,eig_vec);
-x0.zetaTMD = 0.05*ones(nTMD,1);
-x0.omegaTMD = 0.8 * 2 * pi*ones(nTMD,1);
-x0.nodeTMD = 1001*ones(nTMD,1);
+x0.zetaTMD = ones(0.05;
+x0.omegaTMD = 0.8 * 2 * pi;
+x0.nodeTMD = 1001;
 [sol, optval] = solve(prob, x0, 'Options', options);
 save op_result
 str = "op_result_" + string(datetime('now', 'Format', 'uuuuMMdd_HHmm')) + ".mat";
