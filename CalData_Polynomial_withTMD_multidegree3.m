@@ -164,24 +164,33 @@ x0.omegaTMD=0.8*2*pi;
 x0.nodeTMD=1001;
 [sol,optval] = solve(prob,x0,'Options',options);
 save op_result
+str="op_result_"+string(datetime('now','Format','uuuuMMdd_HHmm'))+".mat";
 
+save(str)
 %% 结果分析
-load op_result
-disNoTMDbyMode=max(uallmax_noTMD);
-optimalresult=sol;
-[modemaxdis_single,usinglemax,uallmax,totalmax]=CalData_Polynomial_withTMD_multidegree_multifocemode(nTMD,mTMD,optimalresult.zetaTMD,optimalresult.omegaTMD,optimalresult.nodeTMD,mode_numbers,ifcalmode,MM_eq,KK_eq,calmodes,eig_val,eig_vec);
+if ~exist(str,'file') 
+    disp("请手动导入计算结果")
+else
+    importdata(str)
+    disNoTMDbyMode=max(uallmax_noTMD);
+    optimalresult=sol;
+    [modemaxdis_single,usinglemax,uallmax,totalmax]=CalData_Polynomial_withTMD_multidegree_multifocemode(nTMD,mTMD,optimalresult.zetaTMD,optimalresult.omegaTMD,optimalresult.nodeTMD,mode_numbers,ifcalmode,MM_eq,KK_eq,calmodes,eig_val,eig_vec);
+    
+    disInstallTMDbyMode1=max(uallmax);
+    
+    performancebyMode1=(disNoTMDbyMode-disInstallTMDbyMode1)./disNoTMDbyMode*100;
+    
+    
+    disNoTMDbyMode=max(usinglemax_noTMD);
+    optimalresult=sol;
+    
+    disInstallTMDbyMode2=max(usinglemax);
+    
+    performancebyMode2=(disNoTMDbyMode-disInstallTMDbyMode2)./disNoTMDbyMode*100;
 
-disInstallTMDbyMode1=max(uallmax);
-
-performancebyMode=(disNoTMDbyMode-disInstallTMDbyMode1)./disNoTMDbyMode*100;
-
-
-disNoTMDbyMode=max(usinglemax_noTMD);
-optimalresult=sol;
-
-disInstallTMDbyMode2=max(usinglemax);
-
-performancebyMode2=(disNoTMDbyMode-disInstallTMDbyMode2)./disNoTMDbyMode*100;
+    disp(performancebyMode1)
+    disp(performancebyMode2)
+end
 
 
 % nodeondeck = importdata('nodeondeck.txt');
