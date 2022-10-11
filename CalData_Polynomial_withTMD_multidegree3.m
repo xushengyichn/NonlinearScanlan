@@ -206,6 +206,34 @@ else
 
     disp(performancebyMode1)
     disp(performancebyMode2)
+
+
+    nodeondeck = importdata('nodeondeck.txt');
+
+    nModes=calmodes;
+    mode = zeros(length(nodeondeck), nModes);
+    
+    for k1 = 1:length(nodeondeck)
+        position_index = KMmapping.MatrixEqn(find(and(KMmapping.Node == nodeondeck(k1), KMmapping.DOF == 'UY')));
+    
+        if isempty(position_index)
+            mode(k1, :) = zeros(1, nModes);
+        else
+            mode(k1, :) = mode_vec(position_index, :);
+        end
+    
+    end
+    figure
+    hold on
+    for k1 = 1:nModes
+        plot(nodeondeck,mode(:,k1))
+    end
+    legend('1','2','3','4','5')
+    for k1 = 1:length(sol.nodeTMD)
+        temp=sol.nodeTMD;
+        seq=find(temp(k1)==nodeondeck);
+        scatter(temp(k1),mode(seq,1),100,'red')
+    end
 end
 
 % nodeondeck = importdata('nodeondeck.txt');
