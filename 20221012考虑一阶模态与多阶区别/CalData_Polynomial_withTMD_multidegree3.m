@@ -125,24 +125,24 @@ for k1= 1:calmodes
 end
 legend('1','2','3')
 %% 计算不安装TMD情况下各阶模态各点最大位移
-nTMD = 0;
-mTMD = 0;
-zetaTMD = 0;
-omegaTMD = 0;
-nodeTMD = 0;
-mode_numbers = 1:1:1;
-ifcalmode = 3;
-
-for mode_number = 1:length(mode_numbers)
-    [modemaxdis_single_noTMD(mode_number), usinglemax_noTMD(:, mode_number), uallmax_noTMD(:, mode_number)] = CalData_Polynomial_withTMD_multidegree(nTMD, mTMD, zetaTMD, omegaTMD, nodeTMD, mode_number, ifcalmode, MM_eq, KK_eq, calmodes, eig_val, eig_vec);
-end
+% nTMD = 0;
+% mTMD = 0;
+% zetaTMD = 0;
+% omegaTMD = 0;
+% nodeTMD = 0;
+% mode_numbers = 1:1:1;
+% ifcalmode = 3;
+% 
+% for mode_number = 1:length(mode_numbers)
+%     [modemaxdis_single_noTMD(mode_number), usinglemax_noTMD(:, mode_number), uallmax_noTMD(:, mode_number)] = CalData_Polynomial_withTMD_multidegree(nTMD, mTMD, zetaTMD, omegaTMD, nodeTMD, mode_number, ifcalmode, MM_eq, KK_eq, calmodes, eig_val, eig_vec);
+% end
 
 clear nTMD mTMD zetaTMD omegaTMD nodeTMD mode_numbers ifcalmode
 %%
 % 设置TMD参数
 
 mass_six_span = 10007779.7;
-mu = 0.001/100;
+mu = 1/100;
 mTMDall = mass_six_span * mu;
 
 nTMD = numberofTMD;

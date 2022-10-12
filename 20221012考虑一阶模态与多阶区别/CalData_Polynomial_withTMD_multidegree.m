@@ -112,7 +112,7 @@ ExpNames = [
 % 1 means use the Rayleigh damping matrix to generate the corresponding modal superposition method damping matrix
 % 2 means use the modal damping ratio to directly generate the modal superposition method damping matrix, you need to specify the modal Damping ratio zeta
 
-Zeta0 = 0.3/100;
+Zeta0 = 0.5/100;
 % disp("模态阻尼比未定义，采用默认值，每阶模态阻尼比均为：" + num2str(Zeta0))
 
 
@@ -411,6 +411,7 @@ end
 CC = CC1 + CC2;
 clear k1 k2
 % toc
+
 %% 导入气动力模型数据
 
 for k1 = 1
@@ -526,7 +527,11 @@ phi1max=max(mode_vec(:, 1));
 m =  m_modal(mode_number);
 
 
-
+CC_aero=CC;
+CC_aero(mode_number,mode_number)=CC_aero(mode_number,mode_number)-rho*U*D*a1*mode_integral_2;
+Mode = Complex_Eigenvalue_Analysis(MM,CC_aero,KK);
+[eig_vec_mode, eig_val_mode] = eigs(KK, MM, matrixsize, 'SM');
+Fre_mode=eig_val_mode/2/pi;
 %% 响应计算
 
 h = 0.01; % Time step
