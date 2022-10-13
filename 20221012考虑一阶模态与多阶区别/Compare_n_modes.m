@@ -180,7 +180,7 @@ mode_number=1;%气动力施加在第一阶模态
 % mode_numbers = 1:1:1;
 ifcalmode = 3;
 nodeTMD=locationTMD;
-[modemaxdis_single,usinglemax,uallmax,u1]=CalData_Polynomial_withTMD_multidegree(nTMD,mTMD,zetaTMD,omegaTMD,nodeTMD,mode_number,ifcalmode,MM_eq,KK_eq,calmodes,eig_val,eig_vec,t_length);
+[modemaxdis_single,usinglemax,uallmax,u1,output]=CalData_Polynomial_withTMD_multidegree(nTMD,mTMD,zetaTMD,omegaTMD,nodeTMD,mode_number,ifcalmode,MM_eq,KK_eq,calmodes,eig_val,eig_vec,t_length);
 
 
 phi_nodeTMD=modes(find(modes(:,2)==nodeTMD),3:2+calmodes);%安装TMD位置的振型向量大小
@@ -192,7 +192,7 @@ end
 dis_TMD=u1(end,:);%计算TMD的位移
 result.dis_TMD=dis_TMD;
 result.dis_nodeTMD=dis_nodeTMD;
-
+result.output=output;
 % clearvars -except dis1036_1mode nTMD  mu mTMD zetaTMD omegaTMD nodeTMD mode_number ifcalmode  u1 phi1036_1 mode_number
 % %% 考虑两阶模态振动
 % numberofTMD = 1; % 所需要优化的TMD的数量

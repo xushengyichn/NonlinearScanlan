@@ -9,7 +9,7 @@
 %Copyright (c) 2022 by xushengyichn 54436848+xushengyichn@users.noreply.github.com, All Rights Reserved.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % clc; clear; close all;
-function [modemaxdis_single,usinglemax,uallmax,u]=CalData_Polynomial_withTMD_multidegree(nTMD,mTMD,zetaTMD,omegaTMD,nodeTMD,mode_number,ifcalmode,MM_eq,KK_eq,calmodes,eig_val,eig_vec,t_length)
+function [modemaxdis_single,usinglemax,uallmax,u,output]=CalData_Polynomial_withTMD_multidegree(nTMD,mTMD,zetaTMD,omegaTMD,nodeTMD,mode_number,ifcalmode,MM_eq,KK_eq,calmodes,eig_val,eig_vec,t_length)
 % function modemaxdis_single=CalData_Polynomial_withTMD_multidegree(nTMD,mTMD,zetaTMD,omegaTMD,nodeTMD,mode_number,ifcalmode,calmodes,eig_val,eig_vec)
 %% 参数设置
 
@@ -582,7 +582,7 @@ modemaxdises = array2table(tabledata, 'VariableNames', {'ModeNumber', 'Umax','Ma
 fs=1/h;
 data=u(mode_number, :)*phideckmax(mode_number);
 
-
+output.Mode=Mode;
 
 % [psd_avg, f, psd_plot] = fft_transfer(fs,data');
 % figure
