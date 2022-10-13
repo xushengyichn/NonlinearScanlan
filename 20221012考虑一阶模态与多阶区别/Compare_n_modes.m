@@ -1,17 +1,23 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Author: xushengyichn 54436848+xushengyichn@users.noreply.github.com
-%Date: 2022-10-09 13:10:29
+%Date: 2022-10-13 10:09:09
 %LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
-%LastEditTime: 2022-10-12 15:08:50
-%FilePath: \NonlinearScanlan\20221012考虑一阶模态与多阶区别\CalData_Polynomial_withTMD_multidegree3.m
-%Description:考虑一阶模态与多阶区别
+%LastEditTime: 2022-10-13 11:13:36
+%FilePath: \NonlinearScanlan\20221012考虑一阶模态与多阶区别\Compare_n_modes.m
+%Description: 考虑一阶模态与多阶区别（函数）
 %
 %Copyright (c) 2022 by xushengyichn 54436848+xushengyichn@users.noreply.github.com, All Rights Reserved. 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% 求解安装TMD后的响应
 
-clc; clear; close all % 清除记录
+% 求解安装TMD后的响应
+function [result]=Compare_n_modes(mu,zetaTMD,fTMD,locationTMD,calmodes,t_length)
+% mu TMD质量比
+% zetaTMD TMD阻尼比
+% fTMD TMD频率
+% locationTMD TMD位置
+% calmodes 计算模态数
+
 addpath("../函数/")
 numberofTMD = 1; % 所需要优化的TMD的数量
 %%
@@ -65,7 +71,7 @@ matrix=load('matrix.mat');
 K=matrix.K;
 M=matrix.M;
 
-calmodes = 1; %考虑模态数 Consider the number of modes
+% calmodes = 1; %考虑模态数 Consider the number of modes
 [eig_vec, eig_val] = eigs(K, M, calmodes, 'SM');
 
 [nfdof, nfdof] = size(eig_vec);
@@ -137,18 +143,18 @@ legend('1','2','3')
 %     [modemaxdis_single_noTMD(mode_number), usinglemax_noTMD(:, mode_number), uallmax_noTMD(:, mode_number)] = CalData_Polynomial_withTMD_multidegree(nTMD, mTMD, zetaTMD, omegaTMD, nodeTMD, mode_number, ifcalmode, MM_eq, KK_eq, calmodes, eig_val, eig_vec);
 % end
 
-clear nTMD mTMD zetaTMD omegaTMD nodeTMD mode_numbers ifcalmode
+% clear nTMD mTMD zetaTMD omegaTMD nodeTMD mode_numbers ifcalmode
 %%
 % 设置TMD参数
 
 mass_six_span = 10007779.7;
-mu = 1/100;
+mu = mu;
 mTMDall = mass_six_span * mu;
 
 nTMD = numberofTMD;
 mTMD=mTMDall/nTMD*ones(nTMD,1);
-Ftmd = 0.8339;
-zetaTMD = 0.06;
+Ftmd = fTMD;
+zetaTMD = zetaTMD;
 omegaTMD = 2 * pi * Ftmd;
 % cTMD = [2 * mTMD(1) * omegatmds * 0.05];
 % disp(cTMD)
@@ -170,115 +176,122 @@ for k1 = 1:length(nodeondeck)
 
 end
 
-mode_number=1;%仅考虑一阶气动力的情况
+mode_number=1;%气动力施加在第一阶模态
 % mode_numbers = 1:1:1;
 ifcalmode = 3;
-nodeTMD=[1036];
-t_length=100;
+nodeTMD=locationTMD;
 [modemaxdis_single,usinglemax,uallmax,u1]=CalData_Polynomial_withTMD_multidegree(nTMD,mTMD,zetaTMD,omegaTMD,nodeTMD,mode_number,ifcalmode,MM_eq,KK_eq,calmodes,eig_val,eig_vec,t_length);
 
 
-phi1036_1=modes(find(modes(:,2)==1036),3);
-dis1036_1mode=max(abs(u1(1,:)))*phi1036_1;
-
-clearvars -except dis1036_1mode nTMD mTMD zetaTMD omegaTMD nodeTMD mode_number ifcalmode  u1 phi1036_1 mode_number
-%% 考虑两阶模态振动
-numberofTMD = 1; % 所需要优化的TMD的数量
-% 导入质量刚度矩阵
-matrix=load('matrix.mat');
-K=matrix.K;
-M=matrix.M;
-
-calmodes = 2; %考虑模态数 Consider the number of modes
-[eig_vec, eig_val] = eigs(K, M, calmodes, 'SM');
-
-[nfdof, nfdof] = size(eig_vec);
-
-for j = 1:nfdof
-    mnorm = sqrt(eig_vec(:, j)' * M * eig_vec(:, j));
-    eig_vec(:, j) = eig_vec(:, j) / mnorm; %振型质量归一化 Mode shape mass normalization
-end
-
-for j = 1:nfdof
-    m_modal(j) = sqrt(eig_vec(:, j)' * M * eig_vec(:, j));
-end
-
-[omeg, w_order] = sort(sqrt(diag(eig_val)));
-mode_vec = eig_vec(:, w_order);
-Freq = omeg / (2 * pi);
-
+phi_nodeTMD=modes(find(modes(:,2)==nodeTMD),3:2+calmodes);%安装TMD位置的振型向量大小
 
 for k1 = 1:calmodes
-    MM_eq(k1,k1)=P_eq(k1, mode_vec, M); %P=parameters
+    dis_nodeTMD(k1,:)=u1(k1,:).*phi_nodeTMD(k1);%计算每一阶模态在安装TMD位置的位移
 end
+% dis_nodeTMD_sum=sum(dis_nodeTMD);%计算安装TMD位置的位移
+dis_TMD=u1(end,:);%计算TMD的位移
+result.dis_TMD=dis_TMD;
+result.dis_nodeTMD=dis_nodeTMD;
 
-for k1 = 1:calmodes
-    KK_eq(k1,k1)=P_eq(k1, mode_vec, K); %P=parameters
-end
+% clearvars -except dis1036_1mode nTMD  mu mTMD zetaTMD omegaTMD nodeTMD mode_number ifcalmode  u1 phi1036_1 mode_number
+% %% 考虑两阶模态振动
+% numberofTMD = 1; % 所需要优化的TMD的数量
+% % 导入质量刚度矩阵
+% matrix=load('matrix.mat');
+% K=matrix.K;
+% M=matrix.M;
 
-% save data
-% load data
-nModes=calmodes;
-% 计算桥面节点的振型向量
-nodeondeck = importdata('nodeondeck.txt');
-KMmapping = importmappingmatrix('KMatrix.mapping');
-UYNode=sort(KMmapping.Node(KMmapping.DOF == 'UY'));
-mode = zeros(length(nodeondeck), nModes);
+% calmodes = 2; %考虑模态数 Consider the number of modes
+% [eig_vec, eig_val] = eigs(K, M, calmodes, 'SM');
 
-for k1 = 1:length(nodeondeck)
-    position_index = KMmapping.MatrixEqn(find(and(KMmapping.Node == nodeondeck(k1), KMmapping.DOF == 'UY')));
+% [nfdof, nfdof] = size(eig_vec);
 
-    if isempty(position_index)
-        mode(k1, :) = zeros(1, nModes);
-    else
-        mode(k1, :) = mode_vec(position_index, :);
-    end
+% for j = 1:nfdof
+%     mnorm = sqrt(eig_vec(:, j)' * M * eig_vec(:, j));
+%     eig_vec(:, j) = eig_vec(:, j) / mnorm; %振型质量归一化 Mode shape mass normalization
+% end
 
-end
+% for j = 1:nfdof
+%     m_modal(j) = sqrt(eig_vec(:, j)' * M * eig_vec(:, j));
+% end
 
-for k1= 1:nModes
-    mode_re(:,k1)=mode(:,k1)./max(abs(mode(:,k1)));
-end
-[phideckmax,location] = max(mode); %计算桥面每个模态的最大振型值
-nodegap = importdata('nodegap.txt');
-modes=[nodegap nodeondeck mode mode_re];
-figure
-hold on
-for k1= 1:calmodes
-    plot(nodegap,mode_re(:,k1))
-end
-legend('1','2','3')
+% [omeg, w_order] = sort(sqrt(diag(eig_val)));
+% mode_vec = eig_vec(:, w_order);
+% Freq = omeg / (2 * pi);
 
 
-% mode_numbers = 1:1:2;
-ifcalmode = 3;
-nodeTMD=[1036];
-[modemaxdis_single,usinglemax,uallmax,u2]=CalData_Polynomial_withTMD_multidegree(nTMD,mTMD,zetaTMD,omegaTMD,nodeTMD,mode_number,ifcalmode,MM_eq,KK_eq,calmodes,eig_val,eig_vec);
+% for k1 = 1:calmodes
+%     MM_eq(k1,k1)=P_eq(k1, mode_vec, M); %P=parameters
+% end
 
-phi1036_1=modes(find(modes(:,2)==1036),3);
-phi1036_2=modes(find(modes(:,2)==1036),4);
-dis1036_2mode=max(abs(u2(1,:)*phi1036_1+u2(2,:)*phi1036_2));
-h = 0.01; % Time step
-t = 0:h:100; % Time
-close all
-figure
+% for k1 = 1:calmodes
+%     KK_eq(k1,k1)=P_eq(k1, mode_vec, K); %P=parameters
+% end
 
-plot(t,u1(1,:)*phi1036_1)
-hold on
-plot(t,u2(1,:)*phi1036_1+u2(2,:)*phi1036_2)
-data=u2(1,:)*phi1036_1+u2(2,:)*phi1036_2;
+% % save data
+% % load data
+% nModes=calmodes;
+% % 计算桥面节点的振型向量
+% nodeondeck = importdata('nodeondeck.txt');
+% KMmapping = importmappingmatrix('KMatrix.mapping');
+% UYNode=sort(KMmapping.Node(KMmapping.DOF == 'UY'));
+% mode = zeros(length(nodeondeck), nModes);
 
-disp(dis1036_1mode)
-disp(dis1036_2mode)
-disp(max(u1(end,:)))
-disp(max(u2(end,:)))
+% for k1 = 1:length(nodeondeck)
+%     position_index = KMmapping.MatrixEqn(find(and(KMmapping.Node == nodeondeck(k1), KMmapping.DOF == 'UY')));
 
- [psd_avg, f, psd_plot] = fft_transfer(1/h,data');
-figure
-plot(f,psd_plot)
+%     if isempty(position_index)
+%         mode(k1, :) = zeros(1, nModes);
+%     else
+%         mode(k1, :) = mode_vec(position_index, :);
+%     end
+
+% end
+
+% for k1= 1:nModes
+%     mode_re(:,k1)=mode(:,k1)./max(abs(mode(:,k1)));
+% end
+% [phideckmax,location] = max(mode); %计算桥面每个模态的最大振型值
+% nodegap = importdata('nodegap.txt');
+% modes=[nodegap nodeondeck mode mode_re];
+% figure
+% hold on
+% for k1= 1:calmodes
+%     plot(nodegap,mode_re(:,k1))
+% end
+% legend('1','2','3')
+
+
+% % mode_numbers = 1:1:2;
+% ifcalmode = 3;
+% nodeTMD=[1036];
+% [modemaxdis_single,usinglemax,uallmax,u2]=CalData_Polynomial_withTMD_multidegree(nTMD,mTMD,zetaTMD,omegaTMD,nodeTMD,mode_number,ifcalmode,MM_eq,KK_eq,calmodes,eig_val,eig_vec);
+
+% phi1036_1=modes(find(modes(:,2)==1036),3);
+% phi1036_2=modes(find(modes(:,2)==1036),4);
+% dis1036_2mode=max(abs(u2(1,:)*phi1036_1+u2(2,:)*phi1036_2));
+% h = 0.01; % Time step
+% t = 0:h:100; % Time
+% close all
+% figure
+
+% plot(t,u1(1,:)*phi1036_1)
+% hold on
+% plot(t,u2(1,:)*phi1036_1+u2(2,:)*phi1036_2)
+% data=u2(1,:)*phi1036_1+u2(2,:)*phi1036_2;
+
+% disp(dis1036_1mode)
+% disp(dis1036_2mode)
+% disp(max(u1(end,:)))
+% disp(max(u2(end,:)))
+
+%  [psd_avg, f, psd_plot] = fft_transfer(1/h,data');
+% figure
+% plot(f,psd_plot)
 % 所需函数
 
 function result = P_eq(mode, temp_vec, Matrix)
     vec = temp_vec(:, mode);
     result = vec' * Matrix * vec;
+end
 end

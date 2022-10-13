@@ -119,7 +119,7 @@ ExpNames = [
 % 2 means use the modal damping ratio to directly generate the modal superposition method damping matrix, you need to specify the modal Damping ratio zeta
 
 Zeta0=0.3/100*ones(nModes,1);
-% Zeta0(2) = 5/100;
+% Zeta0(2) = 0.3/100;
 % disp("模态阻尼比未定义，采用默认值，每阶模态阻尼比均为：" + num2str(Zeta0))
 
 
