@@ -539,6 +539,8 @@ CC_aero(mode_number,mode_number)=CC_aero(mode_number,mode_number)-rho*U*D*a1*mod
 KK(mode_number,mode_number)=KK(mode_number,mode_number)-rho*U*2*H4*mode_integral_2;%是否施加气动刚度，若不施加，注释本行
 Mode = Complex_Eigenvalue_Analysis(MM,CC_aero,KK);
 disp(Mode)
+Mode_sys = Complex_Eigenvalue_Analysis(MM,CC,KK);
+disp(Mode_sys)
 [eig_vec_mode, eig_val_mode] = eigs(KK, MM, matrixsize, 'SM');
 Fre_mode=eig_val_mode/2/pi;
 %% 响应计算

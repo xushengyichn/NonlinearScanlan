@@ -147,8 +147,8 @@ mTMDall = mass_six_span * mu;
 
 nTMD = numberofTMD;
 mTMD=mTMDall/nTMD*ones(nTMD,1);
-Ftmd = 0.8339;
-zetaTMD = 0.06;
+Ftmd = 0.82;
+zetaTMD = 0.09;
 omegaTMD = 2 * pi * Ftmd;
 % cTMD = [2 * mTMD(1) * omegatmds * 0.05];
 % disp(cTMD)
@@ -178,7 +178,7 @@ t_length=100;
 [modemaxdis_single,usinglemax,uallmax,u1]=CalData_Polynomial_withTMD_multidegree(nTMD,mTMD,zetaTMD,omegaTMD,nodeTMD,mode_number,ifcalmode,MM_eq,KK_eq,calmodes,eig_val,eig_vec,t_length);
 
 
-phi1036_1=modes(find(modes(:,2)==1036),3);
+phi1036_1=modes(find(modes(:,2)==nodeTMD),3);
 dis1036_1mode=max(abs(u1(1,:)))*phi1036_1;
 
 clearvars -except dis1036_1mode nTMD mTMD zetaTMD omegaTMD nodeTMD mode_number ifcalmode  u1 phi1036_1 mode_number
@@ -251,12 +251,12 @@ legend('1','2','3')
 
 
 % mode_numbers = 1:1:2;
-ifcalmode = 3;
-nodeTMD=[1036];
+% ifcalmode = 3;
+% nodeTMD=[1036];
 [modemaxdis_single,usinglemax,uallmax,u2]=CalData_Polynomial_withTMD_multidegree(nTMD,mTMD,zetaTMD,omegaTMD,nodeTMD,mode_number,ifcalmode,MM_eq,KK_eq,calmodes,eig_val,eig_vec);
 
-phi1036_1=modes(find(modes(:,2)==1036),3);
-phi1036_2=modes(find(modes(:,2)==1036),4);
+phi1036_1=modes(find(modes(:,2)==nodeTMD),3);
+phi1036_2=modes(find(modes(:,2)==nodeTMD),4);
 dis1036_2mode=max(abs(u2(1,:)*phi1036_1+u2(2,:)*phi1036_2));
 h = 0.01; % Time step
 t = 0:h:100; % Time

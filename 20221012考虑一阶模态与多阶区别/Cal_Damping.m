@@ -41,3 +41,5 @@ parfor k1 =1:size(variables,1)
     % increment counter to track progress
     ppm.increment();
 end
+
+result=[variables Sys_Fre Sys_Damping];
