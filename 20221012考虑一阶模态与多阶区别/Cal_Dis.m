@@ -13,8 +13,8 @@
 
 clc; clear; close all % 清除记录
 addpath("../函数/")
-numberofTMD = 1; % 所需要优化的TMD的数量.
-
+numberofTMD = 2; % 所需要优化的TMD的数量.
+savedata=0;
 %%
 % 读入ANSYS质量刚度矩阵
 
@@ -67,16 +67,17 @@ K = matrix.K;
 M = matrix.M;
 
 %% 计算不安装TMD情况下各阶模态各点最大位移
-nTMD = 1; %TMD数量
+% nTMD = 2; %TMD数量
 mass_six_span = 10007779.7;
-mu = 0.015;
-mTMDall = mass_six_span * mu;
+mu = [0.015 0.015];
+% mTMDall = mass_six_span * mu;
 nTMD = numberofTMD;
-mTMD = mTMDall / nTMD * ones(nTMD, 1);
-Ftmd = 0.82;
+% mTMD = mTMDall / nTMD * ones(nTMD, 1);
+mTMD = mu*mass_six_span;
+Ftmd = [0.82 0.93];
 omegaTMD = 2 * pi * Ftmd;
-zetaTMD = 0.1;
-nodeTMD = 1162;
+zetaTMD = [0.1 0.22];
+nodeTMD = [1179 1036];
 mode_numbers = 1:1:2;
 ifcalmode = 3;
 h=0.01;
@@ -136,9 +137,11 @@ for mode_number = 1:length(mode_numbers)
     [phideckmax, location] = max(mode); %计算桥面每个模态的最大振型值
     nodegap = importdata('nodegap.txt');
     modes = [nodegap nodeondeck mode mode_re];
-
-    modeTMD=mode(nodeTMD==modes(:,2),:);
-
+%      if length(mTMD)==1
+    for k1 = 1:length(mTMD)
+        modeTMD(k1,1:mode_number)=mode(nodeTMD(k1)==modes(:,2),:);
+    end
+%      end
     figure
     hold on
 
@@ -148,17 +151,29 @@ for mode_number = 1:length(mode_numbers)
 
     legend('1', '2', '3')
     [modemaxdis_single,usinglemax,uallmax,u,output] = CalData_Polynomial_withTMD_multidegree(nTMD,mTMD,zetaTMD,omegaTMD,nodeTMD,1,ifcalmode,MM_eq,KK_eq,calmodes,eig_val,eig_vec,t_length);
+    if length(mTMD)==1%安装1个TMD的情况
     if mode_number==1
-        uNodeTMD(mode_number,:)=modeTMD'.*u(1:end-1,:);
+        uNodeTMD(mode_number,:)=modeTMD'.*u(1:end-nTMD,:);
     else
-        uNodeTMD(mode_number,:)=sum(modeTMD'.*u(1:end-1,:));
+        uNodeTMD(mode_number,:)=sum(modeTMD'.*u(1:end-nTMD,:));
+    end
+    end
+
+    if length(mTMD)==2%安装2个TMD的情况
+        if mode_number==1
+        uNodeTMD(mode_number,:)=modeTMD(2,1)*u(1:1,:);
+        end
+        if mode_number==2
+        uNodeTMD(mode_number,:)=modeTMD(2,1)*u(1,:)+modeTMD(2,2)*u(2,:);
+        end
     end
 end
-
+   if length(mTMD)==1
 figure
 plot(t,uNodeTMD(1,:))
 hold on
 plot(t,uNodeTMD(2,:))
+   end
 % fs=1/h;
 % [psd_avg, f, psd_plot] = fft_transfer(fs,uNodeTMD(1,:)');
 % figure
@@ -167,8 +182,9 @@ plot(t,uNodeTMD(2,:))
 % [psd_avg, f, psd_plot] = fft_transfer(fs,uNodeTMD(2,:)');
 % figure
 % plot(f, psd_plot)
-
-save uNode1162WithTMD uNodeTMD  %储存TMD安装在1036节点时的响应结果（分别考虑一阶或两阶模态的结果）
+if savedata==1
+    save uNode1036With2TMD uNodeTMD  %储存TMD安装在1036节点时的响应结果（分别考虑一阶或两阶模态的结果）
+end
 %% 所需函数
 
 function result = P_eq(mode, temp_vec, Matrix)
