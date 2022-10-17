@@ -50,7 +50,7 @@ tic
 [minDampingRatio,minDampingRatio_sys]=Optim_Damping_for_n_modes(mode_number,numberofTMD,mTMD,zetaTMD,fTMD,locationTMD,calmodes_all);
 toc
 disp(minDampingRatio)
-% disp(minDampingRatio_sys)
+disp(minDampingRatio_sys)
 end
 
 %% 穷举问题
