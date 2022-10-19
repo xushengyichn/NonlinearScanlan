@@ -90,7 +90,7 @@ locationTMD = optimvar('locationTMD', numberofTMD,'Type', 'integer', 'LowerBound
 
 % options = optimoptions('simulannealbnd', 'Display', 'iter', 'PlotFcn', {'gaplotscorediversity', 'gaplotbestf', 'gaplotrange'});
 options = optimoptions('ga', 'Display', 'iter', 'PlotFcn', {'gaplotscorediversity', 'gaplotbestf', 'gaplotrange'}, 'UseParallel', true);
-[minDampingRatio,minDampingRatio_sys] = fcn2optimexpr(@Optim_Damping_for_n_modes,mode_number,numberofTMD,mTMD,zetaTMD,fTMD,locationTMD,[1]);
+[minDampingRatio,minDampingRatio_sys] = fcn2optimexpr(@Optim_Damping_for_n_modes,mode_number,numberofTMD,mTMD,zetaTMD,fTMD,locationTMD,[1 2 3 4 5]);
 msum = sum(mTMD) == mass_six_span*0.015;
 
 prob.Constraints.msum = msum;
@@ -111,3 +111,9 @@ val = evaluate(prob.Objective,sol);
 disp(val)
 save opt_1tmd_5modes
 
+%% 数据分析
+
+load damping_1tmd_5modes.mat
+
+[~,seq]=max(result(:,4));
+opt_design=result(seq,:)

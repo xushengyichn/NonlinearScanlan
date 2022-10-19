@@ -128,8 +128,8 @@ Zeta0=0.3/100*ones(nModes,1);
 % Import MCK matrix from ANSYS
 % hb_to_mm ('KMatrix.matrix', 'K.txt');
 % hb_to_mm ('MMatrix.matrix', 'M.txt');
-% % hb_to_mm ('CMatrix.matrix', 'C.txt');
-% 
+% hb_to_mm ('CMatrix.matrix', 'C.txt');
+
 % %map the node and matrix from the KMatrix.mapping and MMatrix.mapping
 % Kdata = importdata('K.txt').data;
 % Kmatrix = zeros(Kdata(1, 1), Kdata(1, 2));
