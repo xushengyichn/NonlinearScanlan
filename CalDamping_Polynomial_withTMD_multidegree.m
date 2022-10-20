@@ -2,14 +2,14 @@
 %Author: xushengyichn 54436848+xushengyichn@users.noreply.github.com
 %Date: 2022-09-26 19:35:04
 %LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
-%LastEditTime: 2022-10-07 12:20:54
-%FilePath: \NonlinearScanlan\CalData_Polynomial_withTMD_multidegree.m
+%LastEditTime: 2022-10-19 12:16:19
+%FilePath: \NonlinearScanlan\CalDamping_Polynomial_withTMD_multidegree.m
 %Description: 计算多模态，施加某一阶模态多项式气动力模型后的响应，考虑TMD，通过干预大小振幅情况下的阻尼比，使得动力计算无需分段
 %
 %Copyright (c) 2022 by xushengyichn 54436848+xushengyichn@users.noreply.github.com, All Rights Reserved.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % clc; clear; close all;
-function [result]=CalDamping_Polynomial_withTMD_multidegree(nTMD,mTMD,zetaTMD,omegaTMD,nodeTMD,mode_number,ifcalmode,MM_eq,KK_eq,calmodes,eig_val,eig_vec)
+function [result]=CalDamping_Polynomial_withTMD_multidegree(nTMD,mTMD,zetaTMD,omegaTMD,xTMD,mode_number,ifcalmode,MM_eq,KK_eq,calmodes,eig_val,eig_vec)
 % function modemaxdis_single=CalData_Polynomial_withTMD_multidegree(nTMD,mTMD,zetaTMD,omegaTMD,nodeTMD,mode_number,ifcalmode,calmodes,eig_val,eig_vec)
 %% 参数设置
 
@@ -59,9 +59,9 @@ if ~exist("mode_number","var")
     mode_number = 1; %气动力施加的模态
     disp("变量mode_number不存在，取默认值："+num2str(mode_number))
 end
-if ~exist("nodeTMD","var")
-    nodeTMD = [1104]; %Node number(location of the TMD)
-    disp("变量nodeTMD不存在，取默认值："+num2str(nodeTMD))
+if ~exist("xTMD","var")
+    xTMD = [0]; %Node number(location of the TMD)
+    disp("变量xTMD不存在，取默认值："+num2str(xTMD))
 end
 
 
@@ -275,14 +275,23 @@ phiTMD = zeros(nTMD, nModes);
 for t1 = 1:nTMD
 
     for t2 = 1:nModes
-        % 找到TMD安装位置对应的振型向量大小并储存到phiTMD变量中
-        % Find the size of the mode shape vector corresponding to the installation position of the TMD and store it in the phiTMD variable
-        position_index = KMmapping.MatrixEqn(find(and(KMmapping.Node == nodeTMD(t1), KMmapping.DOF == 'UY')));
-        if isempty(position_index)
-            phiTMD(t1, t2)=0;
-        else
-            phiTMD(t1, t2) = mode_vec(position_index, t2);
-        end
+
+        [~,index]=sort(abs(nodegap-xTMD));%查找与xTMD最接近的点的排序
+        xResult=nodegap(index(1:2));%获取最接近的两个点的x坐标
+        mode2nodes=mode(index(1:2),1:nModes);%获取两个点坐标的y值
+        phi_result=interp1(xResult,mode2nodes,xTMD,'linear','extrap');%插值以后任意点的振型
+%         disp(phi_result)
+        phiTMD(t1, t2) = phi_result(t2);
+
+        
+        % % 找到TMD安装位置对应的振型向量大小并储存到phiTMD变量中
+        % % Find the size of the mode shape vector corresponding to the installation position of the TMD and store it in the phiTMD variable
+        % position_index = KMmapping.MatrixEqn(find(and(KMmapping.Node == nodeTMD(t1), KMmapping.DOF == 'UY')));
+        % if isempty(position_index)
+        %     phiTMD(t1, t2)=0;
+        % else
+        %     phiTMD(t1, t2) = mode_vec(position_index, t2);
+        % end
     end
 
 end
@@ -486,7 +495,7 @@ if girderindex == 1
     Fren_vibration_withwind = my_table.up_Fren_vibration_withwind(isexist);
     F0 = my_table.up_Fre_vibration(isexist); % Frequency without wind
     Zeta0 = my_table.up_dltx_zeta0(isexist); % damping ratio without wind
-    ReducedFrequency = my_table.up_Fre_vibration(isexist); % 折减频率
+    ReducedFrequency = my_table.up_ReducedFre(isexist); % 折减频率
 else
     girder = 'down';
     %导入试验数据
@@ -503,7 +512,7 @@ else
     Fren_vibration_withwind = my_table.down_Fren_vibration_withwind(isexist);
     F0 = my_table.down_Fre_vibration(isexist); % Frequency without wind
     Zeta0 = my_table.down_dltx_zeta0(isexist); % damping ratio without wind
-    ReducedFrequency = my_table.down_Fre_vibration(isexist); % 折减频率
+    ReducedFrequency = my_table.down_ReducedFre(isexist); % 折减频率
 end
 
 d1=m_modal(mode_number)*a1/m_exp;

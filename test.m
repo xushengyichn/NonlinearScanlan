@@ -1,43 +1,27 @@
 clc
 clear
 close all
-addpath('函数\')
+nodegap = importdata('nodegap.txt');
+nodeondeck = importdata('nodeondeck.txt');
 
+load modeinfo.mat
+nModes=5;
+mode = zeros(length(nodeondeck), nModes);
+KMmapping = importmappingmatrix('KMatrix.mapping');
+for k1 = 1:length(nodeondeck)
+    position_index = KMmapping.MatrixEqn(find(and(KMmapping.Node == nodeondeck(k1), KMmapping.DOF == 'UY')));
 
-% 导入ANSYS MCK矩阵
-% Import MCK matrix from ANSYS
-hb_to_mm ('KMatrix.matrix', 'K.txt');
-hb_to_mm ('MMatrix.matrix', 'M.txt');
-% hb_to_mm ('CMatrix.matrix', 'C.txt');
+    if isempty(position_index)
+        mode(k1, :) = zeros(1, nModes);
+    else
+        mode(k1, :) = mode_vec(position_index, :);
+    end
 
-%map the node and matrix from the KMatrix.mapping and MMatrix.mapping
-Kdata = importdata('K.txt').data;
-Kmatrix = zeros(Kdata(1, 1), Kdata(1, 2));
-
-for i = 2:size(Kdata, 1)
-Kmatrix(Kdata(i, 1), Kdata(i, 2)) = Kdata(i, 3);
 end
 
-Mdata = importdata('M.txt').data;
-Mmatrix = zeros(Mdata(1, 1), Mdata(1, 2));
+xTMD=0;
 
-for i = 2:size(Mdata, 1)
-Mmatrix(Mdata(i, 1), Mdata(i, 2)) = Mdata(i, 3);
-end
-
-% Cdata = importdata('C.txt').data;
-% Cmatrix_DP = zeros(Cdata(1, 1), Cdata(1, 2));
-%
-% for i = 2:size(Cdata, 1)
-% Cmatrix_DP(Cdata(i, 1), Cdata(i, 2)) = Cdata(i, 3);
-% end
-
-% 还原对角线以上元素，使之为对称阵, ANSYS只给出下三角矩阵
-% Restore the elements above the diagonal to make it a symmetric matrix, ANSYS only gives the lower triangular matrix
-K = diag(diag(Kmatrix) / 2) + Kmatrix - diag(diag(Kmatrix));
-K = K + K';
-M = diag(diag(Mmatrix) / 2) + Mmatrix - diag(diag(Mmatrix));
-M = M + M';
-% C_exp = diag(diag(Cmatrix_DP) / 2) + Cmatrix_DP - diag(diag(Cmatrix_DP));
-% C_exp = C_exp + C_exp';
-% C =C_exp;
+[~,index]=sort(abs(nodegap-xTMD));%查找与xTMD最接近的点的排序
+xResult=nodegap(index(1:2));%获取最接近的两个点的x坐标
+mode2nodes=mode(index(1:2),1:nModes);%获取两个点坐标的y值
+phi_result=interp1(xResult,mode2nodes,xTMD);%插值以后任意点的振型

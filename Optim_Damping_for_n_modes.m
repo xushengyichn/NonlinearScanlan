@@ -10,12 +10,12 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-function [minDampingRatio,minDampingRatio_sys]=Optim_Damping_for_n_modes(mode_number,numberofTMD,mTMD,zetaTMD,fTMD,locationTMD,calmodes_all)
+function [minDampingRatio,minDampingRatio_sys]=Optim_Damping_for_n_modes(mode_number,numberofTMD,mTMD,zetaTMD,fTMD,xTMD,calmodes_all)
     minDamp_sys=zeros(length(calmodes_all),1);
     minDamp_aero=zeros(length(calmodes_all),1);
     for k1 = 1: length(calmodes_all)
         calmodes=calmodes_all(k1);
-        [result]=Compare_n_modes(mode_number,numberofTMD,mTMD,zetaTMD,fTMD,locationTMD,calmodes);
+        [result]=Compare_n_modes(mode_number,numberofTMD,mTMD,zetaTMD,fTMD,xTMD,calmodes);
         minDamp_sys(k1)=min(result.Mode_sys.("Damping ratio"));
         minDamp_aero(k1)=min(result.Mode.("Damping ratio"));
     end

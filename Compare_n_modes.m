@@ -11,7 +11,7 @@
 
 
 % 求解安装TMD后的响应
-function [result]=Compare_n_modes(mode_number,numberofTMD,mTMD,zetaTMD,fTMD,locationTMD,calmodes)
+function [result]=Compare_n_modes(mode_number,numberofTMD,mTMD,zetaTMD,fTMD,xTMD,calmodes)
 % numberofTMD 所需要优化的TMD数量
 % mTMD TMD质量
 % zetaTMD TMD阻尼比
@@ -62,9 +62,9 @@ omegaTMD = 2 * pi * Ftmd;
 % mode_number=1;%气动力施加在第一阶模态
 % mode_numbers = 1:1:1;
 ifcalmode = 3;
-nodeTMD=locationTMD;
+% nodeTMD=locationTMD;
 % [modemaxdis_single,usinglemax,uallmax,u1,output]=CalData_Polynomial_withTMD_multidegree(nTMD,mTMD,zetaTMD,omegaTMD,nodeTMD,mode_number,ifcalmode,MM_eq,KK_eq,calmodes,eig_val,eig_vec,t_length);
-[result]=CalDamping_Polynomial_withTMD_multidegree(nTMD,mTMD,zetaTMD,omegaTMD,nodeTMD,mode_number,ifcalmode,MM_eq,KK_eq,calmodes,eig_val,eig_vec);
+[result]=CalDamping_Polynomial_withTMD_multidegree(nTMD,mTMD,zetaTMD,omegaTMD,xTMD,mode_number,ifcalmode,MM_eq,KK_eq,calmodes,eig_val,eig_vec);
 Mode_damping=result.Mode.("Damping ratio");
 % disp(result.Mode)
 % disp(result.Mode_sys)
