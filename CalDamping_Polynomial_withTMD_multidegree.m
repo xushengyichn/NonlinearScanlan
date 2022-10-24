@@ -272,16 +272,17 @@ matrixsize = nTMD + nModes;
 phiTMD = zeros(nTMD, nModes);
 % phiTMD row:TMD for each loaction column:the mode shape at the each
 % location of tmd
-for t1 = 1:nTMD
+
+for t3 = 1:nTMD
 
     for t2 = 1:nModes
 
-        [~,index]=sort(abs(nodegap-xTMD));%查找与xTMD最接近的点的排序
+        [~,index]=sort(abs(nodegap-xTMD(t3)));%查找与xTMD最接近的点的排序
         xResult=nodegap(index(1:2));%获取最接近的两个点的x坐标
         mode2nodes=mode(index(1:2),1:nModes);%获取两个点坐标的y值
-        phi_result=interp1(xResult,mode2nodes,xTMD,'linear','extrap');%插值以后任意点的振型
+        phi_result=interp1(xResult,mode2nodes,xTMD(t3),'linear','extrap');%插值以后任意点的振型
 %         disp(phi_result)
-        phiTMD(t1, t2) = phi_result(t2);
+        phiTMD(t3, t2) = phi_result(t2);
 
         
         % % 找到TMD安装位置对应的振型向量大小并储存到phiTMD变量中
