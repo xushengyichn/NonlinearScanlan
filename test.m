@@ -1,6 +1,9 @@
 clc
 clear
 close all
+
+addpath("函数\")
+
 nodegap = importdata('nodegap.txt');
 nodeondeck = importdata('nodeondeck.txt');
 
@@ -19,8 +22,8 @@ for k1 = 1:length(nodeondeck)
 
 end
 
-xTMD=0;
-
+xTMD=289.465;
+% xTMD=56.2;
 [~,index]=sort(abs(nodegap-xTMD));%查找与xTMD最接近的点的排序
 xResult=nodegap(index(1:2));%获取最接近的两个点的x坐标
 mode2nodes=mode(index(1:2),1:nModes);%获取两个点坐标的y值

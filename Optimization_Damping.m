@@ -457,3 +457,159 @@ sepresultcombine_phi_result=abs(sepresultcombine_phi_result);
 allresult_phi_result=abs(allresult_phi_result);
 
 save compare_3tmds_1mode_3modes modes sepresultcombine_xTMD sepresultcombine_phi_result allresultxTMD allresult_phi_result
+disp(minDamp_aero1)
+disp(minDamp_aero2)
+%% 数据分析对比单模态，哪个TMD的安装导致第一阶模态阻尼比骤降
+
+load modeinfo.mat
+allresult=importdata("optim_3tmd_123mode_all.mat");
+
+allresultcombine_fTMD=[allresult.sol.fTMD];
+allresultcombine_mTMD=[allresult.sol.mTMD];
+allresultcombine_xTMD=[allresult.sol.xTMD];
+allresultcombine_zetaTMD=[allresult.sol.zetaTMD];
+
+% k1=2;
+% allresultcombine_fTMD(k1)=[];
+% allresultcombine_mTMD(k1)=[];
+% allresultcombine_xTMD(k1)=[];
+% allresultcombine_zetaTMD(k1)=[];
+[~,resultall]=Optim_Damping_for_1_mode(3,allresultcombine_mTMD,allresultcombine_zetaTMD,allresultcombine_fTMD,allresultcombine_xTMD,[1 2 3]);
+
+
+sepresult=importdata("optim_1tmd_123mode_separate.mat")
+% 模态1
+xTMD=sepresult.sol1.xTMD;
+[~,index]=sort(abs(nodegap-xTMD));%查找与xTMD最接近的点的排序
+xResult=nodegap(index(1:2));%获取最接近的两个点的x坐标
+mode2nodes=mode(index(1:2),1:1);%获取两个点坐标的y值
+phi_result=interp1(xResult,mode2nodes,xTMD,'linear','extrap');%插值以后任意点的振型
+
+phi_result1=phi_result;
+% 模态2
+xTMD=sepresult.sol2.xTMD;
+[~,index]=sort(abs(nodegap-xTMD));%查找与xTMD最接近的点的排序
+xResult=nodegap(index(1:2));%获取最接近的两个点的x坐标
+mode2nodes=mode(index(1:2),2);%获取两个点坐标的y值
+phi_result=interp1(xResult,mode2nodes,xTMD,'linear','extrap');%插值以后任意点的振型
+
+phi_result2=phi_result;
+% 模态3
+xTMD=sepresult.sol3.xTMD;
+[~,index]=sort(abs(nodegap-xTMD));%查找与xTMD最接近的点的排序
+xResult=nodegap(index(1:2));%获取最接近的两个点的x坐标
+mode2nodes=mode(index(1:2),3);%获取两个点坐标的y值
+phi_result=interp1(xResult,mode2nodes,xTMD,'linear','extrap');%插值以后任意点的振型
+
+phi_result3=phi_result;
+
+sepresultcombine_fTMD=[sepresult.sol1.fTMD sepresult.sol2.fTMD sepresult.sol3.fTMD];
+sepresultcombine_mTMD=[sepresult.sol1.mTMD sepresult.sol2.mTMD sepresult.sol3.mTMD];
+sepresultcombine_xTMD=[sepresult.sol1.xTMD sepresult.sol2.xTMD sepresult.sol3.xTMD];
+sepresultcombine_zetaTMD=[sepresult.sol1.zetaTMD sepresult.sol2.zetaTMD sepresult.sol3.zetaTMD];
+
+% sepresultcombine_fTMD=[sepresult.sol1.fTMD sepresult.sol3.fTMD];
+% sepresultcombine_mTMD=[sepresult.sol1.mTMD sepresult.sol3.mTMD];
+% sepresultcombine_xTMD=[sepresult.sol1.xTMD sepresult.sol3.xTMD];
+% sepresultcombine_zetaTMD=[sepresult.sol1.zetaTMD sepresult.sol3.zetaTMD];
+
+
+[~,resultall]=Optim_Damping_for_1_mode(3,sepresultcombine_mTMD,sepresultcombine_zetaTMD,sepresultcombine_fTMD,sepresultcombine_xTMD,[1 2 3]);
+
+
+%% 优化问题(3模态3个TMD)
+clc
+clear 
+close all
+if 1
+mode_numbers=[1 2 3];%气动力施加的模态，输入n个数，表示分别计算n阶模态
+numberofTMD=3;
+mass_six_span = 10007779.7;
+prob = optimproblem('Description','Optimize the TMDs','ObjectiveSense','maximize'); %优化为最优阻尼比
+zetaTMD =optimvar('zetaTMD',numberofTMD,'LowerBound',0.05,'UpperBound',0.25); %阻尼比
+fTMD =optimvar('fTMD',numberofTMD,'LowerBound',0.7,'UpperBound',1.5); %频率
+mTMD =optimvar('mTMD',numberofTMD,'LowerBound',0.001*mass_six_span,'UpperBound',0.015*mass_six_span); %质量
+xTMD = optimvar('xTMD', numberofTMD,'LowerBound', 0, 'UpperBound', 660); %TMD所安装的节点
+calmodes_all=3;
+% options = optimoptions('particleswarm',Display='iter',PlotFcn='pswplotbestf');
+options = optimoptions('particleswarm',Display='iter',PlotFcn='pswplotbestf',UseParallel=true);
+% options = optimoptions('ga', 'Display', 'iter', 'PlotFcn', {'gaplotscorediversity', 'gaplotbestf', 'gaplotrange'}, 'UseParallel', true);
+
+Optim_Damping_for_n_foces_n_modes(mode_numbers,1,1,0.01,8.3,50,3)
+[minDamping_allmodes,~] = fcn2optimexpr(@Optim_Damping_for_n_foces_n_modes,mode_numbers,numberofTMD,mTMD,zetaTMD,fTMD,xTMD,calmodes_all);
+
+
+prob.Objective=minDamping_allmodes;
+show(prob)
+
+% x0.zetaTMD = 0.1*ones(numberofTMD,1);
+% x0.fTMD = 0.82*ones(numberofTMD,1);
+% x0.mTMD = 0.015*mass_six_span*ones(numberofTMD,1);
+% x0.xTMD = 0.1*ones(numberofTMD,1);
+
+[sol, optval] = solve(prob,'Solver','particleswarm','Options',options);
+
+val = evaluate(prob.Objective,sol);
+disp(val)
+
+strmdoes=(num2str(calmodes_all));
+strmdoes=strjoin(strsplit(strmdoes),'_');
+
+forcemdoes=(num2str(mode_numbers));
+forcemdoes=strjoin(strsplit(forcemdoes),'_');
+
+
+str="save opt_"+num2str(numberofTMD)+"TMD_"+strmdoes+"modes_forcemodes_"+forcemdoes+".mat";
+eval(str)
+% save opt_3tmds_3modes
+end
+
+%% 数据分析
+
+clc
+clear 
+close all
+load opt_3TMD_3modes_forcemodes_1_2_3.mat
+
+mode_numbers=[1 2 3];
+numberofTMD=3;
+mTMD=sol.mTMD;
+mTMD=ones(3,1)*mTMD(1)*1;
+zetaTMD=sol.zetaTMD;
+fTMD=sol.fTMD;
+xTMD=sol.xTMD;
+calmodes_all=3;
+[minDamping_allmodes,result]=Optim_Damping_for_n_foces_n_modes(mode_numbers,numberofTMD,mTMD,zetaTMD,fTMD,xTMD,calmodes_all);
+
+
+load modeinfo.mat
+
+figure
+plot(modes(:,1),modes(:,3))
+hold on 
+plot(modes(:,1),modes(:,4))
+plot(modes(:,1),modes(:,5))
+
+[fTMD_sort,sort_seq]=sort(fTMD);
+xTMD_sort=xTMD(sort_seq);
+mTMD_sort=mTMD(sort_seq);
+zetaTMD_sort=zetaTMD(sort_seq);
+for k1=1:3
+    xTMD_temp=xTMD_sort(k1);
+    [~,index]=sort(abs(nodegap-xTMD_temp));%查找与xTMD最接近的点的排序
+    xResult=nodegap(index(1:2));%获取最接近的两个点的x坐标
+    mode2nodes=mode(index(1:2),k1);%获取两个点坐标的y值
+    phi_result(k1,:)=interp1(xResult,mode2nodes,xTMD_temp);%插值以后任意点的振型
+end
+
+scatter(xTMD,phi_result)
+
+
+damping_mode1=result.resultall_modes.result1.result1.Mode.("Damping ratio")
+damping_mode2=result.resultall_modes.result2.result1.Mode.("Damping ratio")
+damping_mode3=result.resultall_modes.result3.result1.Mode.("Damping ratio")
+
+bardata=[damping_mode1 damping_mode2 damping_mode3]
+bardata=bardata'
+figure
+bar(bardata)
