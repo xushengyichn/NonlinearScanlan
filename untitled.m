@@ -1,18 +1,16 @@
 clc
 clear
-close all
-t=0:0.01:10;
-f=1;
-omega=2*pi*f;
 
-y=sin(omega*t);
-figure
-plot(t,y);
+theta = optimizableVariable('theta',[1,10],'Type','real');
+test = optimizableVariable('test',[1,10],'Type','real');
+fun = @(x)objfunxx(x.theta,x.test); %Create Function Handles
+results = bayesopt(fun,[theta test])
 
-L=0:0.01:1;
+theta1=results.XAtMinObjective.theta;
+test=results.XAtMinObjective.test;
+yyy=objfunxx(theta1,test)
+disp(yyy)
 
-phi=sin(pi*L/max(L));
-figure
-plot(L,phi)
-
-phi'.*y
+function y = objfunxx(x,test)
+y=x+test;
+end

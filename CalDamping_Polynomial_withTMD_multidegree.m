@@ -45,7 +45,10 @@ if ~exist("zetaTMD","var")
     cTMD = [2 * mTMD(1) * omegatmd * zetaTMD];
     disp("变量zetaTMD不存在，取默认值："+num2str(zetaTMD))
 else
-    cTMD = [2 * mTMD(1) .* omegaTMD .* zetaTMD];
+    cTMD = [2 * mTMD .* omegaTMD .* zetaTMD];
+%     for k3 =1:length(mTMD)
+%         cTMD(k3)=2 * mTMD(k3) .* omegaTMD(k3) .* zetaTMD(k3);
+%     end
 end
 if ~exist("omegaTMD","var")
     Ftmd = 0.833853594612216;
@@ -53,7 +56,7 @@ if ~exist("omegaTMD","var")
     kTMD = [mTMD(1) * omegatmd^2];
     disp("变量omegaTMD不存在，取默认值："+num2str(kTMD))
 else
-    kTMD = [mTMD(1) * omegaTMD.^2];
+    kTMD = [mTMD.* omegaTMD.^2];
 end
 if ~exist("mode_number","var")
     mode_number = 1; %气动力施加的模态

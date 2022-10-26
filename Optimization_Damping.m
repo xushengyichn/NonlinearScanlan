@@ -2,7 +2,7 @@
 %Author: xushengyichn 54436848+xushengyichn@users.noreply.github.com
 %Date: 2022-10-14 11:41:51
 %LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
-%LastEditTime: 2022-10-24 10:50:41
+%LastEditTime: 2022-10-26 17:57:22
 %FilePath: \NonlinearScanlan\Optimization_Damping.m
 %Description: 直接计算安装TMD后的阻尼比
 %
@@ -613,3 +613,88 @@ bardata=[damping_mode1 damping_mode2 damping_mode3]
 bardata=bardata'
 figure
 bar(bardata)
+
+
+%% 优化问题(3模态3个TMD)-修改为贝叶斯优化
+clc
+clear 
+close all
+if 1
+mode_numbers=[1 2 3];%气动力施加的模态，输入n个数，表示分别计算n阶模态
+numberofTMD=3;
+mass_six_span = 10007779.7;
+mu=0.015;
+mTMD1 = optimizableVariable('mTMD1',[0.001*mass_six_span 0.015*mass_six_span],'Type','real'); %质量
+mTMD2 = optimizableVariable('mTMD2',[0.001*mass_six_span 0.015*mass_six_span],'Type','real'); %质量
+mTMD3 = optimizableVariable('mTMD3',[0.001*mass_six_span 0.015*mass_six_span],'Type','real'); %质量
+zetaTMD1 = optimizableVariable('zetaTMD1',[0.05 0.25],'Type','real'); %阻尼比
+zetaTMD2 = optimizableVariable('zetaTMD2',[0.05 0.25],'Type','real'); %阻尼比
+zetaTMD3 = optimizableVariable('zetaTMD3',[0.05 0.25],'Type','real'); %阻尼比
+fTMD1 = optimizableVariable('fTMD1',[0.7 1.5],'Type','real'); %频率
+fTMD2 = optimizableVariable('fTMD2',[0.7 1.5],'Type','real'); %频率
+fTMD3 = optimizableVariable('fTMD3',[0.7 1.5],'Type','real'); %频率
+xTMD1 = optimizableVariable('xTMD1',[0 660],'Type','real'); %TMD所安装的节点
+xTMD2 = optimizableVariable('xTMD2',[0 660],'Type','real'); %TMD所安装的节点
+xTMD3 = optimizableVariable('xTMD3',[0 660],'Type','real'); %TMD所安装的节点
+calmodes_all=3;
+% mTMD=[mTMD1 mTMD2 mTMD3];
+% zetaTMD=[zetaTMD1 zetaTMD2 zetaTMD3];
+% fTMD=[fTMD1 fTMD2 fTMD3];
+% xTMD=[xTMD1 xTMD2 xTMD3];
+
+fun=@(x)Optim_Damping_for_n_foces_n_modes_bayesopt(mode_numbers,numberofTMD,x.mTMD1,x.mTMD2,x.mTMD3,x.zetaTMD1,x.zetaTMD2,x.zetaTMD3,x.fTMD1,x.fTMD2,x.fTMD3,x.xTMD1,x.xTMD2,x.xTMD3,calmodes_all);
+% fun2=@(X)xconstraint(X,mu,mass_six_span);
+results = bayesopt(fun,[mTMD1 mTMD2 mTMD3 zetaTMD1 zetaTMD2 zetaTMD3 fTMD1 fTMD2 fTMD3 xTMD1 xTMD2 xTMD3],'XConstraintFcn',@xconstraint,'AcquisitionFunctionName','expected-improvement-plus','MaxObjectiveEvaluations',100,'UseParallel',true);
+
+
+
+
+
+% prob = optimproblem('Description','Optimize the TMDs','ObjectiveSense','maximize'); %优化为最优阻尼比
+% zetaTMD =optimvar('zetaTMD',numberofTMD,'LowerBound',0.05,'UpperBound',0.25); %阻尼比
+% fTMD =optimvar('fTMD',numberofTMD,'LowerBound',0.7,'UpperBound',1.5); %频率
+% mTMD =optimvar('mTMD',numberofTMD,'LowerBound',0.001*mass_six_span,'UpperBound',0.015*mass_six_span); %质量
+% xTMD = optimvar('xTMD', numberofTMD,'LowerBound', 0, 'UpperBound', 660); %TMD所安装的节点
+% calmodes_all=3;
+% % options = optimoptions('particleswarm',Display='iter',PlotFcn='pswplotbestf');
+% options = optimoptions('particleswarm',Display='iter',PlotFcn='pswplotbestf',UseParallel=true);
+% % options = optimoptions('ga', 'Display', 'iter', 'PlotFcn', {'gaplotscorediversity', 'gaplotbestf', 'gaplotrange'}, 'UseParallel', true);
+
+% Optim_Damping_for_n_foces_n_modes(mode_numbers,1,1,0.01,8.3,50,3)
+% [minDamping_allmodes,~] = fcn2optimexpr(@Optim_Damping_for_n_foces_n_modes,mode_numbers,numberofTMD,mTMD,zetaTMD,fTMD,xTMD,calmodes_all);
+
+
+% prob.Objective=minDamping_allmodes;
+% show(prob)
+
+% % x0.zetaTMD = 0.1*ones(numberofTMD,1);
+% % x0.fTMD = 0.82*ones(numberofTMD,1);
+% % x0.mTMD = 0.015*mass_six_span*ones(numberofTMD,1);
+% % x0.xTMD = 0.1*ones(numberofTMD,1);
+
+% [sol, optval] = solve(prob,'Solver','particleswarm','Options',options);
+
+% val = evaluate(prob.Objective,sol);
+% disp(val)
+
+% strmdoes=(num2str(calmodes_all));
+% strmdoes=strjoin(strsplit(strmdoes),'_');
+
+% forcemdoes=(num2str(mode_numbers));
+% forcemdoes=strjoin(strsplit(forcemdoes),'_');
+
+
+% str="save opt_"+num2str(numberofTMD)+"TMD_"+strmdoes+"modes_forcemodes_"+forcemdoes+".mat";
+% eval(str)
+% save opt_3tmds_3modes
+end
+
+
+
+%% 所用到的函数
+function tf = xconstraint(x)
+    totalmass=x.mTMD1+x.mTMD2+x.mTMD3;
+    mu=0.015;
+    mass_six_span = 10007779.7;
+    tf = totalmass<=mu*mass_six_span & totalmass>=mu*0.95*mass_six_span;
+end
