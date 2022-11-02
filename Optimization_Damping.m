@@ -2,7 +2,7 @@
 %Author: xushengyichn 54436848+xushengyichn@users.noreply.github.com
 %Date: 2022-10-14 11:41:51
 %LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
-%LastEditTime: 2022-10-31 11:35:58
+%LastEditTime: 2022-11-02 20:00:57
 %FilePath: \NonlinearScanlan\Optimization_Damping.m
 %Description: 直接计算安装TMD后的阻尼比
 %
@@ -679,7 +679,7 @@ load opt_3TMD_3modes_forcemodes_1_2_3.mat
 mode_numbers=[1 2 3];
 numberofTMD=3;
 mTMD=sol.mTMD;
-mTMD=ones(3,1)*mTMD(1)*1;
+% mTMD=ones(3,1)*mTMD(2);
 zetaTMD=sol.zetaTMD;
 fTMD=sol.fTMD;
 xTMD=sol.xTMD;
@@ -713,11 +713,41 @@ scatter(xTMD,phi_result)
 damping_mode1=result.resultall_modes.result1.result1.Mode.("Damping ratio")
 damping_mode2=result.resultall_modes.result2.result1.Mode.("Damping ratio")
 damping_mode3=result.resultall_modes.result3.result1.Mode.("Damping ratio")
-
+% 
+% bardata2=[damping_mode1([1 3 4]) damping_mode2([1 3 4]) damping_mode3([1 3 4])]
+% bardata2=bardata2';
 bardata=[damping_mode1 damping_mode2 damping_mode3]
 bardata=bardata'
 figure
 bar(bardata)
+% bar(bardata2)
+struct2table(sol)
+
+
+mode_numbers=[1 2 3];
+numberofTMD=2;
+mTMD=sol.mTMD;
+mTMD(1)=[];
+zetaTMD=sol.zetaTMD;
+zetaTMD(1)=[];
+fTMD=sol.fTMD;
+fTMD(1)=[];
+xTMD=sol.xTMD;
+xTMD(1)=[];
+calmodes_all=3;
+[minDamping_allmodes,result]=Optim_Damping_for_n_foces_n_modes(mode_numbers,numberofTMD,mTMD,zetaTMD,fTMD,xTMD,calmodes_all);
+
+damping_mode1=result.resultall_modes.result1.result1.Mode.("Damping ratio")
+damping_mode2=result.resultall_modes.result2.result1.Mode.("Damping ratio")
+damping_mode3=result.resultall_modes.result3.result1.Mode.("Damping ratio")
+
+% bardata=[damping_mode1 damping_mode2 damping_mode3]
+% bardata=bardata'
+% figure
+% bar(bardata)
+% % bar(bardata2)
+% struct2table(sol)
+
 
 
 %% 优化问题(3模态3个TMD)-修改为贝叶斯优化
