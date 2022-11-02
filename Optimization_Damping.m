@@ -2,7 +2,7 @@
 %Author: xushengyichn 54436848+xushengyichn@users.noreply.github.com
 %Date: 2022-10-14 11:41:51
 %LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
-%LastEditTime: 2022-10-26 17:57:22
+%LastEditTime: 2022-10-31 11:35:58
 %FilePath: \NonlinearScanlan\Optimization_Damping.m
 %Description: 直接计算安装TMD后的阻尼比
 %
@@ -516,8 +516,107 @@ sepresultcombine_zetaTMD=[sepresult.sol1.zetaTMD sepresult.sol2.zetaTMD sepresul
 
 [~,resultall]=Optim_Damping_for_1_mode(3,sepresultcombine_mTMD,sepresultcombine_zetaTMD,sepresultcombine_fTMD,sepresultcombine_xTMD,[1 2 3]);
 
+%% 穷举问题(阻尼、频率、位置)三模态三TMD
+if 1
+    clc
+    clear 
+    close all
+mode_numbers=[1 2 3];%气动力施加的模态，输入n个数，表示分别计算n阶模态
+numberofTMD=3;
+mass_six_span = 10007779.7;
+zetaTMDs=0.05:0.1:0.25;
+fTMDs=0.7:0.1:1;
+mTMDs=0.01*mass_six_span:0.005*mass_six_span:0.015*mass_six_span;
+xTMDs=50:20:330;
+[zetaTMDs_M1,zetaTMDs_M2,zetaTMDs_M3,fTMDs_M1,fTMDs_M2,fTMDs_M3,mTMDs_M1,mTMDs_M2,mTMDs_M3,xTMDs_M1,xTMDs_M2,xTMDs_M3]=ndgrid(zetaTMDs,zetaTMDs,zetaTMDs,fTMDs,fTMDs,fTMDs,mTMDs,mTMDs,mTMDs,xTMDs,xTMDs,xTMDs);
+% [zetaTMDs_M,fTMDs_M,xTMDs_M]=ndgrid(zetaTMDs,zetaTMDs,zetaTMDs,fTMDs,fTMDs,fTMDs,mTMDs,mTMDs,mTMDs);
+variables = [zetaTMDs_M1(:),zetaTMDs_M2(:),zetaTMDs_M3(:),fTMDs_M1(:),fTMDs_M2(:),fTMDs_M3(:),mTMDs_M1(:),mTMDs_M2(:),mTMDs_M3(:),xTMDs_M1(:),xTMDs_M2(:),xTMDs_M3(:)];
+clear zetaTMDs_M1 zetaTMDs_M2 zetaTMDs_M3 fTMDs_M1 fTMDs_M2 fTMDs_M3 mTMDs_M1 mTMDs_M2 mTMDs_M3 xTMDs_M1 xTMDs_M2 xTMDs_M3
+mTMD_case=variables(:,7:9);
+xTMD_case=variables(:,10:12);
+fTMD_case=variables(:,4:6);
+zetaTMD_case=variables(:,1:3);
 
-%% 优化问题(3模态3个TMD)
+numIterations=size(variables,1);
+clear variables
+% ppm = ParforProgressbar(numIterations,'showWorkerProgress',true,'progressBarUpdatePeriod',3,'title','my fancy title'); 
+% ppm = ParforProgressbar(size(variables,1));
+% parfor k1 = 1:numIterations
+for k1 = 1:numIterations
+    zetaTMD=zetaTMD_case(k1,:);
+    fTMD=fTMD_case(k1,:);
+    xTMD=xTMD_case(k1,:);
+    mTMD=mTMD_case(k1,:);
+    tic
+    [minDampingRatio]=Optim_Damping_for_n_foces_n_modes(mode_numbers,numberofTMD,mTMD,zetaTMD,fTMD,xTMD,3);
+    toc
+    res(k1)=minDampingRatio;
+%     disp(res)
+%     pause(100/numIterations);
+%     ppm.increment();
+end
+end
+%% 优化问题(3模态3个TMD)-修改为遗传算法
+clc
+clear 
+close all
+if 1
+mode_numbers=[1 2 3];%气动力施加的模态，输入n个数，表示分别计算n阶模态
+numberofTMD=3;
+mass_six_span = 10007779.7;
+prob = optimproblem('Description','Optimize the TMDs','ObjectiveSense','maximize'); %优化为最优阻尼比
+zetaTMD =optimvar('zetaTMD',numberofTMD,'LowerBound',0.05,'UpperBound',0.25); %阻尼比
+fTMD =optimvar('fTMD',numberofTMD,'LowerBound',0.7,'UpperBound',1.5); %频率
+mTMD =optimvar('mTMD',numberofTMD,'LowerBound',0.001*mass_six_span,'UpperBound',0.015*mass_six_span); %质量
+xTMD = optimvar('xTMD', numberofTMD,'LowerBound', 0, 'UpperBound', 660); %TMD所安装的节点
+calmodes_all=3;
+% options = optimoptions('particleswarm',Display='iter',PlotFcn='pswplotbestf');
+% options = optimoptions('particleswarm',Display='iter',PlotFcn='pswplotbestf',UseParallel=true);
+options = optimoptions('ga', 'Display', 'iter', 'PlotFcn', {'gaplotscorediversity', 'gaplotbestf', 'gaplotrange'}, 'UseParallel', true);
+
+% Optim_Damping_for_n_foces_n_modes(mode_numbers,1,1,0.01,8.3,50,3)
+[minDamping_allmodes,~] = fcn2optimexpr(@Optim_Damping_for_n_foces_n_modes,mode_numbers,numberofTMD,mTMD,zetaTMD,fTMD,xTMD,calmodes_all);
+
+prob.Objective=minDamping_allmodes;
+
+msum = sum(mTMD) == mass_six_span*0.015*numberofTMD;
+prob.Constraints.msum = msum;
+
+show(prob)
+
+
+
+% x0.zetaTMD = 0.1*ones(numberofTMD,1);
+% x0.fTMD = 0.82*ones(numberofTMD,1);
+% x0.mTMD = 0.015*mass_six_span*ones(numberofTMD,1);
+% x0.xTMD = 0.1*ones(numberofTMD,1);
+
+x0.zetaTMD = [0.1393;0.2499;0.2421];
+x0.fTMD = [0.9243;0.8083;0.8408];
+x0.mTMD = [1.4940e+05;1.4945e+05;1.4767e+05];
+x0.xTMD = [585.7109;604.3878;55.9359];
+
+[sol, optval] = solve(prob,x0,'Solver','ga','Options',options);
+
+val = evaluate(prob.Objective,sol);
+disp(val)
+
+strmdoes=(num2str(calmodes_all));
+strmdoes=strjoin(strsplit(strmdoes),'_');
+
+forcemdoes=(num2str(mode_numbers));
+forcemdoes=strjoin(strsplit(forcemdoes),'_');
+
+d = datetime("now");
+fmt = "yyyyMMdd_hhmmss_";
+locale = "fr_FR";
+strtime = string(d,fmt,locale);
+
+str="save ga_opt_"+strtime+num2str(numberofTMD)+"TMD_"+strmdoes+"modes_forcemodes_"+forcemdoes+".mat";
+eval(str)
+% save opt_3tmds_3modes
+end
+%% 优化问题(3模态3个TMD)-粒子群
 clc
 clear 
 close all
@@ -535,7 +634,7 @@ calmodes_all=3;
 options = optimoptions('particleswarm',Display='iter',PlotFcn='pswplotbestf',UseParallel=true);
 % options = optimoptions('ga', 'Display', 'iter', 'PlotFcn', {'gaplotscorediversity', 'gaplotbestf', 'gaplotrange'}, 'UseParallel', true);
 
-Optim_Damping_for_n_foces_n_modes(mode_numbers,1,1,0.01,8.3,50,3)
+% Optim_Damping_for_n_foces_n_modes(mode_numbers,1,1,0.01,8.3,50,3)
 [minDamping_allmodes,~] = fcn2optimexpr(@Optim_Damping_for_n_foces_n_modes,mode_numbers,numberofTMD,mTMD,zetaTMD,fTMD,xTMD,calmodes_all);
 
 
@@ -558,11 +657,17 @@ strmdoes=strjoin(strsplit(strmdoes),'_');
 forcemdoes=(num2str(mode_numbers));
 forcemdoes=strjoin(strsplit(forcemdoes),'_');
 
+d = datetime("now");
+fmt = "yyyyMMdd_hhmmss_";
+locale = "fr_FR";
+strtime = string(d,fmt,locale);
 
-str="save opt_"+num2str(numberofTMD)+"TMD_"+strmdoes+"modes_forcemodes_"+forcemdoes+".mat";
+str="save opt_"+strtime+num2str(numberofTMD)+"TMD_"+strmdoes+"modes_forcemodes_"+forcemdoes+".mat";
 eval(str)
 % save opt_3tmds_3modes
 end
+
+
 
 %% 数据分析
 
