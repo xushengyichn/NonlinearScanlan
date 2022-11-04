@@ -564,23 +564,24 @@ if 1
 mode_numbers=[1 2 3];%气动力施加的模态，输入n个数，表示分别计算n阶模态
 numberofTMD=3;
 mass_six_span = 10007779.7;
+mu=0.02;
 prob = optimproblem('Description','Optimize the TMDs','ObjectiveSense','maximize'); %优化为最优阻尼比
 zetaTMD =optimvar('zetaTMD',numberofTMD,'LowerBound',0.05,'UpperBound',0.25); %阻尼比
 fTMD =optimvar('fTMD',numberofTMD,'LowerBound',0.7,'UpperBound',1.5); %频率
-mTMD =optimvar('mTMD',numberofTMD,'LowerBound',0.001*mass_six_span,'UpperBound',0.015*mass_six_span); %质量
+mTMD =optimvar('mTMD',numberofTMD-1,'LowerBound',0.001*mass_six_span,'UpperBound',0.015*mass_six_span); %质量
 xTMD = optimvar('xTMD', numberofTMD,'LowerBound', 0, 'UpperBound', 660); %TMD所安装的节点
 calmodes_all=3;
 % options = optimoptions('particleswarm',Display='iter',PlotFcn='pswplotbestf');
 % options = optimoptions('particleswarm',Display='iter',PlotFcn='pswplotbestf',UseParallel=true);
-options = optimoptions('ga', 'Display', 'iter', 'PlotFcn', {'gaplotscorediversity', 'gaplotbestf', 'gaplotrange'}, 'UseParallel', true);
+options = optimoptions('ga', 'Display', 'iter', 'PlotFcn', {'gaplotscorediversity', 'gaplotbestf', 'gaplotrange'}, 'UseParallel', false);
 
 % Optim_Damping_for_n_foces_n_modes(mode_numbers,1,1,0.01,8.3,50,3)
-[minDamping_allmodes,~] = fcn2optimexpr(@Optim_Damping_for_n_foces_n_modes,mode_numbers,numberofTMD,mTMD,zetaTMD,fTMD,xTMD,calmodes_all);
+[minDamping_allmodes,~] = fcn2optimexpr(@Optim_Damping_for_n_foces_n_modes,mode_numbers,numberofTMD,mTMD,zetaTMD,fTMD,xTMD,calmodes_all,mu);
 
 prob.Objective=minDamping_allmodes;
 
-msum = sum(mTMD) == mass_six_span*0.015*numberofTMD;
-prob.Constraints.msum = msum;
+% msum = sum(mTMD) == mass_six_span*0.015*numberofTMD;
+% prob.Constraints.msum = msum;
 
 show(prob)
 
@@ -593,7 +594,7 @@ show(prob)
 
 x0.zetaTMD = [0.1393;0.2499;0.2421];
 x0.fTMD = [0.9243;0.8083;0.8408];
-x0.mTMD = [1.4940e+05;1.4945e+05;1.4767e+05];
+x0.mTMD = [1.4940e+05;1.4945e+05];
 x0.xTMD = [585.7109;604.3878;55.9359];
 
 [sol, optval] = solve(prob,x0,'Solver','ga','Options',options);
@@ -624,18 +625,19 @@ if 1
 mode_numbers=[1 2 3];%气动力施加的模态，输入n个数，表示分别计算n阶模态
 numberofTMD=3;
 mass_six_span = 10007779.7;
+mu=0.02;
 prob = optimproblem('Description','Optimize the TMDs','ObjectiveSense','maximize'); %优化为最优阻尼比
 zetaTMD =optimvar('zetaTMD',numberofTMD,'LowerBound',0.05,'UpperBound',0.25); %阻尼比
 fTMD =optimvar('fTMD',numberofTMD,'LowerBound',0.7,'UpperBound',1.5); %频率
-mTMD =optimvar('mTMD',numberofTMD,'LowerBound',0.001*mass_six_span,'UpperBound',0.015*mass_six_span); %质量
+mTMD =optimvar('mTMD',numberofTMD-1,'LowerBound',0.001*mass_six_span,'UpperBound',0.015*mass_six_span); %质量
 xTMD = optimvar('xTMD', numberofTMD,'LowerBound', 0, 'UpperBound', 660); %TMD所安装的节点
 calmodes_all=3;
 % options = optimoptions('particleswarm',Display='iter',PlotFcn='pswplotbestf');
-options = optimoptions('particleswarm',Display='iter',PlotFcn='pswplotbestf',UseParallel=true);
+options = optimoptions('particleswarm',Display='iter',PlotFcn='pswplotbestf',UseParallel=true,SwarmSize=500);
 % options = optimoptions('ga', 'Display', 'iter', 'PlotFcn', {'gaplotscorediversity', 'gaplotbestf', 'gaplotrange'}, 'UseParallel', true);
 
 % Optim_Damping_for_n_foces_n_modes(mode_numbers,1,1,0.01,8.3,50,3)
-[minDamping_allmodes,~] = fcn2optimexpr(@Optim_Damping_for_n_foces_n_modes,mode_numbers,numberofTMD,mTMD,zetaTMD,fTMD,xTMD,calmodes_all);
+[minDamping_allmodes,~] = fcn2optimexpr(@Optim_Damping_for_n_foces_n_modes,mode_numbers,numberofTMD,mTMD,zetaTMD,fTMD,xTMD,calmodes_all,mu);
 
 
 prob.Objective=minDamping_allmodes;
@@ -758,10 +760,10 @@ if 1
 mode_numbers=[1 2 3];%气动力施加的模态，输入n个数，表示分别计算n阶模态
 numberofTMD=3;
 mass_six_span = 10007779.7;
-mu=0.015;
+mu=0.02;
 mTMD1 = optimizableVariable('mTMD1',[0.001*mass_six_span 0.015*mass_six_span],'Type','real'); %质量
 mTMD2 = optimizableVariable('mTMD2',[0.001*mass_six_span 0.015*mass_six_span],'Type','real'); %质量
-mTMD3 = optimizableVariable('mTMD3',[0.001*mass_six_span 0.015*mass_six_span],'Type','real'); %质量
+% mTMD3 = optimizableVariable('mTMD3',[0.001*mass_six_span 0.015*mass_six_span],'Type','real'); %质量
 zetaTMD1 = optimizableVariable('zetaTMD1',[0.05 0.25],'Type','real'); %阻尼比
 zetaTMD2 = optimizableVariable('zetaTMD2',[0.05 0.25],'Type','real'); %阻尼比
 zetaTMD3 = optimizableVariable('zetaTMD3',[0.05 0.25],'Type','real'); %阻尼比
@@ -777,9 +779,9 @@ calmodes_all=3;
 % fTMD=[fTMD1 fTMD2 fTMD3];
 % xTMD=[xTMD1 xTMD2 xTMD3];
 
-fun=@(x)Optim_Damping_for_n_foces_n_modes_bayesopt(mode_numbers,numberofTMD,x.mTMD1,x.mTMD2,x.mTMD3,x.zetaTMD1,x.zetaTMD2,x.zetaTMD3,x.fTMD1,x.fTMD2,x.fTMD3,x.xTMD1,x.xTMD2,x.xTMD3,calmodes_all);
+fun=@(x)Optim_Damping_for_n_foces_n_modes_bayesopt(mode_numbers,numberofTMD,x.mTMD1,x.mTMD2,x.zetaTMD1,x.zetaTMD2,x.zetaTMD3,x.fTMD1,x.fTMD2,x.fTMD3,x.xTMD1,x.xTMD2,x.xTMD3,calmodes_all,mu);
 % fun2=@(X)xconstraint(X,mu,mass_six_span);
-results = bayesopt(fun,[mTMD1 mTMD2 mTMD3 zetaTMD1 zetaTMD2 zetaTMD3 fTMD1 fTMD2 fTMD3 xTMD1 xTMD2 xTMD3],'XConstraintFcn',@xconstraint,'AcquisitionFunctionName','expected-improvement-plus','MaxObjectiveEvaluations',100,'UseParallel',true);
+results = bayesopt(fun,[mTMD1 mTMD2 zetaTMD1 zetaTMD2 zetaTMD3 fTMD1 fTMD2 fTMD3 xTMD1 xTMD2 xTMD3],'AcquisitionFunctionName','expected-improvement-plus','MaxObjectiveEvaluations',10000,'UseParallel',true);
 
 
 
@@ -825,11 +827,11 @@ results = bayesopt(fun,[mTMD1 mTMD2 mTMD3 zetaTMD1 zetaTMD2 zetaTMD3 fTMD1 fTMD2
 end
 
 
-
-%% 所用到的函数
-function tf = xconstraint(x)
-    totalmass=x.mTMD1+x.mTMD2+x.mTMD3;
-    mu=0.015;
-    mass_six_span = 10007779.7;
-    tf = totalmass<=mu*mass_six_span & totalmass>=mu*0.95*mass_six_span;
-end
+% 
+% %% 所用到的函数
+% function tf = xconstraint(x)
+%     totalmass=x.mTMD1+x.mTMD2+x.mTMD3;
+%     mu=0.015;
+%     mass_six_span = 10007779.7;
+%     tf = totalmass<=mu*mass_six_span & totalmass>=mu*0.95*mass_six_span;
+% end

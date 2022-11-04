@@ -19,7 +19,7 @@ function [minDampingRatio,minDampingRatio_sys,resultall]=Optim_Damping_for_n_mod
         [result]=Compare_n_modes(mode_number,numberofTMD,mTMD,zetaTMD,fTMD,xTMD,calmodes);
         minDamp_sys(k1)=min(result.Mode_sys.("Damping ratio"));
         minDamp_aero(k1)=min(result.Mode.("Damping ratio"));
-        str="resultall.result"+num2str(k1)+"=result";
+        str="resultall.result"+num2str(k1)+"=result;";
         eval(str)
     end
     minDampingRatio=min(minDamp_aero);
