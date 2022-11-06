@@ -2,8 +2,8 @@
 %Author: xushengyichn 54436848+xushengyichn@users.noreply.github.com
 %Date: 2022-10-17 15:52:12
 %LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
-%LastEditTime: 2022-10-17 16:34:15
-%FilePath: \NonlinearScanlan\Optim_Damping_for_n_modes.m
+%LastEditTime: 2022-11-05 13:45:57
+%FilePath: \NonlinearScanlan\Optim_Damping_for_n_foces_n_modes_bayesopt.m
 %Description: 返回优化所需的多阶级模态最小阻尼
 %
 %Copyright (c) 2022 by xushengyichn 54436848+xushengyichn@users.noreply.github.com, All Rights Reserved. 
@@ -19,6 +19,8 @@ function [minDamping_allmodes,result]=Optim_Damping_for_n_foces_n_modes_bayesopt
     if mTMD3<=0
         penalty=1;
          mTMD3=1;
+         mTMD1=1;
+         mTMD2=1;
     else
         penalty=0;
     end
@@ -44,7 +46,7 @@ function [minDamping_allmodes,result]=Optim_Damping_for_n_foces_n_modes_bayesopt
     result.resultall_modes=resultall_modes;
 
     if penalty==1
-        minDamping_allmodes=100;%设置一个非常大的数
+        minDamping_allmodes=-min(mindampingRatio_modes);%设置一个非常大的数
     else
         minDamping_allmodes=-min(mindampingRatio_modes);
     end

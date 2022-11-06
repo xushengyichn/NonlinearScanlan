@@ -2,7 +2,7 @@
 %Author: xushengyichn 54436848+xushengyichn@users.noreply.github.com
 %Date: 2022-10-14 11:41:51
 %LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
-%LastEditTime: 2022-11-02 20:00:57
+%LastEditTime: 2022-11-05 13:38:31
 %FilePath: \NonlinearScanlan\Optimization_Damping.m
 %Description: 直接计算安装TMD后的阻尼比
 %
@@ -781,7 +781,7 @@ calmodes_all=3;
 
 fun=@(x)Optim_Damping_for_n_foces_n_modes_bayesopt(mode_numbers,numberofTMD,x.mTMD1,x.mTMD2,x.zetaTMD1,x.zetaTMD2,x.zetaTMD3,x.fTMD1,x.fTMD2,x.fTMD3,x.xTMD1,x.xTMD2,x.xTMD3,calmodes_all,mu);
 % fun2=@(X)xconstraint(X,mu,mass_six_span);
-results = bayesopt(fun,[mTMD1 mTMD2 zetaTMD1 zetaTMD2 zetaTMD3 fTMD1 fTMD2 fTMD3 xTMD1 xTMD2 xTMD3],'AcquisitionFunctionName','expected-improvement-plus','MaxObjectiveEvaluations',10000,'UseParallel',true);
+results = bayesopt(fun,[mTMD1 mTMD2 zetaTMD1 zetaTMD2 zetaTMD3 fTMD1 fTMD2 fTMD3 xTMD1 xTMD2 xTMD3],'AcquisitionFunctionName','expected-improvement-per-second-plus','ExplorationRatio',0.5,'MaxObjectiveEvaluations',10000,'NumSeedPoints',1000,'UseParallel',true);
 
 
 
