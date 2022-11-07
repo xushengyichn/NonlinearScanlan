@@ -1,8 +1,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Author: xushengyichn 54436848+xushengyichn@users.noreply.github.com
 %Date: 2022-10-17 15:52:12
-%LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
-%LastEditTime: 2022-11-06 15:47:16
+%LastEditors: Shengyi xushengyichn@outlook.com
+%LastEditTime: 2022-11-07 00:28:07
 %FilePath: \20221105bayesopt test\Optim_Damping_for_n_foces_n_modes_bayesopt2.m
 %Description: 返回优化所需的多阶级模态最小阻尼
 %
@@ -13,8 +13,8 @@
 % function [minDamping_allmodes,result]=Optim_Damping_for_n_foces_n_modes_bayesopt(mode_numbers,numberofTMD,xTMD1,calmodes_all,mu)
 function [minDamping_allmodes,result]=Optim_Damping_for_n_foces_n_modes_bayesopt2(mode_numbers,numberofTMD,fTMD1,xTMD1,calmodes_all,mu)
     addpath('../函数/');
-    fTMD1=0.5*fTMD1+0.7;
-    xTMD1=xTMD1*660;
+    % fTMD1=0.5*fTMD1+0.7;
+    % xTMD1=xTMD1*660;
 
     zetaTMD1 = 0.1;
 %     fTMD1 = 0.8339;
