@@ -10,8 +10,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % calmodes_all 考虑结构矩阵的n阶模态，如果n是固定的，输入一个数即可
-% function [minDamping_allmodes,result]=Optim_Damping_for_n_foces_n_modes_bayesopt(mode_numbers,numberofTMD,xTMD1,calmodes_all,mu)
-function [minDamping_allmodes,result]=Optim_Damping_for_n_foces_n_modes_bayesopt(mode_numbers,numberofTMD,mTMD1,xTMD1,calmodes_all,mu)
+function [minDamping_allmodes,result]=Optim_Damping_for_n_foces_n_modes_bayesopt(mode_numbers,numberofTMD,xTMD1,calmodes_all,mu)
+% function [minDamping_allmodes,result]=Optim_Damping_for_n_foces_n_modes_bayesopt(mode_numbers,numberofTMD,mTMD1,xTMD1,calmodes_all,mu)
     zetaTMD1 = 0.1;
     fTMD1 = 0.8339;
 
@@ -19,7 +19,7 @@ function [minDamping_allmodes,result]=Optim_Damping_for_n_foces_n_modes_bayesopt
     massallTMD=mass_six_span*mu;
 
 
-%     mTMD1=massallTMD;
+    mTMD1=massallTMD;
     mTMD=mTMD1;
     zetaTMD=zetaTMD1;
     fTMD=fTMD1;
