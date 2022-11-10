@@ -1,9 +1,9 @@
 '''
 Author: xushengyichn 54436848+xushengyichn@users.noreply.github.com
 Date: 2022-11-09 11:47:20
-LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
-LastEditTime: 2022-11-09 16:43:31
-FilePath: \bayesopt_python\optimization_hyperparamter.py
+LastEditors: Shengyi xushengyichn@outlook.com
+LastEditTime: 2022-11-10 01:07:47
+FilePath: \20221105bayesopt test\bayesopt_python\optimization_hyperparamter.py
 Description: 测试python高斯过程回归，优化超参数
 
 Copyright (c) 2022 by xushengyichn 54436848+xushengyichn@users.noreply.github.com, All Rights Reserved. 
@@ -18,126 +18,85 @@ from bayes_opt import UtilityFunction
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
+from sklearn.gaussian_process.kernels import Matern
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.model_selection import cross_val_score,KFold,cross_validate
+from sklearn.linear_model import LogisticRegression
+import optuna
 
+# You can use Matplotlib instead of Plotly for visualization by simply replacing `optuna.visualization` with
+# `optuna.visualization.matplotlib` in the following examples.
+from optuna.visualization import plot_contour
+from optuna.visualization import plot_edf
+from optuna.visualization import plot_intermediate_values
+from optuna.visualization import plot_optimization_history
+from optuna.visualization import plot_parallel_coordinate
+from optuna.visualization import plot_param_importances
+from optuna.visualization import plot_slice
 
-def objective():
-    #评估器
-    reg=BayesianOptimization(
-    
+#%% 1. 定义函数
+def objective(mu,kappa,alpha,init_points,n_iter):
+    #评估器 
+    eng = matlab.engine.start_matlab()
+    def black_box_function(x, y):
+        z = eng.ras(x, y)
+        return z
+    optimizer = BayesianOptimization(
+        f=black_box_function,
+        pbounds={"x": (-2, 2), "y": (-2, 2)},
+        verbose=2,  # verbose = 1 prints only when a maximum is observed, verbose = 0 is silent
+        random_state=1,
+    )
+    optimizer.maximize(
+        init_points=init_points,
+        n_iter=n_iter,
+        acq="ucb", 
+        kappa=kappa,
+        # What follows are GP regressor parameters
+        kernel=Matern(nu=mu),
+        alpha=alpha,
+        normalize_y=True,
+        n_restarts_optimizer=5,
+    )
+    res = optimizer.res
+    x_ = np.array([r["params"]['x'] for r in res])
+    y_ = np.array([r["params"]['y'] for r in res])
+    z_ = np.array([r["target"] for r in res])
+    xy_ = [x_,y_]
+    xy_=np.transpose(xy_)
+    xy_=np.asarray(xy_)
+    X_, Y_ = np.meshgrid(x_, y_)
+    Z_est = optimizer._gp.predict(xy_)
     #交叉验证
-    cv=Kfold(n_splits=5,shuffle=True,random_state=1)
-    cross_validate(reg,X,y,cv)
-    
+    cv=KFold(n_splits=5,shuffle=True,random_state=0)
+    result=cross_val_score(optimizer._gp,xy_,z_,cv=cv,scoring='neg_mean_squared_error')
+    # loss=result["test_rmse"] 
     #交叉验证的结果
-    loss=result["test_rmse"]
+    loss=np.mean(result)    
+    return loss
     
+
+#%% 2. 调用函数
+mu=2.5
+kappa=2.576
+alpha=1e-6
+init_points=100
+n_iter=100
+
+loss=objective(mu,kappa,alpha,init_points,n_iter)
+# %% optuna
+def obj(trial):
+    mu = trial.suggest_uniform('mu', 0.5, 2.5)
+    kappa = trial.suggest_uniform('kappa', 0.5, 10)
+    alpha = trial.suggest_uniform('alpha', 1e-10, 1e-2)
+    init_points = trial.suggest_int('init_points', 10, 1000)
+    n_iter = trial.suggest_int('n_iter', 10, 1000)
+    loss = objective(mu,kappa,alpha,init_points,n_iter)
     return loss
 
+study = optuna.create_study(direction='maximize')
+study.optimize(obj, n_trials=500)
 
-#%% 2. 定义函数
-eng = matlab.engine.start_matlab()
-def black_box_function(x, y):
-    z = eng.ras(x, y)
-    return z
-
-#%% 3. 定义优化器
-optimizer = BayesianOptimization(
-    f=black_box_function,
-    pbounds={"x": (-2, 2), "y": (-2, 2)},
-    verbose=2,  # verbose = 1 prints only when a maximum is observed, verbose = 0 is silent
-    random_state=1,
-)
-
-optimizer.maximize(
-    init_points=50,
-    n_iter=50,
-    acq="ucb", 
-    kappa=2.576,
-    # What follows are GP regressor parameters
-    alpha=1e-2,
-    n_restarts_optimizer=5,
-)
-
-#%% 4. 绘制结果
-# x= np.linspace(-2, 2, 1000).reshape(-1, 1)
-# y= np.linspace(-2, 2, 1000).reshape(-1, 1)
-# xv,yv=np.meshgrid(x,y)
-# all=np.hstack((xv.reshape(-1,1),yv.reshape(-1,1)))
-
-# xx=all[:,0].reshape(-1,1)
-# yy=all[:,1].reshape(-1,1)
-
-# zz=np.zeros((xx.size,1))
-# # ax.scatter(xx, yy)
-# # for k1 in range(xx.size):
-# #     zz[k1]=black_box_function(xx[k1],yy[k1])
-# def target_function(xx, yy):
-#     zz=-(20 + np.square(xx) + np.square(yy) - 10*(np.cos(2*np.pi*xx) + np.cos(2*np.pi*yy)))
-#     return zz
-
-# zz=target_function(xx,yy)
-# # c=-(20 + xx^2 + yy^2 - 10*(np.cos(2*np.pi*xx) + np.cos(2*np.pi*yy)))
-# # z=black_box_function(xx,yy)    
-# # z=black_box_function(xx,yy)
-# # z = black_box_function(x, y)
-# fig = plt.figure(figsize=(12, 12))
-# ax = fig.add_subplot(projection='3d')
-# zz=np.asarray(zz)
-# # plt.scatter(x, z)
-# ax.scatter(xx, yy, zz,c=zz)
-# print("finish")
-
+print(study.best_params)
+print(study.best_value)
 # %%
-
-# %%
-
-
-labels_top = ["target"]  + ["masked target"]
-labels_bot = ["target estimate"] +  ["acqusition function"]
-labels = [labels_top, labels_bot]
-
-def target_function(xx, yy):
-    zz=-(20 + np.square(xx) + np.square(yy) - 10*(np.cos(2*np.pi*xx) + np.cos(2*np.pi*yy)))
-    return zz
-
-pbounds = {'x': (-2, 2), 'y': (-2, 2)}
-x = np.linspace(pbounds['x'][0], pbounds['x'][1], 1000)
-y = np.linspace(pbounds['y'][0], pbounds['y'][1], 1000)
-xy = np.array([[x_i, y_j] for y_j in y for x_i in x])
-X, Y = np.meshgrid(x, y)
-# Evaluate the actual functions on the grid
-Z = target_function(X, Y)
-n_plots_per_row=2
-fig, axs = plt.subplots(2, n_plots_per_row, constrained_layout=True, figsize=(12,8))
-for i in range(2):
-    for j in range(n_plots_per_row):
-        axs[i, j].set_aspect("equal")
-        axs[i, j].set_title(labels[i][j])
-    
-
-# Extract & unpack the optimization results
-max_ = optimizer.max
-res = optimizer.res
-x_ = np.array([r["params"]['x'] for r in res])
-y_ = np.array([r["params"]['y'] for r in res])
-
-Z_est = optimizer._gp.predict(xy).reshape(Z.shape)
-target_vbounds = np.min([Z, Z_est]), np.max([Z, Z_est])
-
-axs[0,0].contourf(X, Y, Z, cmap=plt.cm.coolwarm, vmin=target_vbounds[0], vmax=target_vbounds[1])
-axs[1,0].contourf(X, Y, Z_est, cmap=plt.cm.coolwarm, vmin=target_vbounds[0], vmax=target_vbounds[1])
-
-
-
-for i in range(2):
-    for j in range(n_plots_per_row):
-        axs[i,j].scatter(x_, y_, c='white', s=80, edgecolors='black')
-        axs[i,j].scatter(max_["params"]['x'], max_["params"]['y'], s=80, c='green', edgecolors='black')
-
-
-fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
-surf=ax.plot_surface(X, Y, Z, cmap=plt.cm.coolwarm, vmin=target_vbounds[0], vmax=target_vbounds[1])
-
-fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
-surf=ax.plot_surface(X, Y, Z_est, cmap=plt.cm.coolwarm, vmin=target_vbounds[0], vmax=target_vbounds[1])
-

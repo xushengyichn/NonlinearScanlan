@@ -1,9 +1,9 @@
 '''
 Author: xushengyichn 54436848+xushengyichn@users.noreply.github.com
 Date: 2022-11-09 11:47:20
-LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
-LastEditTime: 2022-11-09 20:56:01
-FilePath: \bayesopt_python\optimization.py
+LastEditors: Shengyi xushengyichn@outlook.com
+LastEditTime: 2022-11-10 00:55:48
+FilePath: \20221105bayesopt test\bayesopt_python\optimization.py
 Description: 测试python高斯过程回归
 
 Copyright (c) 2022 by xushengyichn 54436848+xushengyichn@users.noreply.github.com, All Rights Reserved. 
@@ -20,6 +20,9 @@ import matplotlib.pyplot as plt
 from matplotlib import gridspec
 from sklearn.gaussian_process.kernels import Matern
 from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.model_selection import cross_val_score,KFold,cross_validate
+from sklearn.linear_model import LogisticRegression
+
 #%% 2. 定义函数
 eng = matlab.engine.start_matlab()
 def black_box_function(x, y):
@@ -41,6 +44,7 @@ optimizer.maximize(
     kappa=2.576,
     # What follows are GP regressor parameters
     kernel=Matern(nu=2.5),
+    # alpha=1,
     alpha=1e-6,
     normalize_y=True,
     n_restarts_optimizer=5,
@@ -75,7 +79,21 @@ optimizer.maximize(
 # ax.scatter(xx, yy, zz,c=zz)
 # print("finish")
 
-# %%
+# %% 提取计算数据
+res = optimizer.res
+x_ = np.array([r["params"]['x'] for r in res])
+y_ = np.array([r["params"]['y'] for r in res])
+z_ = np.array([r["target"] for r in res])
+xy_ = [x_,y_]
+xy_=np.transpose(xy_)
+xy_=np.asarray(xy_)
+X_, Y_ = np.meshgrid(x_, y_)
+Z_est = optimizer._gp.predict(xy_)
+cv=KFold(n_splits=5,shuffle=True,random_state=0)
+result=cross_val_score(optimizer._gp,xy_,z_,cv=cv,scoring='neg_mean_squared_error')
+# loss=result["test_rmse"]
+loss=np.mean(result)
+
 
 # %%
 
