@@ -2,9 +2,9 @@
 Author: xushengyichn 54436848+xushengyichn@users.noreply.github.com
 Date: 2022-11-09 11:47:20
 LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
-LastEditTime: 2022-11-10 12:28:27
-FilePath: \bayesopt_python\optimization_hyperparamter.py
-Description: 测试python高斯过程回归，优化超参数
+LastEditTime: 2022-11-10 15:48:56
+FilePath: \bayesopt_python\optimization_hyperparamter_database.py
+Description: 测试python高斯过程回归，优化超参数，数据库
 
 Copyright (c) 2022 by xushengyichn 54436848+xushengyichn@users.noreply.github.com, All Rights Reserved. 
 '''
@@ -88,21 +88,43 @@ def objective(mu,kappa,alpha,init_points,n_iter):
 # loss=objective(mu,kappa,alpha,init_points,n_iter)
 # %% optuna
 def obj(trial):
-    mu = trial.suggest_float('mu', 0.5, 2.5)
+    mu_ = trial.suggest_float('mu_', 0.0,2.0,step=1.0)
     kappa = trial.suggest_float('kappa', 0.5, 10)
-    alpha = trial.suggest_float('alpha', 1e-10, 1e-2)
+    alpha = trial.suggest_float('alpha', 1e-10, 1e-2,log=True)
     init_points = 100
     # init_points = trial.suggest_int('init_points', 10, 100)
     n_iter = 100
     # n_iter = trial.suggest_int('n_iter', 10, 100)
+    if mu_==0:
+        mu=0.5
+    elif mu_==1:
+        mu=1.5
+    else:
+        mu=2.5
     loss = objective(mu,kappa,alpha,init_points,n_iter)
     return loss
 
 optuna.logging.get_logger("optuna").addHandler(logging.StreamHandler(sys.stdout))
-
-study = optuna.create_study(direction='maximize')
-study.optimize(obj, n_trials=50)
+study_name = "example-study"  # Unique identifier of the study.
+storage_name = "sqlite:///{}.db".format(study_name)
+study = optuna.create_study(direction='maximize',study_name=study_name, storage=storage_name, load_if_exists=True)
+study.optimize(obj, n_trials=3)
 
 print(study.best_params)
 print(study.best_value)
+# %%
+df = study.trials_dataframe(attrs=("number", "value", "params", "state"))
+print(df)
+print("Best params: ", study.best_params)
+print("Best value: ", study.best_value)
+print("Best Trial: ", study.best_trial)
+print("Trials: ", study.trials)
+
+
+plot_optimization_history(study)
+plot_parallel_coordinate(study)
+
+# plot_parallel_coordinate(study, params=["bagging_freq", "bagging_fraction"])
+plot_contour(study)
+plot_param_importances(study)
 # %%

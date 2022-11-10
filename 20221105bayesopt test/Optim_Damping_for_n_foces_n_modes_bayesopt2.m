@@ -1,8 +1,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Author: xushengyichn 54436848+xushengyichn@users.noreply.github.com
 %Date: 2022-10-17 15:52:12
-%LastEditors: Shengyi xushengyichn@outlook.com
-%LastEditTime: 2022-11-07 00:28:07
+%LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
+%LastEditTime: 2022-11-10 16:08:03
 %FilePath: \20221105bayesopt test\Optim_Damping_for_n_foces_n_modes_bayesopt2.m
 %Description: 返回优化所需的多阶级模态最小阻尼
 %
@@ -46,7 +46,7 @@ function [minDamping_allmodes,result]=Optim_Damping_for_n_foces_n_modes_bayesopt
 %     if penalty==1
 %         minDamping_allmodes=-min(mindampingRatio_modes);%设置一个非常大的数
 %     else
-        minDamping_allmodes=-min(mindampingRatio_modes);
+        minDamping_allmodes=min(mindampingRatio_modes);
 %     end
 
 end
