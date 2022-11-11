@@ -2,7 +2,7 @@
 Author: xushengyichn 54436848+xushengyichn@users.noreply.github.com
 Date: 2022-11-09 11:47:20
 LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
-LastEditTime: 2022-11-10 21:55:30
+LastEditTime: 2022-11-11 15:38:56
 FilePath: \20221105bayesopt test\Damping_Optimization_Gaussian_hyperparamter_database.py
 Description: 测试python高斯过程回归，优化超参数，数据库
 
@@ -36,6 +36,7 @@ from optuna.visualization import plot_optimization_history
 from optuna.visualization import plot_parallel_coordinate
 from optuna.visualization import plot_param_importances
 from optuna.visualization import plot_slice
+import scipy.io
 
 #%% 1. 定义函数
 def objective(mu,kappa,alpha,init_points,n_iter):
@@ -78,22 +79,35 @@ def objective(mu,kappa,alpha,init_points,n_iter):
     X_, Y_ = np.meshgrid(x_, y_)
     Z_est = optimizer._gp.predict(xy_)
     #交叉验证
-    np.random.seed(1)
-    x_randon=np.random.rand(100)
-    y_randon=np.random.rand(100)
-    xy_randon = [x_randon,y_randon]
-    xy_randon=np.transpose(xy_randon)
-    Z_est_randon = optimizer._gp.predict(xy_randon)
-    z_randon=np.zeros((100,1))
-    for k1 in range(xy_randon.shape[0]):
-        z_randon[k1]=black_box_function(xy_[k1,0],xy_[k1,1])
+    # max_loc=z_.argmax()
+    # x_opt_=x_[max_loc]
+    # y_opt_=y_[max_loc]
+    # variable_percent=1/100
+    # np.random.seed(1)
+    # x_randon=x_opt_+(np.random.rand(100)-0.5)*variable_percent
+    # y_randon=y_opt_+(np.random.rand(100)-0.5)*variable_percent
+    # # y_randon=np.random.rand(100)
+    # xy_randon = [x_randon,y_randon]
+    # xy_randon=np.transpose(xy_randon)
+    # Z_est_randon = optimizer._gp.predict(xy_randon)
+    # z_randon=np.zeros((100,1))
+    # for k1 in range(xy_randon.shape[0]):
+    #     z_randon[k1]=black_box_function(xy_[k1,0],xy_[k1,1])
         
-    r2=r2_score(z_randon,Z_est_randon)
-    # cv=KFold(n_splits=5,shuffle=True,random_state=0)
-    # result=cross_val_score(optimizer._gp,xy_,z_,cv=cv,scoring='neg_mean_squared_error',n_jobs=-1,error_score='raise')
-    # # loss=result["test_rmse"] 
-    # #交叉验证的结果
-    # loss=np.mean(result)    
+    # r2=r2_score(z_randon,Z_est_randon)  
+    
+    mat = scipy.io.loadmat('results.mat')
+    cases=mat['cases']
+    results=mat['results']
+    x_cases=(cases[:,0]-0.7)/0.5
+    y_cases=cases[:,1]/660
+    xy_ = [x_cases,y_cases]
+    xy_=np.transpose(xy_)
+    xy_=np.asarray(xy_)
+    Z_est_randon = optimizer._gp.predict(xy_).reshape(-1)
+    z_cal=results.reshape(-1)*-1
+    r2=r2_score(Z_est_randon,z_cal)
+
     loss=r2 
     return loss
     
@@ -111,7 +125,7 @@ def obj(trial):
     mu_ = trial.suggest_float('mu_', 0.0,2.0,step=1.0)
     kappa = trial.suggest_float('kappa', 0.1, 10)
     alpha = trial.suggest_float('alpha', 1e-10, 1e-2,log=True)
-    init_points = 500
+    init_points = 100
     # init_points = trial.suggest_int('init_points', 10, 100)
     n_iter = 100
     # n_iter = trial.suggest_int('n_iter', 10, 100)

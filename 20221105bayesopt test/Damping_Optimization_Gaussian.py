@@ -2,7 +2,7 @@
 Author: xushengyichn 54436848+xushengyichn@users.noreply.github.com
 Date: 2022-11-09 11:47:20
 LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
-LastEditTime: 2022-11-10 21:35:28
+LastEditTime: 2022-11-11 15:35:01
 FilePath: \20221105bayesopt test\Damping_Optimization_Gaussian.py
 Description: 测试python高斯过程回归
 
@@ -10,6 +10,8 @@ Copyright (c) 2022 by xushengyichn 54436848+xushengyichn@users.noreply.github.co
 '''
 
 #%% 1. 导入库
+from IPython import get_ipython
+get_ipython().run_line_magic('matplotlib', 'qt')
 import time
 import matlab
 import matlab.engine
@@ -23,6 +25,8 @@ from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.model_selection import cross_val_score,KFold,cross_validate
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import r2_score
+import scipy.io
+from scipy.io import savemat
 
 
 #%% 2. 定义函数
@@ -49,10 +53,10 @@ optimizer.maximize(
     init_points=100,
     n_iter=100,
     acq="ucb", 
-    kappa=0.5112018360898254,
+    # kappa=0.5112018360898254,
     # What follows are GP regressor parameters
-    kernel=Matern(nu=0.5),
-    alpha=3.554704749334242e-05,
+    # kernel=Matern(nu=0.5),
+    # alpha=3.554704749334242e-05,
     # alpha=1e-5,
     # normalize_y=True,
     # n_restarts_optimizer=5,
@@ -102,17 +106,37 @@ Z_est = optimizer._gp.predict(xy_)
 # # loss=result["test_rmse"]
 # loss=np.mean(result)
 #交叉验证
-np.random.seed(1)
-x_randon=np.random.rand(100)
-y_randon=np.random.rand(100)
-xy_randon = [x_randon,y_randon]
-xy_randon=np.transpose(xy_randon)
-Z_est_randon = optimizer._gp.predict(xy_randon)
-z_randon=np.zeros((100,1))
-for k1 in range(xy_randon.shape[0]):
-    z_randon[k1]=black_box_function(xy_[k1,0],xy_[k1,1])
+
+mat = scipy.io.loadmat('results.mat')
+cases=mat['cases']
+results=mat['results']
+x_cases=(cases[:,0]-0.7)/0.5
+y_cases=cases[:,1]/660
+xy_ = [x_cases,y_cases]
+xy_=np.transpose(xy_)
+xy_=np.asarray(xy_)
+Z_est_randon = optimizer._gp.predict(xy_).reshape(-1)
+z_cal=results.reshape(-1)*-1
+r2=r2_score(Z_est_randon,z_cal)
+
+# max_loc=z_.argmax()
+# x_opt_=x_[max_loc]
+# y_opt_=y_[max_loc]
+# variable_percent=1/100
+# np.random.seed(1)
+# x_randon=x_opt_+(np.random.rand(100)-0.5)*variable_percent
+# y_randon=y_opt_+(np.random.rand(100)-0.5)*variable_percent
+# # y_randon=np.random.rand(100)
+# xy_randon = [x_randon,y_randon]
+# xy_randon=np.transpose(xy_randon)
+# Z_est_randon = optimizer._gp.predict(xy_randon)
+# z_randon=np.zeros((100,1))
+# for k1 in range(xy_randon.shape[0]):
+#     z_randon[k1]=black_box_function(xy_[k1,0],xy_[k1,1])
     
-r2=r2_score(z_randon,Z_est_randon)
+# Z_est_randon=Z_est_randon.reshape(-1,1)
+# z_randon=z_randon.reshape(-1,1)   
+# r2=r2_score(z_randon,Z_est_randon)
 
 
 # %%
@@ -169,6 +193,8 @@ z_max=np.max(z_)
 
 target_vbounds = np.min([Z_est_min, z_min]), np.max([Z_est_max, z_max])
 
+
+# %%
 fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
 surf=ax.scatter(x_, y_, z_,c='white', s=80, edgecolors='black', vmin=target_vbounds[0], vmax=target_vbounds[1])
 
@@ -176,6 +202,27 @@ surf=ax.scatter(x_, y_, z_,c='white', s=80, edgecolors='black', vmin=target_vbou
 
 fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
 surf2=ax.plot_surface(X, Y, Z_est,cmap=plt.cm.coolwarm, vmin=target_vbounds[0], vmax=target_vbounds[1])
+
+# %%
+
+
+fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
+ax.scatter(cases[:,0],cases[:,1],results[:,0]*-1,c=results[:,0],alpha=0.5)
+
+surf2=ax.plot_surface(X*0.5+0.7, Y*660, Z_est,cmap=plt.cm.coolwarm, vmin=target_vbounds[0], vmax=target_vbounds[1],alpha=0.5)
+
+plt.show()
+
+
+# %%
+
+# z_cal=z_cal.reshape(-1)
+# Z_est_randon=Z_est_randon.reshape(-1)
+plt.figure()
+plt.scatter(z_cal,Z_est_randon,color='b',s= 0.5)
+# plt.scatter(z_cal,Z_est_randon,color='b',s= 0.5)
+np.savetxt("z_cal.txt",z_cal)
+np.savetxt("Z_est_randon.txt",Z_est_randon)
 
 
 # %%
