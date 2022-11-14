@@ -2,7 +2,7 @@
 %Author: xushengyichn 54436848+xushengyichn@users.noreply.github.com
 %Date: 2022-09-26 19:35:04
 %LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
-%LastEditTime: 2022-10-07 12:20:54
+%LastEditTime: 2022-11-14 14:29:23
 %FilePath: \NonlinearScanlan\CalData_Polynomial_withTMD_multidegree.m
 %Description: 计算多模态，施加某一阶模态多项式气动力模型后的响应，考虑TMD，通过干预大小振幅情况下的阻尼比，使得动力计算无需分段
 %
@@ -272,10 +272,10 @@ phiTMD = zeros(nTMD, nModes);
 for t1 = 1:nTMD
 
     for t2 = 1:nModes
-        [~,index]=sort(abs(nodegap-xTMD));%查找与xTMD最接近的点的排序
+        [~,index]=sort(abs(nodegap-xTMD(t1)));%查找与xTMD最接近的点的排序
         xResult=nodegap(index(1:2));%获取最接近的两个点的x坐标
         mode2nodes=mode(index(1:2),1:nModes);%获取两个点坐标的y值
-        phi_result=interp1(xResult,mode2nodes,xTMD,'linear','extrap');%插值以后任意点的振型
+        phi_result=interp1(xResult,mode2nodes,xTMD(t1),'linear','extrap');%插值以后任意点的振型
 %         disp(phi_result)
         phiTMD(t1, t2) = phi_result(t2);
 
@@ -498,7 +498,7 @@ else
     Fren_vibration_withwind = my_table.down_Fren_vibration_withwind(isexist);
     F0 = my_table.down_Fre_vibration(isexist); % Frequency without wind
     Zeta0 = my_table.down_dltx_zeta0(isexist); % damping ratio without wind
-    ReducedFrequency =  my_table.down_ReducedFre(isexist); % 折减频率
+    ReducedFrequency = my_table.down_ReducedFre(isexist); % 折减频率
 end
 
 d1=m_modal(mode_number)*a1/m_exp;
