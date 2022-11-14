@@ -2,9 +2,9 @@
 %Author: xushengyichn 54436848+xushengyichn@users.noreply.github.com
 %Date: 2022-10-15 21:56:39
 %LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
-%LastEditTime: 2022-11-14 23:08:18
-%FilePath: \NonlinearScanlan\20221114一阶模态二TMD结果穷举\Cal_Dis_onemode_twoTMD.m
-%Description: 计算一阶模态，两个TMD的影响
+%LastEditTime: 2022-11-14 23:07:46
+%FilePath: \NonlinearScanlan\20221114一阶模态二TMD结果穷举\Cal_Dis_onemode_twoTMD_zeta_fre_loc_three_parameters.m
+%Description: 计算一阶模态，两个TMD的影响，穷举阻尼频率和位置
 %
 %Copyright (c) 2022 by xushengyichn 54436848+xushengyichn@users.noreply.github.com, All Rights Reserved.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -32,6 +32,7 @@ zetaTMD1 = sqrt(3*mu/8/(1+mu));
 
 xTMD2_all=0:1:660;
 fTMD2_all=fTMD1*0.8:0.01:fTMD1*1.2;
+zetaTMD2_all=zetaTMD1*0.5:0.01:zetaTMD1*3;
 
 [XTMD2_all,FTMD2_all]=ndgrid(xTMD2_all,fTMD2_all);
 variables = [XTMD2_all(:),FTMD2_all(:)];
