@@ -2,7 +2,7 @@
 %Author: xushengyichn 54436848+xushengyichn@users.noreply.github.com
 %Date: 2022-10-15 21:56:39
 %LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
-%LastEditTime: 2022-11-14 23:08:18
+%LastEditTime: 2022-11-15 00:00:33
 %FilePath: \NonlinearScanlan\20221114一阶模态二TMD结果穷举\Cal_Dis_onemode_twoTMD.m
 %Description: 计算一阶模态，两个TMD的影响
 %
@@ -174,13 +174,14 @@ end
 onemode_twotmd_results=[variables onemode_twotmd_dis];
 
 
+
 [XTMD_all,FTMD2_all]=ndgrid(xTMD2_all,fTMD2_all);
 variables = [XTMD_all(:),FTMD2_all(:)];
-bridge_dis_grid=griddata(variables(:,1),variables(:,2),onemode_twotmd_dis(:,1),xTMD2_all,FTMD2_all);
-TMD1_dis_grid=griddata(variables(:,1),variables(:,2),onemode_twotmd_dis(:,2),xTMD2_all,FTMD2_all);
-TMD2_dis_grid=griddata(variables(:,1),variables(:,2),onemode_twotmd_dis(:,3),xTMD2_all,FTMD2_all);
+bridge_dis_grid=griddata(variables(:,1),variables(:,2),onemode_twotmd_dis(:,1),XTMD2_all,FTMD2_all);
+TMD1_dis_grid=griddata(variables(:,1),variables(:,2),onemode_twotmd_dis(:,2),XTMD2_all,FTMD2_all);
+TMD2_dis_grid=griddata(variables(:,1),variables(:,2),onemode_twotmd_dis(:,3),XTMD2_all,FTMD2_all);
 
-save onemode_twotmd_results.mat onemode_twotmd_phi_results xTMD2_all FTMD2_all bridge_dis_grid TMD1_dis_grid TMD2_dis_grid
+save onemode_twotmd_results.mat onemode_twotmd_results xTMD2_all FTMD2_all bridge_dis_grid TMD1_dis_grid TMD2_dis_grid
 
 % save onemode_twotmd_results.mat onemode_twotmd_results
 
