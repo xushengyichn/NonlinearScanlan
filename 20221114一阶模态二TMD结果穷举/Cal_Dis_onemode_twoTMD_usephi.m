@@ -14,7 +14,7 @@
 clc; clear; close all % 清除记录
 addpath("../函数/")
 
-numberofTMD = 1; % 所需要计算的TMD的数量.
+numberofTMD = 2; % 所需要计算的TMD的数量.
 
 savedata = 0;
 
@@ -26,7 +26,7 @@ modeinfo = load('modeinfo.mat');
 fs=modeinfo.Freq(1);
 mode1 = modeinfo.eig_vec(:, 1);
 maxphi1=max(mode1);
-phi1=maxphi1;
+phi1=maxphi1/1.5;
 phi2_all=(0.001:0.001:1.5)*maxphi1;
 mu = 0.02;
 mTMD1 = mu / (max(mode1)^2);

@@ -14,8 +14,7 @@
 clc; clear; close all % 清除记录
 addpath("../函数/")
 global collectdata
-collectdata=[];
-numberofTMD = 1; % 所需要计算的TMD的数量.
+numberofTMD = 2; % 所需要计算的TMD的数量.
 
 savedata = 0;
 
@@ -126,9 +125,9 @@ for mode_number = 1:length(mode_numbers)
 
     dis_beam=max(mode1)*u(1,:);
     dis_TMD1=u(2,:);
-%     dis_TMD2=u(3,:);
+    dis_TMD2=u(3,:);
     dis_TMD1_all=dis_TMD1;
-%     dis_TMD2_all=dis_TMD2;
+    dis_TMD2_all=dis_TMD2;
     %判断计算是否收敛
     dis1=max(dis_beam(end/8*6:end/8*7));
     dis2=max(dis_beam(end/8*7:end));
@@ -138,17 +137,17 @@ for mode_number = 1:length(mode_numbers)
             flag_convergence=1;
             dis_beam_max=std(dis_beam(end/8*6:end))*sqrt(2);
             dis_TMD1=std(u(2,end/8*6:end))*sqrt(2);
-%             dis_TMD2=std(u(3,end/8*6:end))*sqrt(2); 
+            dis_TMD2=std(u(3,end/8*6:end))*sqrt(2); 
             tnew=0:0.01:t_length;
             if iter>=5
                 flag_iter=0;
             else
                 flag_iter=1;
             end
-%             result_temp=[dis_beam_max dis_TMD1 dis_TMD2 flag_iter];
-%             onemode_twotmd_dis(k1,:)=result_temp;
-%             figure
-%             plot(tnew,max(mode1)*u(1,:))   
+            result_temp=[dis_beam_max dis_TMD1 dis_TMD2 flag_iter];
+            onemode_twotmd_dis(k1,:)=result_temp;
+            figure
+            plot(tnew,max(mode1)*u(1,:))   
         else
             disp("计算未收敛，增加计算时间")
             iter=iter+1;

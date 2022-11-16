@@ -2,14 +2,14 @@
 %Author: xushengyichn 54436848+xushengyichn@users.noreply.github.com
 %Date: 2022-09-26 19:35:04
 %LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
-%LastEditTime: 2022-11-14 14:29:23
-%FilePath: \NonlinearScanlan\CalData_Polynomial_withTMD_multidegree.m
+%LastEditTime: 2022-10-19 12:16:19
+%FilePath: \NonlinearScanlan\CalDamping_Polynomial_withTMD_multidegree.m
 %Description: 计算多模态，施加某一阶模态多项式气动力模型后的响应，考虑TMD，通过干预大小振幅情况下的阻尼比，使得动力计算无需分段
 %
 %Copyright (c) 2022 by xushengyichn 54436848+xushengyichn@users.noreply.github.com, All Rights Reserved.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % clc; clear; close all;
-function [modemaxdis_single,usinglemax,uallmax,output]=CalData_Polynomial_withTMD_multidegree_usephi(nTMD,mTMD,zetaTMD,omegaTMD,modeTMD,mode_number,ifcalmode,MM_eq,KK_eq,calmodes,eig_val,eig_vec,t_length)
+function [result]=CalDamping_Polynomial_withTMD_multidegree(nTMD,mTMD,zetaTMD,omegaTMD,xTMD,mode_number,ifcalmode,MM_eq,KK_eq,calmodes,eig_val,eig_vec)
 % function modemaxdis_single=CalData_Polynomial_withTMD_multidegree(nTMD,mTMD,zetaTMD,omegaTMD,nodeTMD,mode_number,ifcalmode,calmodes,eig_val,eig_vec)
 %% 参数设置
 
@@ -25,7 +25,7 @@ function [modemaxdis_single,usinglemax,uallmax,output]=CalData_Polynomial_withTM
 % calmodes; % 计算模态的模态数 [1*1]
 % eig_val; %原始模型的特征值
 % eig_vec; %原始模型的特征向量
-
+% t_length; %计算的时间长度
 
 
 D = 20; %断面参考宽度
@@ -45,7 +45,10 @@ if ~exist("zetaTMD","var")
     cTMD = [2 * mTMD(1) * omegatmd * zetaTMD];
     disp("变量zetaTMD不存在，取默认值："+num2str(zetaTMD))
 else
-    cTMD = [2 * mTMD(1) .* omegaTMD .* zetaTMD];
+    cTMD = [2 * mTMD .* omegaTMD .* zetaTMD];
+%     for k3 =1:length(mTMD)
+%         cTMD(k3)=2 * mTMD(k3) .* omegaTMD(k3) .* zetaTMD(k3);
+%     end
 end
 if ~exist("omegaTMD","var")
     Ftmd = 0.833853594612216;
@@ -53,7 +56,7 @@ if ~exist("omegaTMD","var")
     kTMD = [mTMD(1) * omegatmd^2];
     disp("变量omegaTMD不存在，取默认值："+num2str(kTMD))
 else
-    kTMD = [mTMD(1) * omegaTMD.^2];
+    kTMD = [mTMD.* omegaTMD.^2];
 end
 if ~exist("mode_number","var")
     mode_number = 1; %气动力施加的模态
@@ -69,6 +72,8 @@ if ~exist("ifcalmode","var")
     ifcalmode = 1; %是否计算模态
     disp("变量ifcalmode不存在，取默认值："+num2str(ifcalmode))
 end
+
+
 
 if ifcalmode==1
     calmodes = 5; %考虑模态数 Consider the number of modes
@@ -112,7 +117,8 @@ ExpNames = [
 % 1 means use the Rayleigh damping matrix to generate the corresponding modal superposition method damping matrix
 % 2 means use the modal damping ratio to directly generate the modal superposition method damping matrix, you need to specify the modal Damping ratio zeta
 
-Zeta0 = 0.3/100;
+Zeta0=0.3/100*ones(nModes,1);
+% Zeta0(2) = 5/100;
 % disp("模态阻尼比未定义，采用默认值，每阶模态阻尼比均为：" + num2str(Zeta0))
 
 
@@ -125,8 +131,8 @@ Zeta0 = 0.3/100;
 % Import MCK matrix from ANSYS
 % hb_to_mm ('KMatrix.matrix', 'K.txt');
 % hb_to_mm ('MMatrix.matrix', 'M.txt');
-% % hb_to_mm ('CMatrix.matrix', 'C.txt');
-% 
+% hb_to_mm ('CMatrix.matrix', 'C.txt');
+
 % %map the node and matrix from the KMatrix.mapping and MMatrix.mapping
 % Kdata = importdata('K.txt').data;
 % Kmatrix = zeros(Kdata(1, 1), Kdata(1, 2));
@@ -266,24 +272,34 @@ mode_integral_6 = integral_6(mode_number);
 %% Modal Superposition Method Considering TMD Vibration Response
 % tic
 matrixsize = nTMD + nModes;
-% phiTMD = zeros(nTMD, nModes);
-phiTMD = modeTMD;
+phiTMD = zeros(nTMD, nModes);
 % phiTMD row:TMD for each loaction column:the mode shape at the each
 % location of tmd
-% for t1 = 1:nTMD
-% 
-%     for t2 = 1:nModes
-%         [~,index]=sort(abs(nodegap-xTMD));%查找与xTMD最接近的点的排序
-%         xResult=nodegap(index(1:2));%获取最接近的两个点的x坐标
-%         mode2nodes=mode(index(1:2),1:nModes);%获取两个点坐标的y值
-%         phi_result=interp1(xResult,mode2nodes,xTMD,'linear','extrap');%插值以后任意点的振型
-% %         disp(phi_result)
-%         phiTMD(t1, t2) = phi_result(t2);
-% 
-%     end
-% 
-% end
-% clear t1
+
+for t3 = 1:nTMD
+
+    for t2 = 1:nModes
+
+        [~,index]=sort(abs(nodegap-xTMD(t3)));%查找与xTMD最接近的点的排序
+        xResult=nodegap(index(1:2));%获取最接近的两个点的x坐标
+        mode2nodes=mode(index(1:2),1:nModes);%获取两个点坐标的y值
+        phi_result=interp1(xResult,mode2nodes,xTMD(t3),'linear','extrap');%插值以后任意点的振型
+%         disp(phi_result)
+        phiTMD(t3, t2) = phi_result(t2);
+
+        
+        % % 找到TMD安装位置对应的振型向量大小并储存到phiTMD变量中
+        % % Find the size of the mode shape vector corresponding to the installation position of the TMD and store it in the phiTMD variable
+        % position_index = KMmapping.MatrixEqn(find(and(KMmapping.Node == nodeTMD(t1), KMmapping.DOF == 'UY')));
+        % if isempty(position_index)
+        %     phiTMD(t1, t2)=0;
+        % else
+        %     phiTMD(t1, t2) = mode_vec(position_index, t2);
+        % end
+    end
+
+end
+clear t1
 if nTMD ~= 0
 %     disp("第一阶模态质量比" + num2str(phiTMD(1, 1)^2 * mTMD(1) * 100) + "%")
 end
@@ -377,7 +393,7 @@ CC2 = zeros(size(MM, 1), size(MM, 2));
 for k1 = 1:matrixsize
 
     if k1 <= nModes
-        CC1(k1, k1) = Zeta0 * 4 * pi * MM(k1, k1) * Freq(k1);
+        CC1(k1, k1) = Zeta0(k1) * 4 * pi * MM(k1, k1) * Freq(k1);
     elseif k1 > nModes
         CC1(k1, k1) = cTMD(k1 - nModes);
     end
@@ -411,6 +427,7 @@ end
 CC = CC1 + CC2;
 clear k1 k2
 % toc
+
 %% 导入气动力模型数据
 
 for k1 = 1
@@ -526,179 +543,25 @@ phi1max=max(mode_vec(:, 1));
 m =  m_modal(mode_number);
 
 
+CC_aero=CC;
+CC_aero(mode_number,mode_number)=CC_aero(mode_number,mode_number)-rho*U*D*a1*mode_integral_2;
+KK(mode_number,mode_number)=KK(mode_number,mode_number)-rho*U*2*H4*mode_integral_2;%是否施加气动刚度，若不施加，注释本行
+Mode = Complex_Eigenvalue_Analysis(MM,CC_aero,KK);
+% disp(Mode)
+Mode_sys = Complex_Eigenvalue_Analysis(MM,CC,KK);%不考虑气动阻尼的阻尼比
+% disp(Mode_sys)
 
-%% 响应计算
+result.Mode=Mode;
+result.Mode_sys=Mode_sys;
+% [eig_vec_mode, eig_val_mode] = eigs(KK, MM, matrixsize, 'SM');
+% Fre_mode=eig_val_mode/2/pi;
 
-h = 0.01; % Time step
-t = 0:h:t_length; % Time
-p = zeros(matrixsize, length(t)); %Initialize external load
-gamma = 1/2; % Parameter in the Newmark algorithm
-beta = 1/4; % Parameter in the Newmark algorithm
-% Newmark-beta法中采用真实位移
-gfun1 = @(u, udot) bridge_damper(u, udot, U, D, b1, b2, b3, b4, b5, MM, CC, KK, mode_integral_2, mode_integral_3, mode_integral_4, mode_integral_5, mode_integral_6, gamma, beta, h, matrixsize, mode_number); % Handle to the nonlinear function
-% TODO: 还没有考虑气动刚度
-
-u0 = zeros(matrixsize, 1); % Initial displacement;
-udot0 = zeros(matrixsize, 1); % Initial velocity;
-u0max = 0.001; % Initial displacement of the first mode;
-% phi1max = max(mode_vec(:, mode_number)); % Maximum value of the first mode shape
-u0(mode_number) = u0max / phideckmax(mode_number); % Initial displacement of the first mode;
-% tic
-[u, udot, u2dot] = nonlinear_newmark_krenk(gfun1, MM, p, u0, udot0, gamma, beta, h); % Solve the response by the Nonlinear Newmark algorithm
-% toc
-% figure
-% plot(t, u(mode_number, :)*phideckmax(mode_number))
-% plot(t, u(1, :))
-% ylim([-0.2 0.2])
-uall=zeros(size(mode,1),size(u,2));
-for k1 = 1:nModes
-    umax(k1,1) = max(abs(u(k1, :)));
-    modemaxdis(k1, 1) = umax(k1,1) * phideckmax(k1);
-    uall=uall+mode(:,k1).*u(k1,:);
-end
-
-usinglemax=max(abs(mode(:,mode_number).*u(mode_number,:)),[],2);
-uallmax=max(abs(uall),[],2);
-
-modenum = (1:1:nModes)';
-tabledata = [modenum umax modemaxdis];
-modemaxdis_single=modemaxdis(mode_number);
-modemaxdises = array2table(tabledata, 'VariableNames', {'ModeNumber', 'Umax','MaxDisplacement'});
-% disp(modemaxdises)
-fs=1/h;
-data=u(mode_number, :)*phideckmax(mode_number);
-output.u=u;
-% [psd_avg, f, psd_plot] = fft_transfer(fs,data');
-% figure
-% plot(f,psd_plot)
-% figure
-% plot(u(end,:))
-%% 所需要使用的函数
-%% functions to be used
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%% Nonlinear Newmark algorithm
-function [u, udot, u2dot] = nonlinear_newmark_krenk(gfun1, MM, pp, u0, udot0, gamma, beta, h)
-    
-
-    % Initialize variables
-    u = zeros(size(MM, 1), size(pp, 2));
-    udot = zeros(size(MM, 1), size(pp, 2));
-    u2dot = zeros(size(MM, 1), size(pp, 2));
-    % Initial conditions
-    u(:, 1) = u0; % Initial displacements
-    udot(:, 1) = udot0; % Initial velocities
-
-
-    g = gfun1(u0, udot0); % Evaluate the nonlinear function
-
-
-    u2dot(:, 1) = MM \ (pp(:, 1) - g); % Calculate the initial accelerations
-
-    for ii = 1:size(pp, 2) - 1
-        % Prediction step
-        u2dot(:, ii + 1) = u2dot(:, ii); % Predicted accelerations
-        udot(:, ii + 1) = udot(:, ii) + h * u2dot(:, ii); % Predicted velocities
-        u(:, ii + 1) = u(:, ii) + h * udot(:, ii) + 1/2 * h^2 * u2dot(:, ii); % Predicted displacements
-        Nit = 0; % Number of iterations
-        konv = 0; % Has the iterations converged 0=No, 1=Yes
-        % Reusidal calculation, system matrices and increment correction
-
-        while Nit < 1000 && konv == 0
-            Nit = Nit + 1;
-            if Nit>990
-                disp("迭代次数为："+num2str(Nit)+"，已经接近上限")
-            end
-
-            [g, Ks] = gfun1(u(:, ii + 1), udot(:, ii + 1)); % Calculate function value and the tangent
-  
-
-            % [g, Ks] = gfun(u(:,ii+1),udot(:,ii+1)); % Calculate function value and the tangent
-            rr = pp(:, ii + 1) - MM * u2dot(:, ii + 1) - g; % Calculate residual
-            du = Ks \ rr; % Increment correction
-            u(:, ii + 1) = u(:, ii + 1) + du; % Add incremental correction to the displacement
-            udot(:, ii + 1) = udot(:, ii + 1) + gamma * h / (beta * h^2) * du; % Incremental correction for velocities
-            u2dot(:, ii + 1) = u2dot(:, ii + 1) + 1 / (beta * h^2) * du; % Incremental correction accelerations
-
-            if sqrt(rr' * rr) / length(rr) < 1.0e-8 % Convergence criteria
-                konv = 1; % konv = 1 if the convergence criteria is fulfilled.
-            end
-
-        end
-
-    end
-
-end
-
-
-function [g, ks] = bridge_damper(u, udot, U, D, b1, b2, b3, b4, b5, MM, CC, KK, mode_integral_2, mode_integral_3, mode_integral_4, mode_integral_5, mode_integral_6, gamma, beta, h, matrixsize, mode_number)
-    global collectdata
-
-
-    for k1 = 1:matrixsize
-        g(k1) = 0;
-
-        if k1 == mode_number
-
-            for k2 = 1:matrixsize
-                g(k1) = g(k1) + CC(k1, k2) * udot(k2) + KK(k1, k2) * u(k2);
-            end
-
-                g(k1) = g(k1) - (b1 * mode_integral_2 + b2 * abs(u(k1)) * mode_integral_3 + b3 * u(k1)^2 * mode_integral_4 + b4 * abs(u(k1))^3 * mode_integral_5 + b5 * u(k1)^4 * mode_integral_6) * udot(k1);
-        else
-
-            for k2 = 1:matrixsize
-                g(k1) = g(k1) + CC(k1, k2) * udot(k2) + KK(k1, k2) * u(k2);
-            end
-
-        end
-
-    end
-
-    g = g';
-    Kc = CC;
-    Kc(mode_number, mode_number) = Kc(mode_number, mode_number) - (b1 * mode_integral_2 + b2 * abs(u(mode_number)) * mode_integral_3 + b3 * u(mode_number)^2 * mode_integral_4 + b4 * abs(u(mode_number))^3 * mode_integral_5 + b5 * u(mode_number)^4 * mode_integral_6);
-    collectdata=[collectdata (b1 * mode_integral_2 + b2 * abs(u(mode_number)) * mode_integral_3 + b3 * u(mode_number)^2 * mode_integral_4 + b4 * abs(u(mode_number))^3 * mode_integral_5 + b5 * u(mode_number)^4 * mode_integral_6)];
-    Kk = KK;
-    Kk(mode_number, mode_number) = Kk(mode_number, mode_number) - udot(mode_number) * b2 * sign(u(mode_number)) * mode_integral_3 - 2 * b3 * udot(mode_number) * u(mode_number) * mode_integral_4 - 3 * udot(mode_number) * b4 * abs(u(mode_number))^2 * mode_integral_5 * sign(u(mode_number)) - 4 * b5 * udot(mode_number) * u(mode_number)^3 * mode_integral_6;
-
-    ks = Kk + gamma * h / beta / h^2 * Kc + 1 / beta / h^2 * MM;
-end
 
 function result = P_eq(mode, temp_vec, Matrix)
     vec = temp_vec(:, mode);
     result = vec' * Matrix * vec;
 end
 
-function result = phiY(node, Mmapping, mode_vec, nModes)
-    position_index = Mmapping.MatrixEqn(find(and(Mmapping.Node == node, Mmapping.DOF == 'UY')));
-
-    if isempty(position_index)
-        result = zeros(1, nModes);
-    else
-        result = mode_vec(position_index, 1:nModes);
-    end
-
-end
-
-function result = Peq(Pmode, mode_vec, Mmapping, P_eachpoint, points, t)
-    result = zeros(1, size(t, 2));
-
-    for t1 = 1:points
-
-        if sum(and(Mmapping.Node == t1, Mmapping.DOF == 'UY')) == 0
-            result = result + 0 * P_eachpoint(t1, :);
-        else
-            position_index = Mmapping.MatrixEqn(find(and(Mmapping.Node == t1, Mmapping.DOF == 'UY')));
-            result = result + mode_vec(position_index, Pmode) * P_eachpoint(t1, :);
-        end
-
-    end
-
-end
 
 
-function    [Zeta]=polynomial_zeta_exp(Amplitude,a1,a2,a3,a4,a5,rho,U,D,omega0,m)
-    Zeta= -rho .* U .* D .* (a1 + 4 .* a2 .* Amplitude ./ 3 ./ pi + a3 .* Amplitude.^2/4 + 8 .* a4 .* Amplitude.^3/15 / pi + a5 .* Amplitude.^4/8) ./ 2 ./ omega0 ./ m;
-end
 end
