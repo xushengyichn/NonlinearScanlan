@@ -9,7 +9,7 @@
 %Copyright (c) 2022 by xushengyichn 54436848+xushengyichn@users.noreply.github.com, All Rights Reserved.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % clc; clear; close all;
-function [result]=CalDamping_Polynomial_withTMD_multidegree_usephi(nTMD,mTMD,zetaTMD,omegaTMD,modeTMD,mode_number,ifcalmode,MM_eq,KK_eq,calmodes,eig_val,eig_vec)
+function [result]=CalDamping_Polynomial_withTMD_multidegree_usephi_plot(nTMD,mTMD,zetaTMD,omegaTMD,modeTMD,mode_number,ifcalmode,MM_eq,KK_eq,calmodes,eig_val,eig_vec,u_temp)
 % function modemaxdis_single=CalData_Polynomial_withTMD_multidegree(nTMD,mTMD,zetaTMD,omegaTMD,nodeTMD,mode_number,ifcalmode,calmodes,eig_val,eig_vec)
 %% 参数设置
 
@@ -542,16 +542,16 @@ b5 = rho * U * a5 / D^3/ m_modal(mode_number);
 phi1max=max(mode_vec(:, 1));
 m =  m_modal(mode_number);
 
-u_temp=15;
+u_temp=u_temp;
 b_temp=(b1 * mode_integral_2 + b2 * abs(u_temp) * mode_integral_3 + b3 * u_temp^2 * mode_integral_4 + b4 * abs(u_temp)^3 * mode_integral_5 + b5 * u_temp^4 * mode_integral_6)/mode_integral_2;
 t_temp_s=0:0.1:50;
 for tt1= 1:length(t_temp_s)
-b_temp_result=(b1 * mode_integral_2 + b2 * abs(t_temp_s) * mode_integral_3 + b3 * t_temp_s^2 * mode_integral_4 + b4 * abs(t_temp_s)^3 * mode_integral_5 + b5 * t_temp_s^4 * mode_integral_6)/mode_integral_2;
+b_temp_result(tt1)=(b1 * mode_integral_2 + b2 * abs(t_temp_s(tt1)) * mode_integral_3 + b3 * t_temp_s(tt1)^2 * mode_integral_4 + b4 * abs(t_temp_s(tt1))^3 * mode_integral_5 + b5 * t_temp_s(tt1)^4 * mode_integral_6)/mode_integral_2;
 end
-figure
-plot(t_temp_s,b_temp_result)
+% figure
+% plot(t_temp_s,b_temp_result)
 a1_temp=b_temp/(rho * U * D)*m_modal(mode_number);
-a1=a1_temp
+a1=a1_temp;
 
 
 
