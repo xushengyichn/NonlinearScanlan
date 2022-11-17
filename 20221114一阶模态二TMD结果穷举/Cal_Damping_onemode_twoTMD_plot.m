@@ -213,7 +213,7 @@ figure
 surf(U_temps*maxphi1,FTMD2_all,bridge_damping_grid)
 hold on
 surf(U_temps2_single*maxphi1,FTMD2_all,bridge_damping_grid_single)
-
+save alldata.mat
 save damping_plot U_temps maxphi1 FTMD2_all bridge_damping_grid U_temps2_single bridge_damping_grid_single
 
 %% 所需函数
