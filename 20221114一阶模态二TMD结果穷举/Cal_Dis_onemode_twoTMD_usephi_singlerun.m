@@ -15,7 +15,7 @@ clc; clear; close all % 清除记录
 addpath("../函数/")
 global collectdata
 collectdata=[];
-numberofTMD = 1; % 所需要计算的TMD的数量.
+numberofTMD = 2; % 所需要计算的TMD的数量.
 
 savedata = 0;
 
@@ -45,7 +45,7 @@ mTMD = [mTMD1 mTMD1];
 Ftmd = [fTMD1 fTMD1*1.3];
 zetaTMD = [zetaTMD1 zetaTMD1];
 % xTMD = [384.5 variables(k1,1)];
-phiTMD = [phi1;phi1*1.2];
+phiTMD = [phi1;phi1];
 
 omegaTMD = 2 * pi * Ftmd;
 
@@ -126,9 +126,9 @@ for mode_number = 1:length(mode_numbers)
 
     dis_beam=max(mode1)*u(1,:);
     dis_TMD1=u(2,:);
-%     dis_TMD2=u(3,:);
+    dis_TMD2=u(3,:);
     dis_TMD1_all=dis_TMD1;
-%     dis_TMD2_all=dis_TMD2;
+    dis_TMD2_all=dis_TMD2;
     %判断计算是否收敛
     dis1=max(dis_beam(end/8*6:end/8*7));
     dis2=max(dis_beam(end/8*7:end));
@@ -180,7 +180,7 @@ end
 % 
 % save doubleTMDcontrol_good.mat t_length dis_beam dis_TMD1_all dis_TMD2_all
 % 
-% save doubleTMDcontrol_bad.mat t_length dis_beam dis_TMD1_all dis_TMD2_all
+save doubleTMDcontrol_bad.mat t_length dis_beam dis_TMD1_all dis_TMD2_all
 
 %% 所需函数
 

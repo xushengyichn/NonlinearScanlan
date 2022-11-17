@@ -143,7 +143,7 @@ singleplotdata.aero_zeta_info=aero_zeta_info;
 
 clear fre_info zeta_info aero_fre_info aero_zeta_info aero_complex_info
 %% 安装两个TMD的情况
-parfor k1 = 1:size(variables,1)
+for k1 = 1:size(variables,1)
 
 mass_six_span = 10007779.7;
 mTMD = [mTMD1 mTMD1];
@@ -210,9 +210,9 @@ variables2 = [U_temps2_single(:),FTMD2_all2(:)];
 singleplotdata_min_rep=repmat(singleplotdata_min,1,58);
 bridge_damping_grid_single=griddata(variables2(:,1),variables2(:,2),singleplotdata_min_rep,U_temps2_single,FTMD2_all2);
 figure
-surf(U_temps*maxphi1,FTMD2_all,bridge_damping_grid)
+surf(U_temps*maxphi1,FTMD2_all/fTMD1,bridge_damping_grid)
 hold on
-surf(U_temps2_single*maxphi1,FTMD2_all,bridge_damping_grid_single)
+surf(U_temps2_single*maxphi1,FTMD2_all/fTMD1,bridge_damping_grid_single)
 save alldata.mat
 save damping_plot U_temps maxphi1 FTMD2_all bridge_damping_grid U_temps2_single bridge_damping_grid_single
 
