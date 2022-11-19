@@ -392,8 +392,8 @@ m = 1;
 k = 27.449810272952913;
 omega = sqrt(k / m);
 fs = omega / (2 * pi);
-xi_sys = 0.003;
-% xi_sys=-0.005;
+% xi_sys = 0.003;
+xi_sys=-0.06;
 c = 2 * m * omega * xi_sys;
 phi1max = 4.765120284718218e-04;
 
@@ -428,13 +428,13 @@ for k1 = 1:size(variables,1)
     K = [k + ktmd1 * phi1max^2  -ktmd1 * phi1max ; -ktmd1 * phi1max ktmd1];
     Mode = Complex_Eigenvalue_Analysis(M, C, K);
     Damping_ratio(k1, 1) = min(Mode.("Damping ratio"));
-    Frequency(1:2, k1) = Mode.Frequency;
+    Frequency(1:3, k1) = Mode.Frequency;
 end
 
-Damping_ratio_grid = griddata(variables(:, 1), variables(:, 2), Damping_ratio, Mtmd1s_grid, Ftmd1s_grid);
+Damping_ratio_grid = griddata(variables(:, 1), variables(:, 2), Damping_ratio, Mtmd2s_grid, Ftmd2s_grid);
 figure
-contour(Mtmd1s_grid, Ftmd1s_grid, Damping_ratio_grid, 'edgecolor', 'r')
+contour(Mtmd2s_grid, Ftmd2s_grid, Damping_ratio_grid, 'edgecolor', 'r')
 
-testingcases="single_TMD_xi_sys_"+xi_sys;
-str="save "+testingcases+".mat "+"xi_sys Mtmd1s_grid Ftmd1s_grid Damping_ratio_grid";
+testingcases="xi_sys_"+xi_sys;
+str="save "+testingcases+".mat "+"xi_sys Mtmd2s_grid Ftmd2s_grid Damping_ratio_grid";
 eval(str)
