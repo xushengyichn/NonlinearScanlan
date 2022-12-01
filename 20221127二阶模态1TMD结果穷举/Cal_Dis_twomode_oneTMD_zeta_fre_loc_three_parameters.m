@@ -2,7 +2,7 @@
 %Author: xushengyichn 54436848+xushengyichn@users.noreply.github.com
 %Date: 2022-10-15 21:56:39
 %LastEditors: Shengyi xushengyichn@outlook.com
-%LastEditTime: 2022-11-28 01:15:01
+%LastEditTime: 2022-12-01 01:02:50
 %FilePath: \NonlinearScanlan\20221127二阶模态1TMD结果穷举\Cal_Dis_twomode_oneTMD_zeta_fre_loc_three_parameters.m
 %Description: 计算二阶模态，1个TMD的影响，穷举阻尼频率和位置
 %
@@ -199,7 +199,31 @@ twomode_onetmd_results_zeta_fre_loc = [variables twomode_onetmd_dis];
 
 % save onemode_twotmd_results.mat onemode_twotmd_phi_results xTMD2_all FTMD2_all bridge_dis_grid TMD1_dis_grid TMD2_dis_grid
 
-save twomode_onetmd_results_zeta_fre_loc.mat twomode_onetmd_results_zeta_fre_loc
+save twomode_onetmd_results_zeta_fre_loc.mat twomode_onetmd_results_zeta_fre_loc.mat
+
+% 绘图
+% 阻尼比1
+
+data1 = twomode_onetmd_results_zeta_fre_loc(1:end/3,:);
+[XTMD2_all, FTMD2_all] = ndgrid(xTMD2_all, fTMD2_all);
+variables_new = [XTMD2_all(:), FTMD2_all(:)];
+bridge_dis_grid_1 = griddata(variables_new(:, 1), variables_new(:, 2), data1(:, 4), XTMD2_all, FTMD2_all);
+figure
+contour(XTMD2_all, FTMD2_all, bridge_dis_grid_1)
+
+data2 = twomode_onetmd_results_zeta_fre_loc(end/3+1:end/3*2,:);
+bridge_dis_grid_2 = griddata(variables_new(:, 1), variables_new(:, 2), data2(:, 4), XTMD2_all, FTMD2_all);
+figure
+contour(XTMD2_all, FTMD2_all, bridge_dis_grid_2)
+
+
+data3 = twomode_onetmd_results_zeta_fre_loc(end/3*2+1:end,:);
+bridge_dis_grid_3 = griddata(variables_new(:, 1), variables_new(:, 2), data3(:, 4), XTMD2_all, FTMD2_all);
+figure
+contour(XTMD2_all, FTMD2_all, bridge_dis_grid_3)
+
+
+save twomode_onetmd_results_zeta_fre_loc.mat XTMD2_all FTMD2_all bridge_dis_grid_1 bridge_dis_grid_2 bridge_dis_grid_3
 
 %% 所需函数
 
