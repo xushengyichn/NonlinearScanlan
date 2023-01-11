@@ -39,3 +39,5 @@ loc5=data(661*4+1:661*5,1);
 dis5=data(661*4+1:661*5,3);
 hold on
 plot(loc5,dis5)
+
+save nmodes_onetmd_results_loc_alldata.mat
