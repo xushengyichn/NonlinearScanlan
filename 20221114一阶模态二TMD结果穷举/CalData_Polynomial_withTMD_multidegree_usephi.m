@@ -59,10 +59,10 @@ if ~exist("mode_number","var")
     mode_number = 1; %气动力施加的模态
     disp("变量mode_number不存在，取默认值："+num2str(mode_number))
 end
-if ~exist("xTMD","var")
-    xTMD = [0]; %Node number(location of the TMD)
-    disp("变量xTMD不存在，取默认值："+num2str(xTMD))
-end
+% if ~exist("xTMD","var")
+%     xTMD = [0]; %Node number(location of the TMD)
+%     disp("变量xTMD不存在，取默认值："+num2str(xTMD))
+% end
 
 
 if ~exist("ifcalmode","var")
@@ -620,7 +620,7 @@ function [u, udot, u2dot] = nonlinear_newmark_krenk(gfun1, MM, pp, u0, udot0, ga
             udot(:, ii + 1) = udot(:, ii + 1) + gamma * h / (beta * h^2) * du; % Incremental correction for velocities
             u2dot(:, ii + 1) = u2dot(:, ii + 1) + 1 / (beta * h^2) * du; % Incremental correction accelerations
 
-            if sqrt(rr' * rr) / length(rr) < 1.0e-8 % Convergence criteria
+            if sqrt(rr' * rr) / length(rr) < 1.0e-4 % Convergence criteria
                 konv = 1; % konv = 1 if the convergence criteria is fulfilled.
             end
 
@@ -635,20 +635,20 @@ function [g, ks] = bridge_damper(u, udot, U, D, b1, b2, b3, b4, b5, MM, CC, KK, 
     global collectdata
 
 
-    for k1 = 1:matrixsize
-        g(k1) = 0;
+    for k01 = 1:matrixsize
+        g(k01) = 0;
 
-        if k1 == mode_number
+        if k01 == mode_number
 
-            for k2 = 1:matrixsize
-                g(k1) = g(k1) + CC(k1, k2) * udot(k2) + KK(k1, k2) * u(k2);
+            for k02 = 1:matrixsize
+                g(k01) = g(k01) + CC(k01, k02) * udot(k02) + KK(k01, k02) * u(k02);
             end
 
-                g(k1) = g(k1) - (b1 * mode_integral_2 + b2 * abs(u(k1)) * mode_integral_3 + b3 * u(k1)^2 * mode_integral_4 + b4 * abs(u(k1))^3 * mode_integral_5 + b5 * u(k1)^4 * mode_integral_6) * udot(k1);
+                g(k01) = g(k01) - (b1 * mode_integral_2 + b2 * abs(u(k01)) * mode_integral_3 + b3 * u(k01)^2 * mode_integral_4 + b4 * abs(u(k01))^3 * mode_integral_5 + b5 * u(k01)^4 * mode_integral_6) * udot(k01);
         else
 
-            for k2 = 1:matrixsize
-                g(k1) = g(k1) + CC(k1, k2) * udot(k2) + KK(k1, k2) * u(k2);
+            for k02 = 1:matrixsize
+                g(k01) = g(k01) + CC(k01, k02) * udot(k02) + KK(k01, k02) * u(k02);
             end
 
         end
@@ -684,13 +684,13 @@ end
 function result = Peq(Pmode, mode_vec, Mmapping, P_eachpoint, points, t)
     result = zeros(1, size(t, 2));
 
-    for t1 = 1:points
+    for t01 = 1:points
 
-        if sum(and(Mmapping.Node == t1, Mmapping.DOF == 'UY')) == 0
-            result = result + 0 * P_eachpoint(t1, :);
+        if sum(and(Mmapping.Node == t01, Mmapping.DOF == 'UY')) == 0
+            result = result + 0 * P_eachpoint(t01, :);
         else
-            position_index = Mmapping.MatrixEqn(find(and(Mmapping.Node == t1, Mmapping.DOF == 'UY')));
-            result = result + mode_vec(position_index, Pmode) * P_eachpoint(t1, :);
+            position_index = Mmapping.MatrixEqn(find(and(Mmapping.Node == t01, Mmapping.DOF == 'UY')));
+            result = result + mode_vec(position_index, Pmode) * P_eachpoint(t01, :);
         end
 
     end
