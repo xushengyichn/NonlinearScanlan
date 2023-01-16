@@ -240,9 +240,16 @@ end
 
 clear k1
 % 模态振型比节点间距多一个点，所以将两节点的模态取平均值计算振型积分
+modecal = zeros(length(nodegap) - 1,1);
 for k1 = 1:length(nodegap) - 1
     modecal(k1, :) = (mode(k1 + 1, :) + mode(k1, :)) / 2;
 end
+integral_1 = zeros(nModes,1);
+integral_2 = zeros(nModes,1);
+integral_3 = zeros(nModes,1);
+integral_4 = zeros(nModes,1);
+integral_5 = zeros(nModes,1);
+integral_6 = zeros(nModes,1);
 
 for k1 = 1:nModes
     integral_1(k1) = sum(abs(modecal(:, k1)) .* nodedis);
@@ -313,6 +320,7 @@ else
 end
 clear t1
 
+m_modal = zeros(nfdof,1);
 for j = 1:nfdof
     m_modal(j) =MM(j,j);
 end
@@ -551,6 +559,8 @@ u0(mode_number) = u0max / phideckmax(mode_number); % Initial displacement of the
 % plot(t, u(1, :))
 % ylim([-0.2 0.2])
 uall=zeros(size(mode,1),size(u,2));
+umax= zeros(nModes,1);
+modemaxdis=zeros(nModes,1);
 for k1 = 1:nModes
     umax(k1,1) = max(abs(u(k1, :)));
     modemaxdis(k1, 1) = umax(k1,1) * phideckmax(k1);
@@ -632,8 +642,8 @@ end
 
 
 function [g, ks] = bridge_damper(u, udot, U, D, b1, b2, b3, b4, b5, MM, CC, KK, mode_integral_2, mode_integral_3, mode_integral_4, mode_integral_5, mode_integral_6, gamma, beta, h, matrixsize, mode_number)
-    global collectdata
-
+%     global collectdata
+%     collectdata=[];
 
     for k01 = 1:matrixsize
         g(k01) = 0;
@@ -658,7 +668,7 @@ function [g, ks] = bridge_damper(u, udot, U, D, b1, b2, b3, b4, b5, MM, CC, KK, 
     g = g';
     Kc = CC;
     Kc(mode_number, mode_number) = Kc(mode_number, mode_number) - (b1 * mode_integral_2 + b2 * abs(u(mode_number)) * mode_integral_3 + b3 * u(mode_number)^2 * mode_integral_4 + b4 * abs(u(mode_number))^3 * mode_integral_5 + b5 * u(mode_number)^4 * mode_integral_6);
-    collectdata=[collectdata (b1 * mode_integral_2 + b2 * abs(u(mode_number)) * mode_integral_3 + b3 * u(mode_number)^2 * mode_integral_4 + b4 * abs(u(mode_number))^3 * mode_integral_5 + b5 * u(mode_number)^4 * mode_integral_6)];
+%     collectdata=[collectdata (b1 * mode_integral_2 + b2 * abs(u(mode_number)) * mode_integral_3 + b3 * u(mode_number)^2 * mode_integral_4 + b4 * abs(u(mode_number))^3 * mode_integral_5 + b5 * u(mode_number)^4 * mode_integral_6)];
     Kk = KK;
     Kk(mode_number, mode_number) = Kk(mode_number, mode_number) - udot(mode_number) * b2 * sign(u(mode_number)) * mode_integral_3 - 2 * b3 * udot(mode_number) * u(mode_number) * mode_integral_4 - 3 * udot(mode_number) * b4 * abs(u(mode_number))^2 * mode_integral_5 * sign(u(mode_number)) - 4 * b5 * udot(mode_number) * u(mode_number)^3 * mode_integral_6;
 

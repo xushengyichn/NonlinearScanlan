@@ -42,12 +42,12 @@ variables = [Phi2_all(:),FTMD2_all(:)];
 onemode_twotmd_dis=zeros(size(variables,1),4);%第四列为是否收敛标志
 numIterations=size(variables,1);
 % numIterations=10;
-% ppm = ParforProgressbar(numIterations,'showWorkerProgress',true,'progressBarUpdatePeriod',3,'title','my fancy title'); 
+ppm = ParforProgressbar(numIterations,'showWorkerProgress',true,'progressBarUpdatePeriod',3,'title','my fancy title'); 
  
 pauseTime = 60/numIterations;
 
-% parfor k1 = 1:size(variables,1)
-for k1 = 1:1
+parfor k1 = 1:size(variables,1)
+% for k1 = 2713
 
 mass_six_span = 10007779.7;
 mTMD = [mTMD1 mTMD1];
@@ -61,7 +61,7 @@ omegaTMD = 2 * pi * Ftmd;
 mode_numbers = 1;
 ifcalmode = 3;
 h = 0.01;
-t_length =100;
+t_length =150;
 
 %% 计算不安装TMD情况下各阶模态各点最大位移
 nodeondeck = importdata('nodeondeck.txt');
@@ -71,7 +71,7 @@ t = 0:h:t_length; % Time
 for mode_number = 1:length(mode_numbers)
     iter=1;
     flag_convergence=0;
-    while and(iter<=5,flag_convergence==0)
+    while and(iter<=2,flag_convergence==0)
     calmodes = mode_number; %考虑模态数 Consider the number of modes
     nModes = calmodes;
 
@@ -163,16 +163,17 @@ for mode_number = 1:length(mode_numbers)
             tnew=0:h:t_length;
 %             figure
 %             plot(tnew,max(mode1)*u(1,:))   
-            t_length=t_length+60;
+            t_length=t_length+100;
         end
     end
     
 
     
 end
-%     pause(pauseTime);
-%     % increment counter to track progress
-%     ppm.increment();
+    pause(pauseTime);
+    % increment counter to track progress
+    ppm.increment();
+% disp(k1)
 end
 
 onemode_twotmd_phi_results=[variables onemode_twotmd_dis];
