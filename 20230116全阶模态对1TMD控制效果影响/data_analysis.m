@@ -122,8 +122,8 @@ for k1 = 1:length(point_mode_shape)-1
 end
 figure
 scatter3(point_mode_shape_effect,point_freq_effect,point_mode_effect)
-xlabel("mode shape difference")
-ylabel("frequency differeence")
+xlabel("mode shape difference (%)")
+ylabel("frequency differeence (%)")
 zlabel("mode influence")
 
 
@@ -135,14 +135,21 @@ point_mode_effect=modeeffect(pointseq,:);
 point_freq_effect=Freqeffect(1:7);
 point_mode_shape=modeTMD(pointseq,:);
 
-for k1 = 1:length(point_mode_shape)-1
-   point_mode_shape_effect(k1,1)=((point_mode_shape(k1+1)-point_mode_shape(1))/point_mode_shape(1)*100);
+for k2 = 1:length(point_mode_shape)-1
+%    point_mode_shape_effect(k1,1)=((abs(point_mode_shape(k1+1))-abs(point_mode_shape(1)))/point_mode_shape(1)*100);
+   point_mode_shape_effect(k2,1)=(abs(point_mode_shape(k2+1))/(max(abs(modeTMD(:,k2+1))))*100);
 end
-phi1=abs(point_mode_shape(1)/max(modeTMD(:,1))*ones(7,1));
-scatter3(point_mode_shape_effect,point_freq_effect,point_mode_effect,20*ones(7,1),phi1)
+phi1=abs(point_mode_shape(1)/max(abs(modeTMD(:,1)))*ones(7,1))
+scatter3(point_mode_shape_effect,point_freq_effect,point_mode_effect,50*ones(7,1),phi1)
 hold on
 end
-xlabel("mode shape difference")
-ylabel("frequency differeence")
+xlabel("mode shape difference (%)")
+ylabel("frequency differeence (%)")
 zlabel("mode influence")
+
 colorbar
+
+% x=0:0.5:100;
+% y=0:1:200;
+% z=ones(201)*0.05;
+% mesh(x,y,z, 'EdgeAlpha', 0.2)
