@@ -1,10 +1,10 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Author: xushengyichn 54436848+xushengyichn@users.noreply.github.com
 %Date: 2022-10-15 21:56:39
-%LastEditors: Shengyi xushengyichn@outlook.com
-%LastEditTime: 2022-11-28 00:45:33
-%FilePath: \NonlinearScanlan\20221127二阶模态1TMD结果穷举\Cal_Dis_nmodes_oneTMD_loc_two_parameters.m
-%Description: 计算前8阶模态，1个TMD的影响，穷举阻尼频率和位置，气动力作用在模态1
+%LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
+%LastEditTime: 2023-01-18 11:55:12
+%FilePath: \NonlinearScanlan\20230116全阶模态对1TMD控制效果影响\Cal_Dis_allmodes_oneTMD_loc_two_parameters_100modes.m
+%Description: 计算前100阶模态，1个TMD的影响，气动力分别作用在1-5阶模态上，考虑100阶模态的结果假定为精确解
 %
 %Copyright (c) 2022 by xushengyichn 54436848+xushengyichn@users.noreply.github.com, All Rights Reserved.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -14,6 +14,7 @@
 clc; clear; close all % 清除记录
 addpath("../函数/")
 
+for a1=1:5 %气动力施加的模态
 numberofTMD = 1; % 所需要计算的TMD的数量.
 
 savedata = 0;
@@ -24,7 +25,7 @@ modeinfo = load('modeinfo_all.mat');
 % 设计第一个TMD的参数
 % TMD1按照规范设计
 modes_number=8;
-fs = modeinfo.Freq(1);
+fs = modeinfo.Freq(a1);
 
 mode_shape=zeros(length(modeinfo.eig_vec(:,1)),modes_number);
 for k1 = 1:size(modeinfo.Freq,1)
@@ -38,15 +39,12 @@ end
 % mode5 = modeinfo.eig_vec(:, 5);
 
 mu = 0.02;
-mTMD1 = mu / (max(mode_shape(:,1))^2);
+mTMD1 = mu / (max(mode_shape(:,a1))^2);
 fTMD1 = 1 / (1 + mu) * fs;
 zetaTMD1 = sqrt(3 * mu / 8 / (1 + mu));
 
-cal_modes = zeros(modes_number,1);
-for k1 = 1:modes_number
-    cal_modes(k1)=k1;
-end
-cal_modes = [cal_modes;100];
+
+cal_modes = [100];
 % cal_modes = [1 2 3 4 5]; %分别计算前五阶模态情况下，气动力作用在1阶模态的情况，响应的大小
 xTMD1_all = 0:1:660;
 
@@ -148,7 +146,7 @@ parfor k1 = 1:size(variables,1)
         %     legend('1', '2', '3')
 
         %     [modemaxdis_single,usinglemax,uallmax]= CalData_Polynomial_withTMD_multidegree(nTMD,mTMD,zetaTMD,omegaTMD,xTMD,1,ifcalmode,MM_eq,KK_eq,calmodes,eig_val,eig_vec,t_length);
-        [~, ~, ~, output] = CalData_Polynomial_withTMD_multidegree(nTMD, mTMD, zetaTMD, omegaTMD, xTMD, 1, ifcalmode, MM_eq, KK_eq, calmodes, eig_val, eig_vec, t_length);
+        [~, ~, ~, output] = CalData_Polynomial_withTMD_multidegree(nTMD, mTMD, zetaTMD, omegaTMD, xTMD, a1, ifcalmode, MM_eq, KK_eq, calmodes, eig_val, eig_vec, t_length);
         u = output.u;
         
         %计算桥梁响应
@@ -227,7 +225,7 @@ parfor k1 = 1:size(variables,1)
     ppm.increment();
 
 end
-
+delete(ppm)
 nmodes_onetmd_results_loc = [variables nmodes_onetmd_dis];
 
 % [XTMD_all,FTMD2_all]=ndgrid(xTMD2_all,fTMD2_all);
@@ -237,9 +235,10 @@ nmodes_onetmd_results_loc = [variables nmodes_onetmd_dis];
 % TMD2_dis_grid=griddata(variables(:,1),variables(:,2),onemode_twotmd_dis(:,3),xTMD2_all,FTMD2_all);
 
 % save onemode_twotmd_results.mat onemode_twotmd_phi_results xTMD2_all FTMD2_all bridge_dis_grid TMD1_dis_grid TMD2_dis_grid
-
-save 10modes_onetmd_results_loc.mat nmodes_onetmd_results_loc
-
+str = "save('100modes_onetmd_results_loc_mode"+num2str(airmodes(a1))+".mat', 'nmodes_onetmd_results_loc')";
+    eval(str);
+% save 100modes_onetmd_results_loc.mat nmodes_onetmd_results_loc
+end
 %% 所需函数
 
 function result = P_eq(mode, temp_vec, Matrix)

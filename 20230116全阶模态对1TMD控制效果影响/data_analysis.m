@@ -2,7 +2,7 @@
 %Author: Shengyi xushengyichn@outlook.com
 %Date: 2022-11-28 17:39:07
 %LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
-%LastEditTime: 2023-01-16 22:05:01
+%LastEditTime: 2023-01-17 21:00:17
 %FilePath: \NonlinearScanlan\20230116全阶模态对1TMD控制效果影响\data_analysis.m
 %Description: 分析数据
 %
@@ -64,28 +64,28 @@ mode7effect=(dis7-dis6)./dis100;
 mode8effect=(dis8-dis7)./dis100;
 mode100effect=(dis100-dis8)./dis100;
 
-figure
-plot(loc,mode2effect)
-hold on
-plot(loc,mode3effect)
-% plot(loc,mode4effect)
-% plot(loc,mode5effect)
-% plot(loc,mode6effect)
-% plot(loc,mode7effect)
-% plot(loc,mode8effect)
-% plot(loc,mode100effect)
+% figure
+% plot(loc,mode2effect)
+% hold on
+% plot(loc,mode3effect)
+% % plot(loc,mode4effect)
+% % plot(loc,mode5effect)
+% % plot(loc,mode6effect)
+% % plot(loc,mode7effect)
+% % plot(loc,mode8effect)
+% % plot(loc,mode100effect)
 
-figure
-plot(loc,dis1)
-hold on
-plot(loc,dis2)
-plot(loc,dis3)
-% plot(loc,dis4)
-% plot(loc,dis5)
-% plot(loc,dis6)
-% plot(loc,dis7)
-% plot(loc,dis8)
-% plot(loc,dis100)
+% figure
+% plot(loc,dis1)
+% hold on
+% plot(loc,dis2)
+% plot(loc,dis3)
+% % plot(loc,dis4)
+% % plot(loc,dis5)
+% % plot(loc,dis6)
+% % plot(loc,dis7)
+% % plot(loc,dis8)
+% % plot(loc,dis100)
 
 modeinfo = load('modeinfo_all.mat');
 nodegap=modeinfo.nodegap;
@@ -108,23 +108,9 @@ modeeffect=[mode2effect mode3effect mode4effect mode5effect mode6effect mode7eff
 Freq=modeinfo.Freq;
 
 for k1 = 1:length(Freq)-1
-    Freqeffect(k1,1)=(Freq(k1+1)-Freq(1))/Freq(1)*100;
+    Freqeffect(k1,1)=(Freq(k1+1));
 end
 
-% 对于60m处的点
-pointseq=find(loc==60);
-point_mode_effect=modeeffect(pointseq,:);
-point_freq_effect=Freqeffect(1:7);
-point_mode_shape=modeTMD(pointseq,:);
-
-for k1 = 1:length(point_mode_shape)-1
-   point_mode_shape_effect(k1,1)=abs((point_mode_shape(k1+1)-point_mode_shape(1))/point_mode_shape(1)*100);
-end
-figure
-scatter3(point_mode_shape_effect,point_freq_effect,point_mode_effect)
-xlabel("mode shape difference (%)")
-ylabel("frequency differeence (%)")
-zlabel("mode influence")
 
 
 % 遍历所有点
@@ -137,19 +123,102 @@ point_mode_shape=modeTMD(pointseq,:);
 
 for k2 = 1:length(point_mode_shape)-1
 %    point_mode_shape_effect(k1,1)=((abs(point_mode_shape(k1+1))-abs(point_mode_shape(1)))/point_mode_shape(1)*100);
-   point_mode_shape_effect(k2,1)=(abs(point_mode_shape(k2+1))/(max(abs(modeTMD(:,k2+1))))*100);
+   point_mode_shape_effect(k2,1)=(abs(point_mode_shape(k2+1))/(max(abs(modeTMD(:,k2+1)))));
 end
-phi1=abs(point_mode_shape(1)/max(abs(modeTMD(:,1)))*ones(7,1))
+phi1=abs(point_mode_shape(1)/max(abs(modeTMD(:,1)))*ones(7,1));
 scatter3(point_mode_shape_effect,point_freq_effect,point_mode_effect,50*ones(7,1),phi1)
 hold on
 end
-xlabel("mode shape difference (%)")
-ylabel("frequency differeence (%)")
-zlabel("mode influence")
+xlabel("mode shape")
+ylabel("frequency")
+zlabel("mode contribution")
 
 colorbar
 
-% x=0:0.5:100;
-% y=0:1:200;
-% z=ones(201)*0.05;
-% mesh(x,y,z, 'EdgeAlpha', 0.2)
+
+%% 按照模态来获取画图数据
+
+clc
+clear
+close all
+
+data = importdata('10modes_onetmd_results_loc.mat');
+num=size(data,1)/9;
+for k1 = 1:9
+    str="dis"+num2str(data(1+num*(k1-1),2))+"=data(1+num*(k1-1):num*k1,3);";
+    eval(str)
+end
+loc=data(1:num,1);
+
+mode2contri=(dis2-dis1)./dis100;
+mode3contri=(dis3-dis2)./dis100;
+mode4contri=(dis4-dis3)./dis100;
+mode5contri=(dis5-dis4)./dis100;
+mode6contri=(dis6-dis5)./dis100;
+mode7contri=(dis7-dis6)./dis100;
+mode8contri=(dis8-dis7)./dis100;
+mode100contri=(dis100-dis8)./dis100;
+
+modecontri=[mode2contri mode3contri mode4contri mode5contri mode6contri mode7contri mode8contri];
+
+for k1 = 1:7
+    tempdata=zeros(size(loc,1),3);%获取绘图数据，第一列为模态1坐标，第二列为高阶模态坐标，第三列为高阶级模态贡献
+    
+    modeinfo = load('modeinfo_all.mat');
+    nodegap=modeinfo.nodegap;
+    mode=modeinfo.mode_re;
+    for t01 = 1:length(loc)
+
+        [~, index] = sort(abs(nodegap - loc(t01))); %查找与xTMD最接近的点的排序
+        xResult = nodegap(index(1:2)); %获取最接近的两个点的x坐标
+        mode2nodes = mode(index(1:2), 1:8); %获取两个点坐标的y值
+        phi_result = interp1(xResult, mode2nodes, loc(t01), 'linear', 'extrap'); %插值以后任意点的振型
+        modeTMD(t01, 1:8) = phi_result(1:8);
+    end
+
+%     for t02 = 1:length(loc)
+%         pointseq(t02)=find(loc==loc(t02));
+%         point_mode_shape(t02)=modeTMD(pointseq,:);
+%     end
+    phi1=abs(modeTMD(:,1)/max(abs(modeTMD(:,1))));
+    phin=abs(modeTMD(:,k1+1)/max(abs(modeTMD(:,k1+1))));
+    tempdata(:,1)=phi1;
+    tempdata(:,2)=phin;
+    tempdata(:,3)=modecontri(:,k1);
+
+    str="plotdata_mode"+num2str(k1+1)+"=tempdata;";
+    eval(str)
+end
+figure
+scatter(plotdata_mode2(:,1),plotdata_mode2(:,2),[],plotdata_mode2(:,3))
+% scatter3(plotdata_mode2(:,1),plotdata_mode2(:,2),plotdata_mode2(:,3))
+xlabel("modal displacement 1")
+ylabel("modal displacement 2")
+% zlabel("mode2 contribution value")
+
+figure
+scatter(plotdata_mode3(:,1),plotdata_mode3(:,2),[],plotdata_mode3(:,3))
+% scatter3(plotdata_mode2(:,1),plotdata_mode2(:,2),plotdata_mode2(:,3))
+xlabel("modal displacement 1")
+ylabel("modal displacement 3")
+% zlabel("mode2 contribution value")
+
+figure
+scatter(plotdata_mode5(:,1),plotdata_mode5(:,2),[],plotdata_mode5(:,3))
+% scatter3(plotdata_mode2(:,1),plotdata_mode2(:,2),plotdata_mode2(:,3))
+xlabel("modal displacement 1")
+ylabel("modal displacement 5")
+% zlabel("mode2 contribution value")
+
+
+figure
+scatter(plotdata_mode6(:,1),plotdata_mode6(:,2),[],plotdata_mode6(:,3))
+% scatter3(plotdata_mode2(:,1),plotdata_mode2(:,2),plotdata_mode2(:,3))
+xlabel("modal displacement 1")
+ylabel("modal displacement 6")
+% zlabel("mode2 contribution value")
+
+
+%  f = fit([plotdata_mode2(:,1) plotdata_mode2(:,2)],plotdata_mode2(:,3),"poly11")
+%  plot(f,[plotdata_mode2(:,1) plotdata_mode2(:,2)],plotdata_mode2(:,3))
+
