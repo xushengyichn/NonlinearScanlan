@@ -2,12 +2,70 @@
 %Author: Shengyi xushengyichn@outlook.com
 %Date: 2022-11-28 17:39:07
 %LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
-%LastEditTime: 2023-01-17 21:00:17
+%LastEditTime: 2023-01-18 16:59:48
 %FilePath: \NonlinearScanlan\20230116全阶模态对1TMD控制效果影响\data_analysis.m
 %Description: 分析数据
 %
 %Copyright (c) 2022 by Shengyi xushengyichn@outlook.com, All Rights Reserved. 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%% 批量分析气动力作用于1-5阶模态时的临近模态影响
+
+clc
+clear 
+close all
+
+modes=1:5;
+
+for k1 = 5
+    % 读取数据
+%     data1=importdata('10modes_onetmd_results_loc_mode1.mat');
+    str1="data_mode=importdata('10modes_onetmd_results_loc_mode"+num2str(k1)+".mat');";
+    eval(str1)
+    str2="data_accurate=importdata('100modes_onetmd_results_loc_mode"+num2str(k1)+".mat');";
+    eval(str2)
+    clear str1 str2
+    mode_index=data_mode.calmodes_index;
+    nmodes_onetmd_results_loc=data_mode.nmodes_onetmd_results_loc;
+
+    % 横坐标
+    loc= data_accurate(:,1);
+
+
+    % 提取考虑更多阶模态的位移
+    figure
+    for k2 = 1:length(mode_index)
+        datasize=size(nmodes_onetmd_results_loc,1)/length(mode_index);
+        str="dis_index"+num2str(k2)+"=nmodes_onetmd_results_loc(1+datasize*(k2-1):datasize*k2,3);";
+        eval(str)
+        clear str
+        str="plot(loc,dis_index"+num2str(k2)+");";
+        eval(str)
+        hold on
+
+    end
+
+    % 提取精确解位移
+    dis_accurate=data_accurate(1:661,3);
+    plot(loc,dis_accurate,'k','LineWidth',2)
+
+    figure
+    % 计算相对精确解的位移差(每一阶的贡献值)
+    for k2 = 1:length(mode_index)-1
+        str="dis_"+num2str(mode_index(k2+1))+"_contri=(dis_index"+num2str(k2+1)+"-dis_index"+num2str(k2)+")./dis_accurate;";
+        disp(str)
+        eval(str)
+        str="plot(loc,dis_"+num2str(mode_index(k2+1))+"_contri);";
+        eval(str)
+        hold on
+    end
+    a=1;
+end
+
+
+
+
 
 %% 绘制分别考虑1-前5阶模态对TMD控制第一阶涡振效果的影响
 clc; clear; close all;

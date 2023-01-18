@@ -12,7 +12,7 @@
 clc; clear; close all;
 addpath('..\函数\')
 %% 各种参数设置
-recorddata = 1; % 是否需要记录数据
+recorddata = 0; % 是否需要记录数据
 fitdecide =0; % 是否需要拟合振幅包络线
 fname = ['SZTD-110-case2-22.3-fasan-2501']; %分析工况对应文件名
 fname_up_dltx= ['SZTD-110-case2-22.3-dltx2'];%上游动力特性文件名

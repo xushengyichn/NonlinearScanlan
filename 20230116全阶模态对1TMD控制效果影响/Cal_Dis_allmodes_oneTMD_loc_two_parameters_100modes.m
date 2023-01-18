@@ -14,7 +14,8 @@
 clc; clear; close all % 清除记录
 addpath("../函数/")
 
-for a1=1:5 %气动力施加的模态
+for a1=2 %气动力施加的模态
+% for a1=1:5 %气动力施加的模态
 numberofTMD = 1; % 所需要计算的TMD的数量.
 
 savedata = 0;
@@ -44,7 +45,7 @@ fTMD1 = 1 / (1 + mu) * fs;
 zetaTMD1 = sqrt(3 * mu / 8 / (1 + mu));
 
 
-cal_modes = [100];
+cal_modes = [8];
 % cal_modes = [1 2 3 4 5]; %分别计算前五阶模态情况下，气动力作用在1阶模态的情况，响应的大小
 xTMD1_all = 0:1:660;
 
@@ -54,14 +55,14 @@ variables = [XTMD1_all(:), Cal_modes(:)];
 nmodes_onetmd_dis = zeros(size(variables, 1), 4); %四列分别代表，最后一列为是否收敛dis_beam_max dis_TMD1_max max_index flag_iter
 numIterations = size(variables, 1);
 
-ppm = ParforProgressbar(numIterations,'showWorkerProgress',true,'progressBarUpdatePeriod',3,'title','my fancy title');
+% ppm = ParforProgressbar(numIterations,'showWorkerProgress',true,'progressBarUpdatePeriod',3,'title','my fancy title');
 
 pauseTime = 60 / numIterations;
-parfor k1 = 1:size(variables,1)
+% parfor k1 = 1:size(variables,1)
 % parfor k1 = 1:modes_number
 % for k1 = 537:603
 % for k1 = 63
-% for k1 = 511
+for k1 = 56
 
     mass_six_span = 10007779.7;
     mTMD = [mTMD1]; %该代码为基准tmd的

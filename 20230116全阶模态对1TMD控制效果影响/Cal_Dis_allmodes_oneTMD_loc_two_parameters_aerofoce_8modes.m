@@ -2,7 +2,7 @@
 %Author: xushengyichn 54436848+xushengyichn@users.noreply.github.com
 %Date: 2022-10-15 21:56:39
 %LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
-%LastEditTime: 2023-01-18 11:39:37
+%LastEditTime: 2023-01-18 19:11:58
 %FilePath: \NonlinearScanlan\20230116全阶模态对1TMD控制效果影响\Cal_Dis_allmodes_oneTMD_loc_two_parameters_aerofoce_8modes.m
 %Description: 考虑前8阶模态，1个TMD的影响，穷举阻尼频率和位置，气动力分别作用在1-5模态
 %
@@ -16,7 +16,7 @@ addpath("../函数/")
 
 airmodes = 1:5;
 
-for a1 = airmodes %气动力作用在前5阶模态上
+for a1 = 2 %气动力作用在前5阶模态上
 
     numberofTMD = 1; % 所需要计算的TMD的数量.
 
@@ -61,17 +61,17 @@ for a1 = airmodes %气动力作用在前5阶模态上
     variables = [XTMD1_all(:), Cal_modes(:)];
 
     nmodes_onetmd_dis = zeros(size(variables, 1), 4); %四列分别代表，最后一列为是否收敛dis_beam_max dis_TMD1_max max_index flag_iter
-    % numIterations = size(variables, 1);
+    numIterations = size(variables, 1);
 
-    % ppm = ParforProgressbar(numIterations, 'showWorkerProgress', true, 'progressBarUpdatePeriod', 3, 'title', 'my fancy title');
+%     ppm = ParforProgressbar(numIterations, 'showWorkerProgress', true, 'progressBarUpdatePeriod', 3, 'title', 'my fancy title');
 
-    % pauseTime = 60 / numIterations;
+    pauseTime = 60 / numIterations;
 
-    for k1 = 1:size(variables, 1)
+    parfor k1 = 1:size(variables, 1)
         % parfor k1 = 1:modes_number
         % for k1 = 537:603
         % for k1 = 63
-        % for k1 = 511
+%     for k1 = 4683
 
         % mass_six_span = 10007779.7;
         mTMD = [mTMD1]; %该代码为基准tmd的
@@ -87,7 +87,7 @@ for a1 = airmodes %气动力作用在前5阶模态上
 
         ifcalmode = 3;
         h = 0.01;
-        t_length = 100;
+        t_length = 150;
 
         %% 计算不安装TMD情况下各阶模态各点最大位移
         nodeondeck = importdata('nodeondeck.txt');
@@ -171,7 +171,7 @@ for a1 = airmodes %气动力作用在前5阶模态上
             %     legend('1', '2', '3')
 
             %     [modemaxdis_single,usinglemax,uallmax]= CalData_Polynomial_withTMD_multidegree(nTMD,mTMD,zetaTMD,omegaTMD,xTMD,1,ifcalmode,MM_eq,KK_eq,calmodes,eig_val,eig_vec,t_length);
-            [~, ~, ~, output] = CalData_Polynomial_withTMD_multidegree(nTMD, mTMD, zetaTMD, omegaTMD, xTMD,1, ifcalmode, MM_eq, KK_eq, calmodes, eig_val, eig_vec, t_length);
+            [~, ~, ~, output] = CalData_Polynomial_withTMD_multidegree_8modes(nTMD, mTMD, zetaTMD, omegaTMD, xTMD,1, ifcalmode, MM_eq, KK_eq, calmodes, eig_val, eig_vec, t_length);
             u = output.u;
 
             %计算桥梁响应
@@ -245,18 +245,18 @@ for a1 = airmodes %气动力作用在前5阶模态上
 
         end
 
-        pause(pauseTime);
-        % increment counter to track progress
-        ppm.increment();
+%         pause(pauseTime);
+%         % increment counter to track progress
+%         ppm.increment();
 
     end
 
-    delete(ppm)
+%     delete(ppm)
     nmodes_onetmd_results_loc = [variables nmodes_onetmd_dis];
     collectdata.nmodes_onetmd_results_loc=nmodes_onetmd_results_loc;
     collectdata.calmodes_index=cal_modes_index;
-    str = "save('10modes_onetmd_results_loc_mode"+num2str(airmodes(a1))+".mat', 'nmodes_onetmd_results_loc')";
-    eval(str);
+    str = "save('10modes_onetmd_results_loc_mode"+num2str(airmodes(a1))+".mat', 'collectdata')";
+%     eval(str);
     % save 10modes_onetmd_results_loc.mat nmodes_onetmd_results_loc
 end %airmodes
 

@@ -203,8 +203,12 @@ function [modemaxdis_single, usinglemax, uallmax, output] = CalData_Polynomial_w
     %     m_modal(j) = sqrt(eig_vec(:, j)' * M * eig_vec(:, j));
     % end
 
-    [omeg, w_order] = sort(sqrt(diag(eig_val)));
-    mode_vec = eig_vec(:, w_order);
+%     [omeg, w_order] = sort(sqrt(diag(eig_val)));
+%     mode_vec = eig_vec(:, w_order);
+%     Freq = omeg / (2 * pi);
+
+    omeg = sqrt(diag(eig_val));
+    mode_vec = eig_vec;
     Freq = omeg / (2 * pi);
 
     %% 构建包含TMD的MCK矩阵

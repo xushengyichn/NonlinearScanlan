@@ -56,13 +56,13 @@ variables = [XTMD1_all(:), Cal_modes(:)];
 nmodes_onetmd_dis = zeros(size(variables, 1), 4); %四列分别代表，最后一列为是否收敛dis_beam_max dis_TMD1_max max_index flag_iter
 numIterations = size(variables, 1);
 
-ppm = ParforProgressbar(numIterations,'showWorkerProgress',true,'progressBarUpdatePeriod',3,'title','my fancy title');
+% ppm = ParforProgressbar(numIterations,'showWorkerProgress',true,'progressBarUpdatePeriod',3,'title','my fancy title');
 
 pauseTime = 60 / numIterations;
-parfor k1 = 1:size(variables,1)
+% parfor k1 = 1:size(variables,1)
 % parfor k1 = 1:modes_number
 % for k1 = 537:603
-% for k1 = 63
+for k1 = 63
 % for k1 = 511
 
     mass_six_span = 10007779.7;
