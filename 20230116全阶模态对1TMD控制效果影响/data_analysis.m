@@ -2,7 +2,7 @@
 %Author: Shengyi xushengyichn@outlook.com
 %Date: 2022-11-28 17:39:07
 %LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
-%LastEditTime: 2023-01-18 16:59:48
+%LastEditTime: 2023-01-19 11:14:34
 %FilePath: \NonlinearScanlan\20230116全阶模态对1TMD控制效果影响\data_analysis.m
 %Description: 分析数据
 %
@@ -16,9 +16,9 @@ clc
 clear 
 close all
 
-modes=1:5;
-
-for k1 = 5
+modes=1:6;
+collectdata=[];
+for k1 = modes
     % 读取数据
 %     data1=importdata('10modes_onetmd_results_loc_mode1.mat');
     str1="data_mode=importdata('10modes_onetmd_results_loc_mode"+num2str(k1)+".mat');";
@@ -34,38 +34,127 @@ for k1 = 5
 
 
     % 提取考虑更多阶模态的位移
-    figure
+    str="dis_all_"+num2str(k1)+"=[];";
+    eval(str)
+    clear str
+    
     for k2 = 1:length(mode_index)
         datasize=size(nmodes_onetmd_results_loc,1)/length(mode_index);
         str="dis_index"+num2str(k2)+"=nmodes_onetmd_results_loc(1+datasize*(k2-1):datasize*k2,3);";
         eval(str)
         clear str
-        str="plot(loc,dis_index"+num2str(k2)+");";
+        str="dis_all_"+num2str(k1)+"=[dis_all_"+num2str(k1)+" dis_index"+num2str(k2)+"];";
         eval(str)
-        hold on
-
+        clear str
     end
 
     % 提取精确解位移
     dis_accurate=data_accurate(1:661,3);
-    plot(loc,dis_accurate,'k','LineWidth',2)
+   
+    str="dis_accurate_"+num2str(k1)+"=data_accurate(1:661,3);";
+    eval(str)
+    clear str
 
-    figure
+    % 读取模态信息
+    modeinfo = load('modeinfo_all.mat');
+    nodegap=modeinfo.nodegap;
+    mode=modeinfo.mode_re;
+    for t01 = 1:length(loc)
+        [~, index] = sort(abs(nodegap - loc(t01))); %查找与xTMD最接近的点的排序
+        xResult = nodegap(index(1:2)); %获取最接近的两个点的x坐标
+        mode2nodes = mode(index(1:2), 1:8); %获取两个点坐标的y值
+        phi_result = interp1(xResult, mode2nodes, loc(t01), 'linear', 'extrap'); %插值以后任意点的振型
+        mode_TMD_location(t01, 1:8) = phi_result(1:8);
+    end
+    
+    
     % 计算相对精确解的位移差(每一阶的贡献值)
     for k2 = 1:length(mode_index)-1
+%     for k2 = 2
         str="dis_"+num2str(mode_index(k2+1))+"_contri=(dis_index"+num2str(k2+1)+"-dis_index"+num2str(k2)+")./dis_accurate;";
         disp(str)
         eval(str)
-        str="plot(loc,dis_"+num2str(mode_index(k2+1))+"_contri);";
+        clear str
+        mode_shape_control=mode_TMD_location(:,mode_index(1));%TMD所控制模态的振型
+        mode_shape_consider=mode_TMD_location(:,mode_index(k2+1));
+        % dis_1_plotdata=[dis_1_contri mode_shape_control mode_shape_consider dis_accurate]; %用于参考的代码，展示下方str的某一个特例
+        % 第一列 某一个模态贡献值 第二列 TMD控制模态振型 第三列 考虑的模态振型 第四列 精确解位移
+        % str="plotdata_dis_"+num2str(mode_index(k2+1))+"_for_mode_"+num2str(mode_index(1))+"=[dis_"+num2str(mode_index(k2+1))+"_contri mode_shape_control mode_shape_consider dis_accurate];";
+        str="temp=[dis_"+num2str(mode_index(k2+1))+"_contri mode_shape_control mode_shape_consider dis_accurate];";
+        eval(str)
+        temp(:,1)=abs(temp(:,1));
+        temp(:,2)=abs(temp(:,2))/max(abs(temp(:,2)));
+        temp(:,3)=abs(temp(:,3))/max(abs(temp(:,3)));
+        temp(:,4)=-normalize(temp(:,4),'range')+1;%缩放精确位移数据
+        figure
+        scatter(temp(:,2),temp(:,3),round(temp(:,4)*50,0)+10,temp(:,1))
+%         scatter(temp(1:110,2),temp(1:110,3),round(temp(1:110,4)*50,0)+10,temp(1:110,1))
+%         hold on
+%         scatter(temp(330:440,2),temp(330:440,3),round(temp(330:440,4)*50,0)+10,temp(330:440,1))
+        colorbar
+        clear str
+        str="plotdata_dis_"+num2str(mode_index(k2+1))+"_for_mode_"+num2str(mode_index(1))+"=temp;";
+        eval(str)
+        clear str
+        str="collectdata.plotdata_dis_"+num2str(mode_index(k2+1))+"_for_mode_"+num2str(mode_index(1))+"=temp;";
+        eval(str)
+        clear str
+    end
+    collectdata.mode=mode_TMD_location;
+    collectdata.loc=loc;
+    str="collectdata.dis_all_"+num2str(k1)+"=dis_all_"+num2str(k1)+";";
+    eval(str)
+    clear str
+    str="collectdata.dis_accurate_"+num2str(k1)+"=dis_accurate_"+num2str(k1)+";";
+    eval(str)
+    clear str
+%     save("mode_contribution_plotdata.mat","collectdata")
+    % 画图代码
+    % figure
+    % scatter(abs(plotdata_dis_2_for_mode_1(:,2))/max(abs(plotdata_dis_2_for_mode_1(:,2))),abs(plotdata_dis_2_for_mode_1(:,3))/max(abs(plotdata_dis_2_for_mode_1(:,3))),plotdata_dis_2_for_mode_1(:,4)*100,plotdata_dis_2_for_mode_1(:,1))
+    colorbar
+
+    figure
+%     
+    plot(loc,dis_accurate,'k','LineWidth',2)
+    hold on
+%     figure
+    for k2 = 1:length(mode_index)
+        str="plot(loc,dis_index"+num2str(k2)+");";
         eval(str)
         hold on
     end
-    a=1;
+% 
+    figure
+    for k2 = 1:length(mode_index)
+        plot(mode_TMD_location(:,k2))
+        hold on
+    end
+
+        figure
+    for k2 = 1:3
+        str="plot(loc,dis_index"+num2str(k2)+");";
+        eval(str)
+        hold on
+    end
+
+    figure
+    for k2 = 1:3
+        plot(mode_TMD_location(:,k2))
+        hold on
+    end
+
+    figure
+    for k2 = 1:length(mode_index)-1
+        str="plot(loc,dis_"+num2str(mode_index(k2+1))+"_contri);";
+        eval(str)
+        hold on
+    end   
 end
 
 
-
-
+close all
+return
 
 %% 绘制分别考虑1-前5阶模态对TMD控制第一阶涡振效果的影响
 clc; clear; close all;
@@ -154,7 +243,7 @@ for t1 = 1:length(loc)
     xResult = nodegap(index(1:2)); %获取最接近的两个点的x坐标
     mode2nodes = mode(index(1:2), 1:8); %获取两个点坐标的y值
     phi_result = interp1(xResult, mode2nodes, loc(t1), 'linear', 'extrap'); %插值以后任意点的振型
-    modeTMD(t1, 1:8) = phi_result(1:8);
+    mode_TMD_location(t1, 1:8) = phi_result(1:8);
 end
 % figure
 % plot(nodegap,mode(:,1))
@@ -177,13 +266,13 @@ for k1 = 1:length(loc)
 pointseq=find(loc==loc(k1));
 point_mode_effect=modeeffect(pointseq,:);
 point_freq_effect=Freqeffect(1:7);
-point_mode_shape=modeTMD(pointseq,:);
+point_mode_shape=mode_TMD_location(pointseq,:);
 
 for k2 = 1:length(point_mode_shape)-1
 %    point_mode_shape_effect(k1,1)=((abs(point_mode_shape(k1+1))-abs(point_mode_shape(1)))/point_mode_shape(1)*100);
-   point_mode_shape_effect(k2,1)=(abs(point_mode_shape(k2+1))/(max(abs(modeTMD(:,k2+1)))));
+   point_mode_shape_effect(k2,1)=(abs(point_mode_shape(k2+1))/(max(abs(mode_TMD_location(:,k2+1)))));
 end
-phi1=abs(point_mode_shape(1)/max(abs(modeTMD(:,1)))*ones(7,1));
+phi1=abs(point_mode_shape(1)/max(abs(mode_TMD_location(:,1)))*ones(7,1));
 scatter3(point_mode_shape_effect,point_freq_effect,point_mode_effect,50*ones(7,1),phi1)
 hold on
 end
@@ -231,15 +320,15 @@ for k1 = 1:7
         xResult = nodegap(index(1:2)); %获取最接近的两个点的x坐标
         mode2nodes = mode(index(1:2), 1:8); %获取两个点坐标的y值
         phi_result = interp1(xResult, mode2nodes, loc(t01), 'linear', 'extrap'); %插值以后任意点的振型
-        modeTMD(t01, 1:8) = phi_result(1:8);
+        mode_TMD_location(t01, 1:8) = phi_result(1:8);
     end
 
 %     for t02 = 1:length(loc)
 %         pointseq(t02)=find(loc==loc(t02));
 %         point_mode_shape(t02)=modeTMD(pointseq,:);
 %     end
-    phi1=abs(modeTMD(:,1)/max(abs(modeTMD(:,1))));
-    phin=abs(modeTMD(:,k1+1)/max(abs(modeTMD(:,k1+1))));
+    phi1=abs(mode_TMD_location(:,1)/max(abs(mode_TMD_location(:,1))));
+    phin=abs(mode_TMD_location(:,k1+1)/max(abs(mode_TMD_location(:,k1+1))));
     tempdata(:,1)=phi1;
     tempdata(:,2)=phin;
     tempdata(:,3)=modecontri(:,k1);

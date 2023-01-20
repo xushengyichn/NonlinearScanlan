@@ -621,7 +621,7 @@ function [modemaxdis_single, usinglemax, uallmax, output] = CalData_Polynomial_w
                 udot(:, ii + 1) = udot(:, ii + 1) + gamma * h / (beta * h ^ 2) * du; % Incremental correction for velocities
                 u2dot(:, ii + 1) = u2dot(:, ii + 1) + 1 / (beta * h ^ 2) * du; % Incremental correction accelerations
 
-                if sqrt(rr' * rr) / length(rr) < 1.0e-8 % Convergence criteria
+                if sqrt(rr' * rr) / length(rr) < 1.0e-4 % Convergence criteria
                     konv = 1; % konv = 1 if the convergence criteria is fulfilled.
                 end
 

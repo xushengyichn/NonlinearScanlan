@@ -45,7 +45,7 @@ fTMD1 = 1 / (1 + mu) * fs;
 zetaTMD1 = sqrt(3 * mu / 8 / (1 + mu));
 
 
-cal_modes = [8];
+cal_modes = [100];
 % cal_modes = [1 2 3 4 5]; %分别计算前五阶模态情况下，气动力作用在1阶模态的情况，响应的大小
 xTMD1_all = 0:1:660;
 
@@ -62,7 +62,7 @@ pauseTime = 60 / numIterations;
 % parfor k1 = 1:modes_number
 % for k1 = 537:603
 % for k1 = 63
-for k1 = 56
+for k1 = 606
 
     mass_six_span = 10007779.7;
     mTMD = [mTMD1]; %该代码为基准tmd的
@@ -221,9 +221,9 @@ for k1 = 56
 
     end
 
-    pause(pauseTime);
-    % increment counter to track progress
-    ppm.increment();
+%     pause(pauseTime);
+%     % increment counter to track progress
+%     ppm.increment();
 
 end
 delete(ppm)
@@ -237,7 +237,7 @@ nmodes_onetmd_results_loc = [variables nmodes_onetmd_dis];
 
 % save onemode_twotmd_results.mat onemode_twotmd_phi_results xTMD2_all FTMD2_all bridge_dis_grid TMD1_dis_grid TMD2_dis_grid
 str = "save('100modes_onetmd_results_loc_mode"+num2str(airmodes(a1))+".mat', 'nmodes_onetmd_results_loc')";
-    eval(str);
+%     eval(str);
 % save 100modes_onetmd_results_loc.mat nmodes_onetmd_results_loc
 end
 %% 所需函数
