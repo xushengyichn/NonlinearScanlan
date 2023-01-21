@@ -16,12 +16,12 @@ clc
 clear 
 close all
 
-modes=1:6;
+modes=1:5;
 collectdata=[];
 for k1 = modes
     % 读取数据
 %     data1=importdata('10modes_onetmd_results_loc_mode1.mat');
-    str1="data_mode=importdata('10modes_onetmd_results_loc_mode"+num2str(k1)+".mat');";
+    str1="data_mode=importdata('17modes_onetmd_results_loc_mode"+num2str(k1)+".mat');";
     eval(str1)
     str2="data_accurate=importdata('100modes_onetmd_results_loc_mode"+num2str(k1)+".mat');";
     eval(str2)
@@ -62,9 +62,9 @@ for k1 = modes
     for t01 = 1:length(loc)
         [~, index] = sort(abs(nodegap - loc(t01))); %查找与xTMD最接近的点的排序
         xResult = nodegap(index(1:2)); %获取最接近的两个点的x坐标
-        mode2nodes = mode(index(1:2), 1:8); %获取两个点坐标的y值
+        mode2nodes = mode(index(1:2), 1:17); %获取两个点坐标的y值
         phi_result = interp1(xResult, mode2nodes, loc(t01), 'linear', 'extrap'); %插值以后任意点的振型
-        mode_TMD_location(t01, 1:8) = phi_result(1:8);
+        mode_TMD_location(t01, 1:17) = phi_result(1:17);
     end
     
     
@@ -108,48 +108,48 @@ for k1 = modes
     str="collectdata.dis_accurate_"+num2str(k1)+"=dis_accurate_"+num2str(k1)+";";
     eval(str)
     clear str
-%     save("mode_contribution_plotdata.mat","collectdata")
+    save("mode_contribution_plotdata.mat","collectdata")
     % 画图代码
     % figure
     % scatter(abs(plotdata_dis_2_for_mode_1(:,2))/max(abs(plotdata_dis_2_for_mode_1(:,2))),abs(plotdata_dis_2_for_mode_1(:,3))/max(abs(plotdata_dis_2_for_mode_1(:,3))),plotdata_dis_2_for_mode_1(:,4)*100,plotdata_dis_2_for_mode_1(:,1))
     colorbar
 
-    figure
-%     
-    plot(loc,dis_accurate,'k','LineWidth',2)
-    hold on
 %     figure
-    for k2 = 1:length(mode_index)
-        str="plot(loc,dis_index"+num2str(k2)+");";
-        eval(str)
-        hold on
-    end
+% %     
+%     plot(loc,dis_accurate,'k','LineWidth',2)
+%     hold on
+% %     figure
+%     for k2 = 1:length(mode_index)
+%         str="plot(loc,dis_index"+num2str(k2)+");";
+%         eval(str)
+%         hold on
+%     end
+% % 
+%     figure
+%     for k2 = 1:length(mode_index)
+%         plot(mode_TMD_location(:,k2))
+%         hold on
+%     end
 % 
-    figure
-    for k2 = 1:length(mode_index)
-        plot(mode_TMD_location(:,k2))
-        hold on
-    end
-
-        figure
-    for k2 = 1:3
-        str="plot(loc,dis_index"+num2str(k2)+");";
-        eval(str)
-        hold on
-    end
-
-    figure
-    for k2 = 1:3
-        plot(mode_TMD_location(:,k2))
-        hold on
-    end
-
-    figure
-    for k2 = 1:length(mode_index)-1
-        str="plot(loc,dis_"+num2str(mode_index(k2+1))+"_contri);";
-        eval(str)
-        hold on
-    end   
+%         figure
+%     for k2 = 1:3
+%         str="plot(loc,dis_index"+num2str(k2)+");";
+%         eval(str)
+%         hold on
+%     end
+% 
+%     figure
+%     for k2 = 1:3
+%         plot(mode_TMD_location(:,k2))
+%         hold on
+%     end
+% 
+%     figure
+%     for k2 = 1:length(mode_index)-1
+%         str="plot(loc,dis_"+num2str(mode_index(k2+1))+"_contri);";
+%         eval(str)
+%         hold on
+%     end   
 end
 
 
