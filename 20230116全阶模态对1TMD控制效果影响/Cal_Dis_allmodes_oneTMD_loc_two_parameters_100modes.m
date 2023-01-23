@@ -14,7 +14,7 @@
 clc; clear; close all % 清除记录
 addpath("../函数/")
 
-for a1=2 %气动力施加的模态
+for a1=6 %气动力施加的模态
 % for a1=1:5 %气动力施加的模态
 numberofTMD = 1; % 所需要计算的TMD的数量.
 
@@ -25,7 +25,7 @@ nTMD = numberofTMD;
 modeinfo = load('modeinfo_all.mat');
 % 设计第一个TMD的参数
 % TMD1按照规范设计
-modes_number=8;
+modes_number=100;
 fs = modeinfo.Freq(a1);
 
 mode_shape=zeros(length(modeinfo.eig_vec(:,1)),modes_number);

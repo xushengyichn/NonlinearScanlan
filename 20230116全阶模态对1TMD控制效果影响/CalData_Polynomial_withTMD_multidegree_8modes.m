@@ -377,6 +377,9 @@ function [modemaxdis_single, usinglemax, uallmax, output] = CalData_Polynomial_w
     end
 
     KK = KK1 + KK2;
+%     disp(KK1)
+%     disp(KK2)
+%     disp(KK)
     clear k1 k2
 
     % 创建阻尼矩阵

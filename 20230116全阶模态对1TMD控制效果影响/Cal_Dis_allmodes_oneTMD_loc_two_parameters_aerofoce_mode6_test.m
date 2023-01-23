@@ -4,7 +4,7 @@
 %LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
 %LastEditTime: 2023-01-20 11:12:29
 %FilePath: \NonlinearScanlan\20230116全阶模态对1TMD控制效果影响\Cal_Dis_allmodes_oneTMD_loc_two_parameters_aerofoce_17modes.m
-%Description: 由于前8阶模态似乎不够，需要考虑更多阶模态，本代码修改为17阶模态（其中包含12阶竖弯模态)
+%Description:第六阶模态的影响很奇怪，TMD布置在振型向量更大的位置反而效果不好，希望查找到原因，通过遍历所有工况查找TMD的最优参数（分别安装在56和77m的位置）
 %
 %Copyright (c) 2022 by xushengyichn 54436848+xushengyichn@users.noreply.github.com, All Rights Reserved.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -16,7 +16,7 @@ addpath("../函数/")
 
 airmodes = 1:6;
 
-for a1 = airmodes %气动力作用在前5阶模态上
+for a1 = 6 %气动力作用在前5阶模态上
 
     numberofTMD = 1; % 所需要计算的TMD的数量.
 
@@ -26,9 +26,9 @@ for a1 = airmodes %气动力作用在前5阶模态上
     % nTMD = 2; %TMD数量
     modeinfo = load('modeinfo_all.mat');
     
-    modes_number = 17; % 求解前n阶模态
+    modes_number = 6; % 求解前n阶模态
     fs = modeinfo.Freq(a1); % 按照气动力作用在哪个模态上，来确定TMD的频率
-
+    fs_s=fs*0.7:0.01:fs*1.1;
     % 获取前n阶模态的模态位移，这里的mode_shape是按照桥梁模态逐阶排列的，不是按照cal_modes_index排列的，重新排列的向量为后续的eig_vec变量
     mode_shape = zeros(length(modeinfo.eig_vec(:, a1)), modes_number);
 
@@ -39,11 +39,11 @@ for a1 = airmodes %气动力作用在前5阶模态上
     % 设计第一个TMD的参数
     % TMD1按照规范设计，按照气动力对应模态的最优参数进行设计
     mu = 0.02;
-    mTMD1 = mu / (max(mode_shape(:, a1)) ^ 2);
+    mTMD1 = mu / (max(abs(mode_shape(:, a1))) ^ 2);
     fTMD1 = 1 / (1 + mu) * fs;
     zetaTMD1 = sqrt(3 * mu / 8 / (1 + mu));
 
-    cal_modes = (1:modes_number)';% 
+    cal_modes = 6;% 
 
     % cal_modes = [cal_modes; 100];
 
@@ -55,10 +55,10 @@ for a1 = airmodes %气动力作用在前5阶模态上
 
 %     cal_modes_accurate=100; % 精确计算的模态数
     % TMD1的位置
-    xTMD1_all = 0:1:660;
+    xTMD1_all = [56 77];
 
-    [XTMD1_all, Cal_modes] = ndgrid(xTMD1_all, cal_modes);
-    variables = [XTMD1_all(:), Cal_modes(:)];
+    [XTMD1_all, Fs_s] = ndgrid(xTMD1_all, fs_s);
+    variables = [XTMD1_all(:), Fs_s(:)];
 
     nmodes_onetmd_dis = zeros(size(variables, 1), 4); %四列分别代表，最后一列为是否收敛dis_beam_max dis_TMD1_max max_index flag_iter
     numIterations = size(variables, 1);
@@ -67,21 +67,21 @@ for a1 = airmodes %气动力作用在前5阶模态上
 
     pauseTime = 60 / numIterations;
 
-    parfor k1 = 1:size(variables, 1)
+%     parfor k1 = 1:size(variables, 1)
         % parfor k1 = 1:modes_number
         % for k1 = 537:603
         % for k1 = 63
-%     for k1 =77
+    for k1 =1
         % mass_six_span = 10007779.7;
         mTMD = [mTMD1]; %该代码为基准tmd的
-        Ftmd = [fTMD1];
+        Ftmd = variables(k1,2);
         zetaTMD = [zetaTMD1];
         xTMD = [variables(k1, 1)];
 
         omegaTMD = 2 * pi * Ftmd;
 
-        cal_modes_temp = variables(k1, 2);
-        cal_modes_index_temp=cal_modes_index(1:cal_modes_temp);
+        cal_modes_temp = 1;
+        cal_modes_index_temp=6;
 
 
         ifcalmode = 3;
@@ -174,16 +174,13 @@ for a1 = airmodes %气动力作用在前5阶模态上
             u = output.u;
 
             %计算桥梁响应
-            dis_temp = zeros(size(u, 2), variables(k1, 2));% 分别表示时间长度和模态数量
+            dis_temp = zeros(size(u, 2), 1);% 分别表示时间长度和模态数量
+            dis_temp(:, 1)=u(1, :);
+            dis_temp(:, 2)=u(2, :);%TMD响应
 
-            for k4 = 1:variables(k1, 2)
-                dis_temp(:, k4) = u(k4, :);
-            end
+            dis_TMD = dis_temp(:, 2);
 
-            maxdislocationtime = u(1, :);
-
-            dis_temp(:, variables(k1, 2) + 1) = u(end, :); %TMD响应
-            dis_TMD = dis_temp(:, variables(k1, 2) + 1);
+            maxdislocationtime=u(1,:);
             %判断计算是否收敛
             dis1 = max(maxdislocationtime(round(end / 8 * 6, 0):round(end / 8 * 7, 0)));
             dis2 = max(maxdislocationtime(round(end / 8 * 7, 0):end));
@@ -254,8 +251,9 @@ for a1 = airmodes %气动力作用在前5阶模态上
     nmodes_onetmd_results_loc = [variables nmodes_onetmd_dis];
     collectdata.nmodes_onetmd_results_loc=nmodes_onetmd_results_loc;
     collectdata.calmodes_index=cal_modes_index;
-    str = "save('17modes_onetmd_results_loc_mode"+num2str(airmodes(a1))+".mat', 'collectdata')";
+%     str = "save('17modes_onetmd_results_loc_mode"+num2str(airmodes(a1))+".mat', 'collectdata')";
 %     eval(str);
+% save test6.mat
     % save 10modes_onetmd_results_loc.mat nmodes_onetmd_results_loc
 end %airmodes
 

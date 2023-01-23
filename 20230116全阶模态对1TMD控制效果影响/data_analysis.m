@@ -16,9 +16,9 @@ clc
 clear 
 close all
 
-modes=1:5;
+modes=1:6;
 collectdata=[];
-for k1 = modes
+for k1 = 6
     % 读取数据
 %     data1=importdata('10modes_onetmd_results_loc_mode1.mat');
     str1="data_mode=importdata('17modes_onetmd_results_loc_mode"+num2str(k1)+".mat');";
@@ -66,7 +66,16 @@ for k1 = modes
         phi_result = interp1(xResult, mode2nodes, loc(t01), 'linear', 'extrap'); %插值以后任意点的振型
         mode_TMD_location(t01, 1:17) = phi_result(1:17);
     end
-    
+
+    nn=6
+    aa=abs(mode_TMD_location(:,6));
+    bb=abs(dis_accurate_6);
+    figure
+    plot(loc,mode_TMD_location(:,6))
+    hold on
+    plot(loc,dis_accurate_6)
+    figure
+    plot(aa,bb)
     
     % 计算相对精确解的位移差(每一阶的贡献值)
     for k2 = 1:length(mode_index)-1
@@ -99,6 +108,9 @@ for k1 = modes
         str="collectdata.plotdata_dis_"+num2str(mode_index(k2+1))+"_for_mode_"+num2str(mode_index(1))+"=temp;";
         eval(str)
         clear str
+        figure
+        scatter(temp(:,2),temp(:,4))
+        aaa=1;
     end
     collectdata.mode=mode_TMD_location;
     collectdata.loc=loc;
@@ -108,22 +120,26 @@ for k1 = modes
     str="collectdata.dis_accurate_"+num2str(k1)+"=dis_accurate_"+num2str(k1)+";";
     eval(str)
     clear str
-    save("mode_contribution_plotdata.mat","collectdata")
+%     save("mode_contribution_plotdata.mat","collectdata")
     % 画图代码
     % figure
     % scatter(abs(plotdata_dis_2_for_mode_1(:,2))/max(abs(plotdata_dis_2_for_mode_1(:,2))),abs(plotdata_dis_2_for_mode_1(:,3))/max(abs(plotdata_dis_2_for_mode_1(:,3))),plotdata_dis_2_for_mode_1(:,4)*100,plotdata_dis_2_for_mode_1(:,1))
     colorbar
 
+    modeinfo=importdata("modeinfo_all.mat");
+    x=modeinfo.nodegap;
+    y=modeinfo.mode;
+    figure
+    plot(x,y(:,6))
+    figure
+%   plot(loc,dis_accurate,'k','LineWidth',2)
+    hold on
 %     figure
-% %     
-%     plot(loc,dis_accurate,'k','LineWidth',2)
-%     hold on
-% %     figure
-%     for k2 = 1:length(mode_index)
-%         str="plot(loc,dis_index"+num2str(k2)+");";
-%         eval(str)
-%         hold on
-%     end
+    for k2 = 1:length(mode_index)
+        str="plot(loc,dis_index"+num2str(k2)+");";
+        eval(str)
+        hold on
+    end
 % % 
 %     figure
 %     for k2 = 1:length(mode_index)
@@ -144,12 +160,12 @@ for k1 = modes
 %         hold on
 %     end
 % 
-%     figure
-%     for k2 = 1:length(mode_index)-1
-%         str="plot(loc,dis_"+num2str(mode_index(k2+1))+"_contri);";
-%         eval(str)
-%         hold on
-%     end   
+    figure
+    for k2 = 1:length(mode_index)-1
+        str="plot(loc,dis_"+num2str(mode_index(k2+1))+"_contri);";
+        eval(str)
+        hold on
+    end   
 end
 
 
