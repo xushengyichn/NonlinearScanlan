@@ -18,7 +18,7 @@ close all
 
 modes=1:6;
 collectdata=[];
-for k1 = 6
+for k1 = modes
     % 读取数据
 %     data1=importdata('10modes_onetmd_results_loc_mode1.mat');
     str1="data_mode=importdata('17modes_onetmd_results_loc_mode"+num2str(k1)+".mat');";
@@ -67,15 +67,15 @@ for k1 = 6
         mode_TMD_location(t01, 1:17) = phi_result(1:17);
     end
 
-    nn=6
-    aa=abs(mode_TMD_location(:,6));
-    bb=abs(dis_accurate_6);
-    figure
-    plot(loc,mode_TMD_location(:,6))
-    hold on
-    plot(loc,dis_accurate_6)
-    figure
-    plot(aa,bb)
+%     nn=6
+%     aa=abs(mode_TMD_location(:,6));
+%     bb=abs(dis_accurate_6);
+%     figure
+%     plot(loc,mode_TMD_location(:,6))
+%     hold on
+%     plot(loc,dis_accurate_6)
+%     figure
+%     plot(aa,bb)
     
     % 计算相对精确解的位移差(每一阶的贡献值)
     for k2 = 1:length(mode_index)-1
@@ -120,7 +120,7 @@ for k1 = 6
     str="collectdata.dis_accurate_"+num2str(k1)+"=dis_accurate_"+num2str(k1)+";";
     eval(str)
     clear str
-%     save("mode_contribution_plotdata.mat","collectdata")
+    save("mode_contribution_plotdata.mat","collectdata")
     % 画图代码
     % figure
     % scatter(abs(plotdata_dis_2_for_mode_1(:,2))/max(abs(plotdata_dis_2_for_mode_1(:,2))),abs(plotdata_dis_2_for_mode_1(:,3))/max(abs(plotdata_dis_2_for_mode_1(:,3))),plotdata_dis_2_for_mode_1(:,4)*100,plotdata_dis_2_for_mode_1(:,1))
