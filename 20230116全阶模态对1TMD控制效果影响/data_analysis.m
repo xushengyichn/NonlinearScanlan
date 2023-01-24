@@ -18,7 +18,7 @@ close all
 
 modes=1:6;
 collectdata=[];
-for k1 = modes
+for k1 = 6
     % 读取数据
 %     data1=importdata('10modes_onetmd_results_loc_mode1.mat');
     str1="data_mode=importdata('17modes_onetmd_results_loc_mode"+num2str(k1)+".mat');";
@@ -95,12 +95,12 @@ for k1 = modes
         temp(:,2)=abs(temp(:,2))/max(abs(temp(:,2)));
         temp(:,3)=abs(temp(:,3))/max(abs(temp(:,3)));
         temp(:,4)=-normalize(temp(:,4),'range')+1;%缩放精确位移数据
-        figure
-        scatter(temp(:,2),temp(:,3),round(temp(:,4)*50,0)+10,temp(:,1))
+%         figure
+%         scatter(temp(:,2),temp(:,3),round(temp(:,4)*50,0)+10,temp(:,1))
 %         scatter(temp(1:110,2),temp(1:110,3),round(temp(1:110,4)*50,0)+10,temp(1:110,1))
 %         hold on
 %         scatter(temp(330:440,2),temp(330:440,3),round(temp(330:440,4)*50,0)+10,temp(330:440,1))
-        colorbar
+%         colorbar
         clear str
         str="plotdata_dis_"+num2str(mode_index(k2+1))+"_for_mode_"+num2str(mode_index(1))+"=temp;";
         eval(str)
@@ -108,9 +108,9 @@ for k1 = modes
         str="collectdata.plotdata_dis_"+num2str(mode_index(k2+1))+"_for_mode_"+num2str(mode_index(1))+"=temp;";
         eval(str)
         clear str
-        figure
-        scatter(temp(:,2),temp(:,4))
-        aaa=1;
+%         figure
+%         scatter(temp(:,2),temp(:,4))
+%         aaa=1;
     end
     collectdata.mode=mode_TMD_location;
     collectdata.loc=loc;
@@ -120,7 +120,7 @@ for k1 = modes
     str="collectdata.dis_accurate_"+num2str(k1)+"=dis_accurate_"+num2str(k1)+";";
     eval(str)
     clear str
-    save("mode_contribution_plotdata.mat","collectdata")
+%     save("mode_contribution_plotdata.mat","collectdata")
     % 画图代码
     % figure
     % scatter(abs(plotdata_dis_2_for_mode_1(:,2))/max(abs(plotdata_dis_2_for_mode_1(:,2))),abs(plotdata_dis_2_for_mode_1(:,3))/max(abs(plotdata_dis_2_for_mode_1(:,3))),plotdata_dis_2_for_mode_1(:,4)*100,plotdata_dis_2_for_mode_1(:,1))
