@@ -10,7 +10,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function [result] = a_0_main(number_of_modes_to_control,number_of_modes_to_consider,number_of_tmds,modal_damping_ratios,t_length,TMDs_mass,TMDs_frequency,TMDs_damping_ratio,TMDs_location)
-
+    addpath("../函数/")
     input.number_of_modes_to_control = number_of_modes_to_control;
     input.number_of_modes_to_consider = number_of_modes_to_consider;
     input.number_of_tmds = number_of_tmds;
@@ -155,7 +155,7 @@ function [result] = a_0_main(number_of_modes_to_control,number_of_modes_to_consi
         iter_num_max = 3;
 
         while and(iter <= iter_num_max, flag_convergence == 0)
-            t = 0:h:t_length_temp; % Time
+            t = 0:h:100; % Time
             p = zeros(matrixsize, length(t)); %Initialize external load
             [u, udot, u2dot] = nonlinear_newmark_krenk(gfun, MM, p, u0, udot0, gamma, beta, h); % Solve the response by the Nonlinear Newmark algorithm
             %计算桥梁响应

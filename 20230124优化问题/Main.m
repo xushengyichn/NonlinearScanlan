@@ -18,7 +18,7 @@ addpath("../函数/")
 number_of_modes_to_control = [1, 2, 3, 4, 5, 6]; % 需要控制的模态数 The number of modes to be controlled
 number_of_modes_to_consider = 10; % 考虑的总模态数 The total number of modes considered
 number_of_tmds = 3; % 考虑的总TMD数 The total number of TMDs
-total_tmd_mass_ratio = 0.2; % 总质量比 The total mass ratio
+total_tmd_mass_ratio = 0.02; % 总质量比 The total mass ratio
 mass_six_span = 10007779.7; % 深中通道非通航桥六跨连续梁质量 The mass of 6-span continuous beam of the non-navigational bridge of the Zhenzhong-Link
 total_tmd_mass = total_tmd_mass_ratio * mass_six_span; % 总质量 The total mass
 modal_damping_ratios = ones(1, number_of_modes_to_consider) * 0.003; % 模态阻尼 The damping of modes
