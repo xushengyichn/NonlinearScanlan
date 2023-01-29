@@ -1,3 +1,13 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Author: xushengyichn 54436848+xushengyichn@users.noreply.github.com
+%Date: 2023-01-27 17:39:55
+%LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
+%LastEditTime: 2023-01-29 19:54:50
+%FilePath: \20230124优化问题\salib.m
+%Description: 敏感性分析数据分析代码，用于后续读入python文件分析敏感性结果
+%
+%Copyright (c) 2023 by xushengyichn 54436848+xushengyichn@users.noreply.github.com, All Rights Reserved. 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 clc; clear; close all;
 
@@ -32,3 +42,4 @@ parfor k1 = 1:numIterations
 end
 
 save salib.m result
+save salib.txt -ascii a
