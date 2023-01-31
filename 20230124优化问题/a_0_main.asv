@@ -183,7 +183,7 @@ function [result] = a_0_main(number_of_modes_to_control,number_of_modes_to_consi
             dis1 = max(seqs_allmodes_max_point(round(end / 8 * 6, 0):round(end / 8 * 7, 0)));
             dis2 = max(seqs_allmodes_max_point(round(end / 8 * 7, 0):round(end , 0)));
 
-            if or(abs((dis1 - dis2) / dis2) < 0.02, dis2 < 1e-2)
+            if or(abs((dis1 - dis2) / dis2) < 0.02, dis2 < 1e-3)
                 disp("计算收敛")
                 flag_convergence = 1;
 
@@ -205,8 +205,7 @@ function [result] = a_0_main(number_of_modes_to_control,number_of_modes_to_consi
                 t_length_temp = t_length_temp+450;
                 clear dis_TMD dis_temp
             end
-                dis_beam_max = std(seqs_allmodes_max_point(round(end / 8 * 6, 0):end)) * sqrt(2);
-                dis_all_modes(k1) = dis_beam_max;
+
         end
 
     end

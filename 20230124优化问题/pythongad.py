@@ -7,45 +7,28 @@ import matlab.engine
 
 # %%
 #%% 2. 定义函数
-
+eng = matlab.engine.start_matlab()
 def fitness_func(solution, solution_idx):
 # def black_box_function(mTMD1,mTMD2,fTMD1,fTMD2,fTMD3,dTMD1,dTMD2,dTMD3,xTMD1,xTMD2,xTMD3):
-    eng = matlab.engine.start_matlab()
-    mTMD1=solution[0]
-    mTMD2=solution[1]
-    fTMD1=solution[2]
-    fTMD2=solution[3]
-    fTMD3=solution[4]
-    dTMD1=solution[5]
-    dTMD2=solution[6]
-    dTMD3=solution[7]
-    xTMD1=solution[8]
-    xTMD2=solution[9]
-    xTMD3=solution[10]
-    total_tmd_mass_ratio = 0.0002 # 总质量比 The total mass ratio
+    fTMD1=solution[0]
+    dTMD1=solution[1]
+    xTMD1=solution[2]
+    total_tmd_mass_ratio = 0.02 # 总质量比 The total mass ratio
     mass_six_span = 10007779.7 # 深中通道非通航桥六跨连续梁质量 The mass of 6-span continuous beam of the non-navigational bridge of the Zhenzhong-Link
     total_tmd_mass = total_tmd_mass_ratio * mass_six_span # 总质量 The total mass
     
-    mTMD1=0.01*total_tmd_mass+mTMD1*total_tmd_mass*0.49 # 质量 The mass mTMD1
-    mTMD2=0.01*total_tmd_mass+mTMD2*total_tmd_mass*0.49 # 质量 The mass mTMD2
-    mTMD3=total_tmd_mass-mTMD1-mTMD2 # 质量 The mass mTMD3
+    mTMD1=total_tmd_mass / number_of_tmds/6 # 质量 The mass mTMD1
     fTMD1=0.7+fTMD1*0.3 # 频率 The frequency fTMD1
-    fTMD2=0.7+fTMD2*0.3 # 频率 The frequency fTMD2
-    fTMD3=0.7+fTMD3*0.3 # 频率 The frequency fTMD3
-    dTMD1=0.02+dTMD1*0.18 # 阻尼比 The damping ratio dTMD1
-    dTMD2=0.02+dTMD2*0.18 # 阻尼比 The damping ratio dTMD2
-    dTMD3=0.02+dTMD3*0.18 # 阻尼比 The damping ratio dTMD3
+    dTMD1=0.05+dTMD1*0.15 # 阻尼比 The damping ratio dTMD1
     xTMD1=xTMD1*660 # TMD1的x坐标 The x-coordinate of TMD1
-    xTMD2=xTMD2*660 # TMD2的x坐标 The x-coordinate of TMD2
-    xTMD3=xTMD3*660 # TMD3的x坐标 The x-coordinate of TMD3
     t_length=matlab.double(100) # 时间长度 The time length
-    number_of_modes_to_control=matlab.double([1,2,3,4,5,6]) # 控制模态 The controlled modes
+    number_of_modes_to_control=matlab.double([1]) # 控制模态 The controlled modes
     # number_of_modes_to_control=matlab.double([1]) # 控制模态 The controlled modes
     number_of_modes_to_consider=10 # 考虑模态 The considered modes
-    number_of_tmds=3 # TMD数量 The number of TMDs
+    number_of_tmds=1 # TMD数量 The number of TMDs
     modal_damping_ratios=np.ones((1,number_of_modes_to_consider))*0.003 # 模态阻尼比 The modal damping ratios
     
-    fitness = -eng.b_0_3_tmd(number_of_modes_to_control,number_of_modes_to_consider,number_of_tmds,modal_damping_ratios,t_length,mTMD1,mTMD2,fTMD1,fTMD2,fTMD3,dTMD1,dTMD2,dTMD3,xTMD1,xTMD2,xTMD3,total_tmd_mass)
+    fitness = -eng.c_mode1(number_of_modes_to_control,number_of_modes_to_consider,number_of_tmds,modal_damping_ratios,t_length,mTMD1,fTMD1,dTMD1,xTMD1)
     # fitness = 1
     return fitness
 
@@ -62,7 +45,7 @@ num_parents_mating = 7 # Number of solutions to be selected as parents in the ma
 # 2) Assign valid integer values to the sol_per_pop and num_genes parameters. If the initial_population parameter exists, then the sol_per_pop and num_genes parameters are useless.
 
 sol_per_pop = 50 # Number of solutions in the population.
-num_genes = 11 # Number of genes in the solution.
+num_genes = 3 # Number of genes in the solution.
 
 
 # num_generations = 10 # Number of generations.
@@ -88,8 +71,7 @@ ga_instance = pygad.GA(num_generations=num_generations,
                        num_genes=num_genes,
                        gene_space=gene_space,
                        on_generation=callback_generation,
-                       save_solutions=True,
-                       parallel_processing=4)
+                       save_solutions=True)
 
 print("Initial Population")
 print(ga_instance.initial_population)

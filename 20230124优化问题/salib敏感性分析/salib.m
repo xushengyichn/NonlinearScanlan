@@ -2,7 +2,7 @@
 %Author: xushengyichn 54436848+xushengyichn@users.noreply.github.com
 %Date: 2023-01-27 17:39:55
 %LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
-%LastEditTime: 2023-01-29 19:54:50
+%LastEditTime: 2023-01-30 10:09:57
 %FilePath: \20230124优化问题\salib.m
 %Description: 敏感性分析数据分析代码，用于后续读入python文件分析敏感性结果
 %
@@ -41,5 +41,5 @@ parfor k1 = 1:numIterations
 
 end
 
-save salib.m result
+save salib.mat result
 save salib.txt -ascii a
