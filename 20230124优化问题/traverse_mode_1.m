@@ -20,7 +20,7 @@ total_tmd_mass = total_tmd_mass_ratio * mass_six_span; % 总质量 The total mas
 
 % 输入初始参数
 % Input initial parameters
-t_length = 100; % 设定计算时间长度
+t_length = 150; % 设定计算时间长度
 number_of_tmds = 1; % 考虑的总TMD数 The total number of TMDs
 number_of_modes_to_consider = 10; % 考虑的总模态数 The total number of modes considered
 modal_damping_ratios = ones(1, number_of_modes_to_consider) * 0.003; % 模态阻尼 The damping of modes
