@@ -2,7 +2,7 @@
 %Author: xushengyichn 54436848+xushengyichn@users.noreply.github.com
 %Date: 2023-01-25 10:39:30
 %LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
-%LastEditTime: 2023-01-25 15:28:37
+%LastEditTime: 2023-02-01 15:10:58
 %FilePath: \20230124优化问题\a_0_main.m
 %Description: 本函数为主函数，分别调用各个子函数完成桥梁在多阶级涡振下的响应总和计算
 %
@@ -117,12 +117,23 @@ function [result] = a_0_main(number_of_modes_to_control,number_of_modes_to_consi
         mode_number = k1; %气动力施加的模态
         % 预先计算的模态积分
         % Modal integral pre-calculated
-        mode_integral_1 = modes_integral_1(k1);
-        mode_integral_2 = modes_integral_2(k1);
-        mode_integral_3 = modes_integral_3(k1);
-        mode_integral_4 = modes_integral_4(k1);
-        mode_integral_5 = modes_integral_5(k1);
-        mode_integral_6 = modes_integral_6(k1);
+        [~,k2]=find(number_of_modes_to_control==k1);
+        mode_integral_1 = modes_integral_1(k2);
+        mode_integral_2 = modes_integral_2(k2);
+        mode_integral_3 = modes_integral_3(k2);
+        mode_integral_4 = modes_integral_4(k2);
+        mode_integral_5 = modes_integral_5(k2);
+        mode_integral_6 = modes_integral_6(k2);
+
+        % mode_number = k1; %气动力施加的模态
+        % % 预先计算的模态积分
+        % % Modal integral pre-calculated
+        % mode_integral_1 = modes_integral_1(k1);
+        % mode_integral_2 = modes_integral_2(k1);
+        % mode_integral_3 = modes_integral_3(k1);
+        % mode_integral_4 = modes_integral_4(k1);
+        % mode_integral_5 = modes_integral_5(k1);
+        % mode_integral_6 = modes_integral_6(k1);
 
         % 气动力参数
 
