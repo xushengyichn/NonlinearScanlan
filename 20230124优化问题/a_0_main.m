@@ -166,7 +166,8 @@ function [result] = a_0_main(number_of_modes_to_control,number_of_modes_to_consi
         iter_num_max = 3;
 
         while and(iter <= iter_num_max, flag_convergence == 0)
-            t = 0:h:t_length; % Time
+            t = 0:h: t_length_temp; % Time
+            
             p = zeros(matrixsize, length(t)); %Initialize external load
             [u, udot, u2dot] = nonlinear_newmark_krenk(gfun, MM, p, u0, udot0, gamma, beta, h); % Solve the response by the Nonlinear Newmark algorithm
             %计算桥梁响应
@@ -194,13 +195,15 @@ function [result] = a_0_main(number_of_modes_to_control,number_of_modes_to_consi
             dis1 = max(seqs_allmodes_max_point(round(end / 8 * 6, 0):round(end / 8 * 7, 0)));
             dis2 = max(seqs_allmodes_max_point(round(end / 8 * 7, 0):round(end , 0)));
 
+
             if or(abs((dis1 - dis2) / dis2) < 0.02, dis2 < 1e-2)
                 disp("计算收敛")
                 flag_convergence = 1;
 
                 %             seqs_all=[];
                 dis_beam_max = std(seqs_allmodes_max_point(round(end / 8 * 6, 0):end)) * sqrt(2);
-                dis_TMDs_max = std(dis_TMD(round(end / 8 * 6, 0):end)) * sqrt(2);
+
+%                 dis_TMDs_max = std(dis_TMD(round(end / 8 * 6, 0):end)) * sqrt(2);
 
                 if iter >= iter_num_max
                     flag_iter = 0;
@@ -219,10 +222,13 @@ function [result] = a_0_main(number_of_modes_to_control,number_of_modes_to_consi
                 dis_beam_max = std(seqs_allmodes_max_point(round(end / 8 * 6, 0):end)) * sqrt(2);
                 dis_all_modes(k1) = dis_beam_max;
         end
-
+%          figure
+%          plot(t,seqs_allmodes_max_point)
+%          close all
     end
 
     dis_all_modes_sum = sum(dis_all_modes);
     disp("多个模态振动位移之和" + dis_all_modes_sum + "m")
     result.dis_all_modes_sum = dis_all_modes_sum;
+    result.dis_all_modes=dis_all_modes;
 end

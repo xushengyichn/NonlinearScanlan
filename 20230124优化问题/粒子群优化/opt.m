@@ -11,7 +11,8 @@
 %调用matlab自己的优化工具包计算
 
 clc;clear all;close all;
-
+addpath('..\')
+addpath('..\..\函数\')
 
 %% 优化问题(单模态一个TMD)
 if 0
