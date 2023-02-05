@@ -1,9 +1,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Author: xushengyichn 54436848+xushengyichn@users.noreply.github.com
 %Date: 2023-02-03 10:39:23
-%LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
-%LastEditTime: 2023-02-03 13:55:07
-%FilePath: \粒子群优化\data_analysis.m
+%LastEditors: Shengyi xushengyichn@outlook.com
+%LastEditTime: 2023-02-05 21:48:46
+%FilePath: \NonlinearScanlan\20230124优化问题\粒子群优化\data_analysis.m
 %Description: 分析优化过程及结果
 %
 %Copyright (c) 2023 by ${git_name_email}, All Rights Reserved. 
@@ -30,7 +30,7 @@ Best_Parameters = data_table(data_table.bestfval == min(data_table.bestfval),:);
 % 导入桥梁模态信息
 modeinfo = load('modeinfo_all.mat'); % 读取未安装TMD时的模态信息. Read the mode information. 
 nodegap=modeinfo.nodegap;
-mode=modeinfo.mode_re;
+mode_re=modeinfo.mode_re;
 Freq=modeinfo.Freq;
 
 nTMD = 6;
@@ -56,10 +56,10 @@ for t1 = 1:nTMD
     for t2 = 1:nModes
         [~, index] = sort(abs(nodegap - xTMD(t1))); %查找与xTMD最接近的点的排序
         xResult = nodegap(index(1:2)); %获取最接近的两个点的x坐标
-        mode2nodes = mode(index(1:2), 1:nModes); %获取两个点坐标的y值
+        mode2nodes = mode_re(index(1:2), 1:nModes); %获取两个点坐标的y值
         phi_result = interp1(xResult, mode2nodes, xTMD(t1), 'linear', 'extrap'); %插值以后任意点的振型
         %         disp(phi_result)
-        phiTMD(t1, t2) = phi_result(t2);
+        phiTMD_opt(t1, t2) = phi_result(t2);
 
     end
 
@@ -86,9 +86,9 @@ mTMD_opt =mTMD;
 
 % 生成振型图
 figure(2);
-plot(nodegap, mode(:, 1:6), 'LineWidth', 1.5);
+plot(nodegap, mode_re(:, 1:6), 'LineWidth', 1.5);
 hold on 
-phiTMD_plot_opt=[phiTMD(1,1) phiTMD(2,2) phiTMD(3,3) phiTMD(4,4) phiTMD(5,5) phiTMD(6,6)];
+phiTMD_plot_opt=[phiTMD_opt(1,1) phiTMD_opt(2,2) phiTMD_opt(3,3) phiTMD_opt(4,4) phiTMD_opt(5,5) phiTMD_opt(6,6)];
 scatter(xTMD_opt, phiTMD_plot_opt, 'filled');
 
 %% 六个模态六个TMD 最优参数2%质量比
@@ -123,14 +123,32 @@ TMDs_frequency = [0.83, 0.90,1.06,1.28,1.51,1.7]; % TMD频率 The frequency of T
 TMDs_damping_ratio = [0.08, 0.08, 0.08, 0.08, 0.08, 0.08]; % TMD阻尼 The damping of TMDs
 TMDs_location = [276,606,608,394,166,386]; % TMD位置 The location of TMDs
 
+% phiTMD 行：TMD的位置 列：TMD位置的模态振型
+for t1 = 1:nTMD
+
+    for t2 = 1:nModes
+        [~, index] = sort(abs(nodegap - TMDs_location(t1))); %查找与xTMD最接近的点的排序
+        xResult = nodegap(index(1:2)); %获取最接近的两个点的x坐标
+        mode2nodes = mode_re(index(1:2), 1:nModes); %获取两个点坐标的y值
+        phi_result = interp1(xResult, mode2nodes, xTMD(t1), 'linear', 'extrap'); %插值以后任意点的振型
+        %         disp(phi_result)
+        phiTMD(t1, t2) = phi_result(t2);
+
+    end
+
+end
+
+phiTMD_plot=[phiTMD(1,1) phiTMD(2,2) phiTMD(3,3) phiTMD(4,4) phiTMD(5,5) phiTMD(6,6)];
+
 [result] = a_0_main(number_of_modes_to_control, number_of_modes_to_consider, number_of_tmds, modal_damping_ratios, t_length, TMDs_mass, TMDs_frequency, TMDs_damping_ratio, TMDs_location);
 dis_all_modes=result.dis_all_modes
 
 
 %% 参数对比 Parameters comparison
 para_comp=[TMDs_mass' mTMD_opt' TMDs_frequency' fTMD_opt' TMDs_damping_ratio' zetaTMD_opt' TMDs_location' xTMD_opt'];
-
-
+str="质量比为2%TMD，按模态设计以及统一优化的参数绘图信息";
+save("6TMD_mu_002_layout.mat","str","para_comp","nodegap","mode_re","phiTMD_plot","phiTMD_plot_opt","TMDs_location","TMDs_damping_ratio","TMDs_frequency","m_oneTMD")
+a=1
 %% 不安装TMD的原始振幅
 
 % Preset parameters
