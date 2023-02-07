@@ -293,6 +293,9 @@ mTMD = mTMD(index);
 xTMD = xTMD(index);
 zetaTMD = zetaTMD(index);
 
+
+para_collect=[mTMD' xTMD' fTMD' zetaTMD'];
+save("5TMD_mu_002_layout.mat","para_collect")
 % phiTMD 行：TMD的位置 列：TMD位置的模态振型
 for t1 = 1:nTMD
 
@@ -320,6 +323,7 @@ TMDs_mass=mTMD;
 TMDs_frequency=fTMD;
 TMDs_damping_ratio=zetaTMD;
 TMDs_location=xTMD;
+
 
 [result] = a_0_main(number_of_modes_to_control,number_of_modes_to_consider,number_of_tmds,modal_damping_ratios,t_length,TMDs_mass,TMDs_frequency,TMDs_damping_ratio,TMDs_location);
 dis_all_modes=result.dis_all_modes;
@@ -370,6 +374,11 @@ fTMD = fTMD(index);
 mTMD = mTMD(index);
 xTMD = xTMD(index);
 zetaTMD = zetaTMD(index);
+
+
+para_collect=[mTMD' xTMD' fTMD' zetaTMD'];
+save("3TMD_mu_002_layout.mat","para_collect")
+
 
 % phiTMD 行：TMD的位置 列：TMD位置的模态振型
 for t1 = 1:nTMD
