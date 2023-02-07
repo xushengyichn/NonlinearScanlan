@@ -90,7 +90,7 @@ for t1 = 1:nTMD
 
 end
 
-for k1 = 1:length(freqratios)
+parfor k1 = 1:length(freqratios)
     freqratio=freqratios(k1);
     % freqratio=0
     [result] = a_0_robust(number_of_modes_to_control, number_of_modes_to_consider, number_of_tmds, modal_damping_ratios, t_length, TMDs_mass, TMDs_frequency, TMDs_damping_ratio, TMDs_location,freqratio);
@@ -140,7 +140,7 @@ for t1 = 1:nTMD
 
 end
 
-for k1 = 1:length(freqratios)
+parfor k1 = 1:length(freqratios)
     freqratio=freqratios(k1);
     % freqratio=0
     [result] = a_0_robust(number_of_modes_to_control, number_of_modes_to_consider, number_of_tmds, modal_damping_ratios, t_length, TMDs_mass, TMDs_frequency, TMDs_damping_ratio, TMDs_location,freqratio);
@@ -189,7 +189,7 @@ for t1 = 1:nTMD
 
 end
 
-for k1 = 1:length(freqratios)
+parfor k1 = 1:length(freqratios)
     freqratio=freqratios(k1);
     % freqratio=0
     [result] = a_0_robust(number_of_modes_to_control, number_of_modes_to_consider, number_of_tmds, modal_damping_ratios, t_length, TMDs_mass, TMDs_frequency, TMDs_damping_ratio, TMDs_location,freqratio);

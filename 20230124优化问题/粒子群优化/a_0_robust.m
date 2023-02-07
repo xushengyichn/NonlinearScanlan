@@ -18,11 +18,11 @@ function [result] = a_0_robust(number_of_modes_to_control,number_of_modes_to_con
     input.TMDs_frequency = TMDs_frequency;
     input.TMDs_damping_ratio = TMDs_damping_ratio;
     input.TMDs_location = TMDs_location;
-
+    input.freqratio = freqratio;
     % 建立质量、刚度矩阵
     % Build mass and stiffness matrices
 
-    [output] = a_1_build_matrice_bridge(input);
+    [output] = a_1_build_matrice_bridge_robust(input);
 
     MM_eq = output.MM_eq;
     KK_eq = output.KK_eq;
