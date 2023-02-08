@@ -123,10 +123,50 @@ mode=modeinfo.mode;
 mu=m_oneTMD.*modemax.^2;
 locations=nodegap(modemaxloc);
 
-
-TMDs_frequency = [0.83, 0.90,1.06,1.28,1.51,1.7]; % TMD频率 The frequency of TMDs
-TMDs_damping_ratio = [0.08, 0.08, 0.08, 0.08, 0.08, 0.08]; % TMD阻尼 The damping of TMDs
 TMDs_location = [276,606,608,394,166,386]; % TMD位置 The location of TMDs
+xTMD = TMDs_location;
+
+for t1 = 1:nTMD
+
+    for t2 = 1:nModes
+        [~, index] = sort(abs(nodegap - xTMD(t1))); %查找与xTMD最接近的点的排序
+        xResult = nodegap(index(1:2)); %获取最接近的两个点的x坐标
+        mode2nodes = mode(index(1:2), 1:nModes); %获取两个点坐标的y值
+        phi_result = interp1(xResult, mode2nodes, xTMD(t1), 'linear', 'extrap'); %插值以后任意点的振型
+        %         disp(phi_result)
+        phiTMD_original(t1, t2) = phi_result(t2);
+
+    end
+
+end
+
+mu1=TMDs_mass(1)*phiTMD_original(1)^2;
+mu2=TMDs_mass(2)*phiTMD_original(2)^2;
+mu3=TMDs_mass(3)*phiTMD_original(3)^2;
+mu4=TMDs_mass(4)*phiTMD_original(4)^2;
+mu5=TMDs_mass(5)*phiTMD_original(5)^2;
+mu6=TMDs_mass(6)*phiTMD_original(6)^2;
+
+f1=1/(1+mu1)*Freq(1);
+f2=1/(1+mu2)*Freq(2);
+f3=1/(1+mu3)*Freq(3);
+f4=1/(1+mu4)*Freq(4);
+f5=1/(1+mu5)*Freq(5);
+f6=1/(1+mu6)*Freq(6);
+
+zeta1 = sqrt(3*mu1/8/(1+mu1));
+zeta2 = sqrt(3*mu2/8/(1+mu2));
+zeta3 = sqrt(3*mu3/8/(1+mu3));
+zeta4 = sqrt(3*mu4/8/(1+mu4));
+zeta5 = sqrt(3*mu5/8/(1+mu5));
+zeta6 = sqrt(3*mu6/8/(1+mu6));
+
+
+TMDs_frequency = [f1 f2 f3 f4 f5 f6]';
+TMDs_damping_ratio = [zeta1 zeta2 zeta3 zeta4 zeta5 zeta6];
+% TMDs_frequency = [0.83, 0.90,1.06,1.28,1.51,1.7]; % TMD频率 The frequency of TMDs
+% TMDs_damping_ratio = [0.08, 0.08, 0.08, 0.08, 0.08, 0.08]; % TMD阻尼 The damping of TMDs
+
 
 % phiTMD 行：TMD的位置 列：TMD位置的模态振型
 for t1 = 1:nTMD
@@ -147,13 +187,13 @@ phiTMD_plot=[phiTMD(1,1) phiTMD(2,2) phiTMD(3,3) phiTMD(4,4) phiTMD(5,5) phiTMD(
 
 [result] = a_0_main(number_of_modes_to_control, number_of_modes_to_consider, number_of_tmds, modal_damping_ratios, t_length, TMDs_mass, TMDs_frequency, TMDs_damping_ratio, TMDs_location);
 dis_all_modes=result.dis_all_modes
-save("Dis_with_TMD_mode_by_mode_177.mat", "dis_all_modes")
+% save("Dis_with_TMD_mode_by_mode_177.mat", "dis_all_modes")
 % %具体选择哪一行需要修改a_0_main函数中导入的气动力参数 数字表示折减风速（1.77）
 % save("Dis_with_TMD_mode_by_mode_231.mat", "dis_all_modes")
 % %具体选择哪一行需要修改a_0_main函数中导入的气动力参数 数字表示折减风速（2.31）
 
 %% 参数对比 Parameters comparison
-para_comp=[TMDs_mass' mTMD_opt' TMDs_frequency' fTMD_opt' TMDs_damping_ratio' zetaTMD_opt' TMDs_location' xTMD_opt'];
+para_comp=[TMDs_mass' mTMD_opt' TMDs_frequency fTMD_opt' TMDs_damping_ratio' zetaTMD_opt' TMDs_location' xTMD_opt'];
 str="质量比为2%TMD，按模态设计以及统一优化的参数绘图信息";
 save("6TMD_mu_002_layout.mat","str","para_comp","nodegap","mode_re","phiTMD_plot","phiTMD_plot_opt","TMDs_location","TMDs_damping_ratio","TMDs_frequency","m_oneTMD")
 a=1
@@ -490,4 +530,4 @@ bar(x,[y177_mode y177_opt y177_opt_5TMD y177_opt_3TMD],'FaceColor',[0.5 0.5 0.5]
 
 figure(2)
 bar(x,[y231_mode y231_opt y231_opt_5TMD y231_opt_3TMD],'FaceColor',[0.5 0.5 0.5],'EdgeColor',[0.5 0.5 0.5])
-save("Dis_compare_6tmd.mat","x","y177_mode","y177_opt","y231_mode","y231_opt","y177_opt_5TMD","y177_opt_3TMD","y231_opt_5TMD","y231_opt_3TMD")
+save("Dis_compare_tmds.mat","x","y177_mode","y177_opt","y231_mode","y231_opt","y177_opt_5TMD","y177_opt_3TMD","y231_opt_5TMD","y231_opt_3TMD")
