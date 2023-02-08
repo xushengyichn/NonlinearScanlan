@@ -85,7 +85,7 @@ zetaTMD_opt =zetaTMD;
 fTMD_opt =fTMD;
 mTMD_opt =mTMD;
 % dis_all_modes=result.dis_all_modes
-save("Dis_with_TMD_opt_177.mat", "dis_all_modes_opt")
+% save("Dis_with_TMD_opt_177.mat", "dis_all_modes_opt")
 % %具体选择哪一行需要修改a_0_main函数中导入的气动力参数 数字表示折减风速（1.77）
 % save("Dis_with_TMD_opt_231.mat", "dis_all_modes_opt")
 % %具体选择哪一行需要修改a_0_main函数中导入的气动力参数 数字表示折减风速（2.31）

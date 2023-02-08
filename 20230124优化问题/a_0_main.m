@@ -55,7 +55,7 @@ function [result] = a_0_main(number_of_modes_to_control,number_of_modes_to_consi
 
     % 获取气动力参数
     % Apply aerodynamic force
-    girderindex = 1;
+    girderindex = 7;
     ExpNames = [
                 'SZTD-110-case2-22.3-fasan-2401';
                 'SZTD-110-case2-22.3-fasan-2501';
