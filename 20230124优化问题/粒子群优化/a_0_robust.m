@@ -82,6 +82,11 @@ function [result] = a_0_robust(number_of_modes_to_control,number_of_modes_to_con
     a3 = a(3);
     a4 = a(4);
     a5 = a(5);
+%     a1=0;
+%     a2=0;
+%     a3=0;
+%     a4=0;
+%     a5=0;
     ReducedFrequency = output.ReducedFrequency;
     rho = 1.225;
 
@@ -171,6 +176,7 @@ function [result] = a_0_robust(number_of_modes_to_control,number_of_modes_to_con
             t = 0:h: t_length_temp; % Time
             
             p = zeros(matrixsize, length(t)); %Initialize external load
+%             p = 10*sin(2*pi*Freq(1).*t);
             [u, udot, u2dot] = nonlinear_newmark_krenk(gfun, MM, p, u0, udot0, gamma, beta, h); % Solve the response by the Nonlinear Newmark algorithm
             %计算桥梁响应
             dis_temp = zeros(size(u, 2), nModes); % 分别表示时间长度和模态数量
