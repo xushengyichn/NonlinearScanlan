@@ -205,6 +205,7 @@ function [result] = a_0_robust(number_of_modes_to_control,number_of_modes_to_con
 
 
             if or(abs((dis1 - dis2) / dis2) < 0.02, dis2 < 1e-2)
+%             if 1
                 disp("计算收敛")
                 flag_convergence = 1;
 
@@ -220,7 +221,7 @@ function [result] = a_0_robust(number_of_modes_to_control,number_of_modes_to_con
                 end
 
                 dis_all_modes(k1) = dis_beam_max;
-                clear dis_TMD dis_temp
+                clear dis_temp
             else
                 disp("计算未收敛，增加计算时间")
                 iter = iter + 1;
@@ -239,4 +240,15 @@ function [result] = a_0_robust(number_of_modes_to_control,number_of_modes_to_con
     disp("多个模态振动位移之和" + dis_all_modes_sum + "m")
     result.dis_all_modes_sum = dis_all_modes_sum;
     result.dis_all_modes=dis_all_modes;
+    result.t=t;
+    result.seqs_allmodes_max_point=seqs_allmodes_max_point;
+    result.MM=MM;
+    result.CC=CC;
+    result.KK=KK;
+    result.rho=rho;
+    result.U= U;
+    result.a1 = a1;
+    result.D=D;
+    result.dis_TMD=dis_TMD;
+
 end
