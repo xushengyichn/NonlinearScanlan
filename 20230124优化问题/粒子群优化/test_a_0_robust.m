@@ -9,7 +9,7 @@
 %Copyright (c) 2023 by xushengyichn 54436848+xushengyichn@users.noreply.github.com, All Rights Reserved.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function [result] = a_0_robust(number_of_modes_to_control,number_of_modes_to_consider,number_of_tmds,modal_damping_ratios,t_length,TMDs_mass,TMDs_frequency,TMDs_damping_ratio,TMDs_location,freqratio)
+function [result] = test_a_0_robust(number_of_modes_to_control,number_of_modes_to_consider,number_of_tmds,modal_damping_ratios,t_length,TMDs_mass,TMDs_frequency,TMDs_damping_ratio,TMDs_location,freqratio)
     addpath("../函数/")
     input.number_of_modes_to_control = number_of_modes_to_control;
     input.number_of_modes_to_consider = number_of_modes_to_consider;
@@ -82,7 +82,7 @@ function [result] = a_0_robust(number_of_modes_to_control,number_of_modes_to_con
     a3 = a(3);
     a4 = a(4);
     a5 = a(5);
-%     a1=0;
+    a1=a1;
 %     a2=0;
 %     a3=0;
 %     a4=0;
