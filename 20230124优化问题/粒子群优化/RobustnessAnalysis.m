@@ -18,7 +18,7 @@ mode = modeinfo.mode;
 Freq= modeinfo.Freq;
 
 number_of_modes_to_control = [1, 2, 3, 4, 5, 6]; % 需要控制的模态数 The number of modes to be controlled
-number_of_modes_to_consider = 10; % 考虑的总模态数 The total number of modes considered
+number_of_modes_to_consider = 20; % 考虑的总模态数 The total number of modes considered
 number_of_tmds = 6; % 考虑的总TMD数 The total number of TMDs
 nTMD = number_of_tmds;
 nModes = number_of_modes_to_consider;
@@ -110,7 +110,7 @@ nodegap=modeinfo.nodegap;
 mode_re=modeinfo.mode_re;
 
 number_of_modes_to_control = [1, 2, 3, 4, 5, 6]; % 需要控制的模态数 The number of modes to be controlled
-number_of_modes_to_consider = 10; % 考虑的总模态数 The total number of modes considered
+number_of_modes_to_consider = 20; % 考虑的总模态数 The total number of modes considered
 number_of_tmds = 6; % 考虑的总TMD数 The total number of TMDs
 nTMD = number_of_tmds;
 nModes = number_of_modes_to_consider;
@@ -159,7 +159,7 @@ nodegap=modeinfo.nodegap;
 mode_re=modeinfo.mode_re;
 
 number_of_modes_to_control = [1, 2, 3, 4, 5, 6]; % 需要控制的模态数 The number of modes to be controlled
-number_of_modes_to_consider = 10; % 考虑的总模态数 The total number of modes considered
+number_of_modes_to_consider = 20; % 考虑的总模态数 The total number of modes considered
 number_of_tmds = 5; % 考虑的总TMD数 The total number of TMDs
 nTMD = number_of_tmds;
 nModes = number_of_modes_to_consider;
@@ -207,7 +207,7 @@ nodegap=modeinfo.nodegap;
 mode_re=modeinfo.mode_re;
 
 number_of_modes_to_control = [1, 2, 3, 4, 5, 6]; % 需要控制的模态数 The number of modes to be controlled
-number_of_modes_to_consider = 10; % 考虑的总模态数 The total number of modes considered
+number_of_modes_to_consider = 20; % 考虑的总模态数 The total number of modes considered
 number_of_tmds = 3; % 考虑的总TMD数 The total number of TMDs
 nTMD = number_of_tmds;
 nModes = number_of_modes_to_consider;
@@ -277,7 +277,7 @@ mode = modeinfo.mode;
 Freq= modeinfo.Freq;
 
 number_of_modes_to_control = [1, 2, 3, 4, 5, 6]; % 需要控制的模态数 The number of modes to be controlled
-number_of_modes_to_consider = 10; % 考虑的总模态数 The total number of modes considered
+number_of_modes_to_consider = 20; % 考虑的总模态数 The total number of modes considered
 number_of_tmds = 6; % 考虑的总TMD数 The total number of TMDs
 nTMD = number_of_tmds;
 nModes = number_of_modes_to_consider;
@@ -331,7 +331,7 @@ TMDs_damping_ratio = [zeta1 zeta2 zeta3 zeta4 zeta5 zeta6];
 % TMDs_frequency = para_comp(:,3);
 % TMDs_damping_ratio = para_comp(:,5);
 
-damping_ratio_ratios = -10:1:10;
+damping_ratio_ratios = -30:5:30;
 
 % phiTMD 行：TMD的位置 列：TMD位置的模态振型
 for t1 = 1:nTMD
@@ -370,7 +370,7 @@ nodegap=modeinfo.nodegap;
 mode_re=modeinfo.mode_re;
 
 number_of_modes_to_control = [1, 2, 3, 4, 5, 6]; % 需要控制的模态数 The number of modes to be controlled
-number_of_modes_to_consider = 10; % 考虑的总模态数 The total number of modes considered
+number_of_modes_to_consider = 20; % 考虑的总模态数 The total number of modes considered
 number_of_tmds = 6; % 考虑的总TMD数 The total number of TMDs
 nTMD = number_of_tmds;
 nModes = number_of_modes_to_consider;
@@ -420,7 +420,7 @@ nodegap=modeinfo.nodegap;
 mode_re=modeinfo.mode_re;
 
 number_of_modes_to_control = [1, 2, 3, 4, 5, 6]; % 需要控制的模态数 The number of modes to be controlled
-number_of_modes_to_consider = 10; % 考虑的总模态数 The total number of modes considered
+number_of_modes_to_consider = 20; % 考虑的总模态数 The total number of modes considered
 number_of_tmds = 5; % 考虑的总TMD数 The total number of TMDs
 nTMD = number_of_tmds;
 nModes = number_of_modes_to_consider;
@@ -469,7 +469,7 @@ nodegap=modeinfo.nodegap;
 mode_re=modeinfo.mode_re;
 
 number_of_modes_to_control = [1, 2, 3, 4, 5, 6]; % 需要控制的模态数 The number of modes to be controlled
-number_of_modes_to_consider = 10; % 考虑的总模态数 The total number of modes considered
+number_of_modes_to_consider = 20; % 考虑的总模态数 The total number of modes considered
 number_of_tmds = 3; % 考虑的总TMD数 The total number of TMDs
 nTMD = number_of_tmds;
 nModes = number_of_modes_to_consider;
