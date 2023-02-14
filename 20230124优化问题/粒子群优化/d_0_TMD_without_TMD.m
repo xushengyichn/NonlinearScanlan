@@ -1,15 +1,15 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Author: xushengyichn 54436848+xushengyichn@users.noreply.github.com
 %Date: 2023-01-25 10:39:30
-%LastEditors: xushengyichn 54436848+xushengyichn@users.noreply.github.com
-%LastEditTime: 2023-02-01 15:10:58
-%FilePath: \20230124优化问题\a_0_main.m
+%LastEditors: Shengyi xushengyichn@outlook.com
+%LastEditTime: 2023-02-14 00:35:14
+%FilePath: \NonlinearScanlan\20230124优化问题\粒子群优化\d_0_TMD_without_TMD.m
 %Description: 本函数为主函数，分别调用各个子函数完成桥梁在多阶级涡振下的响应总和计算
 %
 %Copyright (c) 2023 by xushengyichn 54436848+xushengyichn@users.noreply.github.com, All Rights Reserved.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function [result] = a_0_main(number_of_modes_to_control,number_of_modes_to_consider,number_of_tmds,modal_damping_ratios,t_length,TMDs_mass,TMDs_frequency,TMDs_damping_ratio,TMDs_location)
+function [result] = d_0_TMD_without_TMD(number_of_modes_to_control,number_of_modes_to_consider,number_of_tmds,modal_damping_ratios,t_length,TMDs_mass,TMDs_frequency,TMDs_damping_ratio,TMDs_location,VIV_windspeed)
     addpath("../函数/")
     input.number_of_modes_to_control = number_of_modes_to_control;
     input.number_of_modes_to_consider = number_of_modes_to_consider;
@@ -64,9 +64,12 @@ function [result] = a_0_main(number_of_modes_to_control,number_of_modes_to_consi
                 'SZTD-110-case2-22.3-fasan-2801';
                 'SZTD-110-case2-22.3-fasan-2901';
                 'SZTD-110-case2-22.3-fasan-3101';
+                'SZTD-110-case2-22.3-fasan-3301';
+                'SZTD-110-case2-22.3-fasan-3501';
+                'SZTD-110-case2-22.3-fasan-3701';
                 ]; %记录文件名
 
-    for k1 = 1
+    for k1 = VIV_windspeed
         % 选择SZTD-110-case2-22.3-fasan-2401工况
         ExpName = ExpNames(k1, :);
     end
@@ -231,4 +234,5 @@ function [result] = a_0_main(number_of_modes_to_control,number_of_modes_to_consi
     disp("多个模态振动位移之和" + dis_all_modes_sum + "m")
     result.dis_all_modes_sum = dis_all_modes_sum;
     result.dis_all_modes=dis_all_modes;
+    result.U =U;
 end
