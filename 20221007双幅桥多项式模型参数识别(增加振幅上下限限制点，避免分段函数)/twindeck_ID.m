@@ -712,7 +712,7 @@ up_out = polynomial_NB_adstiff(Fre, Mass, Zeta0, rho, D, U, up_a, up_H4, up_told
 
 figure
 plot(up_out(:, 1), up_out(:, 2))
-hold on
+hold on1
 plot(up_t, UP)
 legend("calculated", "measured")
 title("上游振动时程重构")
