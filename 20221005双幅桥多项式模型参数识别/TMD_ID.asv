@@ -13,8 +13,8 @@ addpath("..\函数\")
 %% 各种参数设置
 recorddata = 1; % 是否需要记录数据
 fitdecide =0; % 是否需要拟合振幅包络线
-fname = ['SZTD-110-TMD2-5']; %分析工况对应文件名
-casenum=['-3'];
+fname = ['SZTD-110-TMD8-1']; %分析工况对应文件名
+casenum=['-2'];
 fnamenew = strcat(fname,casenum);
 chanum = 8; %记录通道数
 
@@ -262,13 +262,8 @@ front_end=0.3;
 close all
 
 %% 导出绘图数据
-TMD_yupper_fit=fitresult.a*exp(-fitresult.b * TMD_t_sel)+fitresult.c;
-save("TMD_ID_plot.mat","TMD_t_sel","TMD_dis_sel","TMD_yupper","TMD_yupper_fit")
-figure
-plot(TMD_t_sel,TMD_dis_sel)
-hold on 
-plot(TMD_t_sel,TMD_yupper)
-plot(TMD_t_sel,TMD_yupper_fit)
+TMD_yupper_fit=
+save("TMD_ID_plot.mat","TMD_t_sel","TMD_dis_sel","TMD_yupper",::)
 
  function [fitresult, gof] = epsilonfit(TMD_t_sel, TMD_yupper)
 %CREATEFIT1(TMD_T_SEL,TMD_YUPPER)
