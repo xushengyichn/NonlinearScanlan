@@ -14,7 +14,7 @@ addpath('..\函数\')
 %% 各种参数设置
 recorddata = 1; % 是否需要记录数据
 fitdecide =0; % 是否需要拟合振幅包络线
-fname = ['SZTD-110-case2-22.3-fasan-3701']; %分析工况对应文件名
+fname = ['SZTD-110-case2-22.3-fasan-2601']; %分析工况对应文件名
 fname_up_dltx= ['SZTD-110-case2-22.3-dltx2'];%上游动力特性文件名
 fname_down_dltx= ['SZTD-110-case2-22.3-dltx4'];%下游动力特性文件名
 L = 3.6; % 节段模型长度
@@ -717,6 +717,13 @@ plot(up_t, UP)
 legend("calculated", "measured")
 title("上游振动时程重构")
 
+up_out_t_plot=up_out(:, 1);
+up_out_dis_plot=up_out(:, 2);
+
+%%导出绘图数据
+if 1
+save("time_history.mat","up_out_t_plot","up_out_dis_plot","up_t","UP")
+end
 
 % [down_psd_avg_dltx, down_f_dltx, down_psd_plot_dltx] = fft_transfer(fs, UP);
 % [down_psdmax_dltx, down_psdmaxseq_dltx] = max(down_psd_plot_dltx);
