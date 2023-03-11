@@ -544,7 +544,7 @@ m =  m_modal(mode_number);
 
 
 CC_aero=CC;
-CC_aero(mode_number,mode_number)=CC_aero(mode_number,mode_number)-rho*U*D*a1*mode_integral_2;
+CC_aero(mode_number,mode_number)=CC_aero(mode_number,mode_number)-rho*U*D*a1*mode_integral_2*0.5;
 KK(mode_number,mode_number)=KK(mode_number,mode_number)-rho*U*2*H4*mode_integral_2;%是否施加气动刚度，若不施加，注释本行
 Mode = Complex_Eigenvalue_Analysis(MM,CC_aero,KK);
 % disp(Mode)
