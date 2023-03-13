@@ -30,8 +30,8 @@ mTMD1 = mu / (max(mode1)^2);
 fTMD1 = 1 / (1 + mu) * fs;
 zetaTMD1 = sqrt(3 * mu / 8 / (1 + mu));
 
-xTMD2_all = 55;
-fTMD2_all = 0.91;
+xTMD2_all = 275;
+fTMD2_all = 0.833;
 zetaTMD2_all = 0.043;
 
 [XTMD2_all, FTMD2_all, ZetaTMD2_all] = ndgrid(xTMD2_all, fTMD2_all, zetaTMD2_all);
@@ -130,7 +130,8 @@ for k1 = 1:1
 
         %     [modemaxdis_single,usinglemax,uallmax]= CalData_Polynomial_withTMD_multidegree(nTMD,mTMD,zetaTMD,omegaTMD,xTMD,1,ifcalmode,MM_eq,KK_eq,calmodes,eig_val,eig_vec,t_length);
 
-        [result]=CalDamping_Polynomial_withTMD_multidegree(nTMD,mTMD,zetaTMD,omegaTMD,xTMD,1,ifcalmode,MM_eq,KK_eq,calmodes,eig_val,eig_vec)
+%         [result]=CalDamping_Polynomial_withTMD_multidegree(nTMD,mTMD,zetaTMD,omegaTMD,xTMD,1,ifcalmode,MM_eq,KK_eq,calmodes,eig_val,eig_vec);
+        [result]=CalDamping_Polynomial_withTMD_multidegree_no_aerodamping(nTMD,mTMD,zetaTMD,omegaTMD,xTMD,1,ifcalmode,MM_eq,KK_eq,calmodes,eig_val,eig_vec);
         
 
 end

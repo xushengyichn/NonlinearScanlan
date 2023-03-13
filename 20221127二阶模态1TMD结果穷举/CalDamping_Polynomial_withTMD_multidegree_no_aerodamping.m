@@ -9,7 +9,7 @@
 %Copyright (c) 2022 by xushengyichn 54436848+xushengyichn@users.noreply.github.com, All Rights Reserved.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % clc; clear; close all;
-function [result]=CalDamping_Polynomial_withTMD_multidegree(nTMD,mTMD,zetaTMD,omegaTMD,xTMD,mode_number,ifcalmode,MM_eq,KK_eq,calmodes,eig_val,eig_vec)
+function [result]=CalDamping_Polynomial_withTMD_multidegree_no_aerodamping(nTMD,mTMD,zetaTMD,omegaTMD,xTMD,mode_number,ifcalmode,MM_eq,KK_eq,calmodes,eig_val,eig_vec)
 % function modemaxdis_single=CalData_Polynomial_withTMD_multidegree(nTMD,mTMD,zetaTMD,omegaTMD,nodeTMD,mode_number,ifcalmode,calmodes,eig_val,eig_vec)
 %% 参数设置
 
@@ -544,8 +544,8 @@ m =  m_modal(mode_number);
 
 
 CC_aero=CC;
-CC_aero(mode_number,mode_number)=CC_aero(mode_number,mode_number)-rho*U*D*a1*mode_integral_2;
-KK(mode_number,mode_number)=KK(mode_number,mode_number)-rho*U*2*H4*mode_integral_2;%是否施加气动刚度，若不施加，注释本行
+CC_aero(mode_number,mode_number)=CC_aero(mode_number,mode_number)-rho*U*D*a1*mode_integral_2*0;
+KK(mode_number,mode_number)=KK(mode_number,mode_number)-rho*U*2*H4*mode_integral_2*0;%是否施加气动刚度，若不施加，注释本行
 Mode = Complex_Eigenvalue_Analysis(MM,CC_aero,KK);
 % disp(Mode)
 Mode_sys = Complex_Eigenvalue_Analysis(MM,CC,KK);%不考虑气动阻尼的阻尼比
