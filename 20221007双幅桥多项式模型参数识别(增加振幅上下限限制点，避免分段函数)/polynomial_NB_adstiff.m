@@ -75,8 +75,8 @@ function out = polynomial_NB_adstiff(Fre, Mass, Zeta0, rho, D, U, a,H4, t, P, u0
     %% Calculate the response
     y = 0:0.001:0.1;
     z = -b(1) - b(2) .* abs(y) - b(3) .* y.^2 - b(4) * abs(y).^3 - b(5) .* y.^4;
-    figure
-    plot(y, z)
+%     figure
+%     plot(y, z)
 
     nModes = 1;
 
