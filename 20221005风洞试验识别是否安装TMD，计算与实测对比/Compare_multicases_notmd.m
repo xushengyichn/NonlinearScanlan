@@ -9,7 +9,7 @@
 %Copyright (c) 2022 by xushengyichn 54436848+xushengyichn@users.noreply.github.com, All Rights Reserved. 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
+addpath("..\函数")
 clc; clear; close all;
 % 试验数据路径
 path(1) = "D:\资料存档\实验数据\2021年4月2日深中通道110m和60m连续梁涡振试验数据\测振\20210323\1.开槽间距6.7m\8.上下游吊臂上各装2个TMD，频率比≈1\+3\1.振幅曲线"; %台式机路径
