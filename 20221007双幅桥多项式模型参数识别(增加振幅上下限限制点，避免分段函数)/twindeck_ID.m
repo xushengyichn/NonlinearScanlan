@@ -31,11 +31,16 @@ addpath("C:\Users\shengyix\OneDrive\NAS云同步\Drive\0研究生\有用的代�
 %台式机路径
 addpath(genpath("C:\Users\xushe\OneDrive\NAS云同步\Drive\0研究生\有用的代码\HHT-Tutorial-master"))
 addpath("C:\Users\xushe\OneDrive\NAS云同步\Drive\0研究生\有用的代码\Matlab_PlottingTemplates")
+% 笔记本
+addpath(genpath("D:\matlab\Mingjie杰哥参数识别程序\HHT-Tutorial-master"))
+addpath(genpath("D:\OneDrive\NAS云同步\Drive\0研究生\有用的代码\Matlab_PlottingTemplates"))
 %% 添加试验数据路径
 path(1) = "C:\Users\shengyix\Documents\2021年4月2日深中通道110m和60m连续梁涡振试验数据\测振\20210323\1.开槽间距6.7m\2.有栏杆\+3\2.涡振期间气动力参数识别"; %NTNU笔记本路径
 path(2) = "D:\资料存档\实验数据\2021年4月2日深中通道110m和60m连续梁涡振试验数据\测振\20210323\1.开槽间距6.7m\2.有栏杆\+3\2.涡振期间气动力参数识别"; %台式机路径
 path(3) = "D:\资料存档\实验数据\2021年4月2日深中通道110m和60m连续梁涡振试验数据\测振\20210323\1.开槽间距6.7m\2.有栏杆\+3\dltx"; %动力特性识别
 path(4) = "C:\Users\shengyix\Documents\2021年4月2日深中通道110m和60m连续梁涡振试验数据\测振\20210323\1.开槽间距6.7m\2.有栏杆\+3\dltx"; %NTNU笔记本路径 动力特性
+path(5) = "D:\Users\xushe\Downloads\+3\2.涡振期间气动力参数识别"; %临时笔记本路径
+path(6) = "D:\Users\xushe\Downloads\+3\dltx"; %临时笔记本路径 动力特性
 decide = 0;
 
 for k1 = 1:length(path)
@@ -501,7 +506,7 @@ STANDARDIZE_FIGURE(fig1_comps);
 
 % 结构参数（上游）
 % Structural parameters （windward side）
-D = 0.667; % deck depth
+D = 0.667; % deck width
 m = 80/L; % mass of the segment model per unit length
 F0 = up_Fre_vibration; % Frequency without wind
 omega0 = 2 * pi * F0; % Circular frequency without wind
@@ -660,6 +665,8 @@ end
 up_bepsx = polyfit(up_ex, up_epsx, 4);
 up_epsxeq = polyval(up_bepsx, up_ex); %瞬时阻尼比多项式拟合
 figure; plot(up_ex * D, up_epsx, 'g'); hold on; plot(up_ex * D, up_epsxeq, 'r'); title('瞬时阻尼结果 计算结果(绿)+多项式拟合结果(红)')
+figure; plot(up_ex, up_epsx, 'g'); hold on; plot(up_ex, up_epsxeq, 'r'); title('瞬时阻尼结果 计算结果(绿)+多项式拟合结果(红)')
+
 % test=polyval(up_bepsx, up_amp)
 % up_amp = 0.0001:0.0001:1; up_amp = up_amp'; up_epsxeq = polyval(up_bepsx, up_amp);
 % figure
